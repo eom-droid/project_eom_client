@@ -21,6 +21,8 @@ class DefaultSliverAppbarListviewLayout extends StatelessWidget {
           sliverAppBar,
         ],
         body: RefreshIndicator(
+          color: Colors.white,
+          backgroundColor: BACKGROUND_BLACK,
           onRefresh: onRefresh,
           child: listview,
         ),

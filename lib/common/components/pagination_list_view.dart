@@ -1,3 +1,4 @@
+import 'package:client/common/const/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:client/common/model/cursor_pagination_model.dart';
@@ -83,6 +84,10 @@ class _PaginationListViewState<T extends IModelPagination>
               height: 16.0,
             ),
             ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: Colors.black,
+              ),
               onPressed: () {
                 ref.read(widget.provider.notifier).paginate(
                       forceRefetch: true,
@@ -106,6 +111,8 @@ class _PaginationListViewState<T extends IModelPagination>
     }
 
     return RefreshIndicator(
+      color: Colors.white,
+      backgroundColor: BACKGROUND_BLACK,
       onRefresh: () async {
         ref.read(widget.provider.notifier).paginate(forceRefetch: true);
       },

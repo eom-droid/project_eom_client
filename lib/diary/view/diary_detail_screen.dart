@@ -171,21 +171,28 @@ class _DiaryDetailScreenState extends ConsumerState<DiaryDetailScreen> {
               ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    DateFormat("yy년 M월 d일 HH:mm").format(model.postDT),
+                    DateFormat("yy-M-d HH:mm").format(model.postDT),
                     // textAlign: TextAlign.left,
                     style: const TextStyle(
                       fontSize: 14.0,
                       color: BODY_TEXT_COLOR,
                     ),
                   ),
-                  Text(
-                    '날씨 : ${model.weather}',
-                    textAlign: TextAlign.right,
-                    style: const TextStyle(
-                      fontSize: 14.0,
-                      color: BODY_TEXT_COLOR,
+                  SizedBox(
+                    height: 50,
+                    child: Align(
+                      alignment: Alignment.bottomCenter,
+                      child: Text(
+                        model.weather,
+                        textAlign: TextAlign.right,
+                        style: const TextStyle(
+                          fontSize: 14.0,
+                          color: BODY_TEXT_COLOR,
+                        ),
+                      ),
                     ),
                   ),
                 ],
