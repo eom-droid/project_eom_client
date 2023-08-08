@@ -1,7 +1,5 @@
-import 'dart:io';
 import 'dart:ui';
 
-import 'package:android_intent_plus/android_intent.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:client/common/const/colors.dart';
@@ -213,35 +211,25 @@ class MusicCard extends StatelessWidget {
   }
 
   Future<void> launchSpotify(String spotifyId) async {
-    if (Platform.isAndroid) {
-      final String spotifyContent = "https://open.spotify.com/track/$spotifyId";
-      final String branchLink =
-          "https://spotify.link/content_linking?~campaign=&\$deeplink_path=$spotifyContent&\$fallback_url'=$spotifyContent";
-
-      AndroidIntent intent = AndroidIntent(
-        action: 'action_view',
-        data: branchLink,
-      );
-      await intent.launch();
+    if (await canLaunchUrlString('spotify:track:$spotifyId')) {
+      await launchUrlString('spotify:track:$spotifyId',
+          mode: LaunchMode.externalApplication);
     } else {
       final String spotifyContent = "https://open.spotify.com/track/$spotifyId";
-      final String branchLink =
-          "https://spotify.link/content_linking?~campaign=&\$deeplink_path=$spotifyContent&\$fallback_url'=$spotifyContent";
-      await launchUrlString(branchLink);
+      if (await canLaunchUrlString(spotifyContent)) {
+        await launchUrlString(spotifyContent);
+      } else {
+        throw 'Could not launch https://www.youtube.com/channel/UCwXdFgeE9KYzlDdR7TG9cMw';
+      }
     }
   }
 
   Future<void> launchYoutubeMusic(String youtubeMusicId) async {
     final url =
         'https://music.youtube.com/watch?v=$youtubeMusicId&feature=share';
-    if (Platform.isAndroid) {
-      AndroidIntent intent = AndroidIntent(
-        action: 'action_view',
-        data: url,
-      );
-      await intent.launch();
-    } else {
-      await launchUrlString(url);
+
+    if (await canLaunchUrlString(url)) {
+      await launchUrlString(url, mode: LaunchMode.externalApplication);
     }
   }
 }
