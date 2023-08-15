@@ -1,13 +1,12 @@
+import 'package:client/common/layout/default_pagination_nestedScrollView_layout.dart';
+import 'package:client/diary/provider/diary_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:client/common/components/custom_sliver_app_bar.dart';
-import 'package:client/common/components/pagination_list_view.dart';
-import 'package:client/common/layout/defualt_sliver_appbar_listview_layout.dart';
 import 'package:client/common/model/cursor_pagination_model.dart';
 import 'package:client/common/utils/data_utils.dart';
 import 'package:client/diary/components/diary_card.dart';
-import 'package:client/diary/provider/diary_provider.dart';
 import 'package:client/diary/view/diary_detail_screen.dart';
 
 import 'package:video_player/video_player.dart';
@@ -18,27 +17,24 @@ class DiaryScreen extends ConsumerWidget {
   DiaryScreen({super.key});
 
   Map<String, VideoPlayerController>? vidControllers;
+  ScrollController? scrollController;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return DefaultSliverAppbarListviewLayout(
+    return DefaultPaginationNestedScrollViewLayout(
+      provider: diaryProvider,
+      body: (CursorPagination cp, ScrollController controller) {
+        return _renderDiaryList(
+          cp: cp,
+          ref: ref,
+          context: context,
+          controller: controller,
+        );
+      },
       sliverAppBar: _renderAppBar(context),
       onRefresh: () async {
         await ref.read(diaryProvider.notifier).paginate(forceRefetch: true);
       },
-      listview: PaginationListView(
-        provider: diaryProvider,
-        itemBuilder: <DiaryModel>(_, int index, model) {
-          return Container();
-        },
-        customList: (CursorPagination cp) {
-          return _renderDiaryList(
-            cp: cp,
-            ref: ref,
-            context: context,
-          );
-        },
-      ),
     );
   }
 
@@ -72,11 +68,11 @@ class DiaryScreen extends ConsumerWidget {
     );
   }
 
-  Widget _renderDiaryList({
-    required CursorPagination cp,
-    required WidgetRef ref,
-    required BuildContext context,
-  }) {
+  Widget _renderDiaryList(
+      {required CursorPagination cp,
+      required WidgetRef ref,
+      required BuildContext context,
+      required ScrollController controller}) {
     final diaryList = cp.data;
     if (vidControllers == null) {
       vidControllers = {};
@@ -89,11 +85,17 @@ class DiaryScreen extends ConsumerWidget {
       }
     }
 
+    // 상단에 공간을 제거하기 위해서 MediaQuery.removePadding 사용
+    final ScrollController scrollController = ScrollController();
     return MediaQuery.removePadding(
       removeTop: true,
       context: context,
       child: ListView.separated(
-        physics: const BouncingScrollPhysics(),
+        // shrinkWrap 추가
+        controller: scrollController,
+        // primary: true,
+        shrinkWrap: true,
+        // physics: const NeverScrollableScrollPhysics(),
         itemCount: cp.data.length + 1,
         separatorBuilder: (context, index) => const Padding(
           padding: EdgeInsets.only(top: 32.0, left: 16.0, right: 16.0),

@@ -198,10 +198,10 @@ class _DiaryDetailScreenState extends ConsumerState<DiaryDetailScreen> {
                 ],
               ),
               const SizedBox(
-                height: 48.0,
+                height: 32.0,
               ),
               SizedBox(
-                height: 30.0,
+                height: 40.0,
                 child: Marquee(
                   text: model.title,
                   style: const TextStyle(
@@ -275,7 +275,7 @@ class _DiaryDetailScreenState extends ConsumerState<DiaryDetailScreen> {
                 content[index]!,
                 textAlign: TextAlign.center,
                 style: const TextStyle(
-                  fontSize: 14.0,
+                  fontSize: 16.0,
                   color: INPUT_BORDER_COLOR,
                   height: 1.7,
                 ),

@@ -26,7 +26,6 @@ class DataUtils {
 
   static DateTime toLocalTimeZone(String value) {
     return stringToDateTime(value).toLocal();
-    // return value.toLocal();
   }
 
   static List<DiaryContentType> listStringToListDiaryContentType(
