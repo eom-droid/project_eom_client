@@ -174,8 +174,7 @@ class _DiaryDetailScreenState extends ConsumerState<DiaryDetailScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    DateFormat("yy-M-d HH:mm").format(model.postDT),
-                    // textAlign: TextAlign.left,
+                    DateFormat("yy년 M월 d일   HH시 mm분").format(model.postDT),
                     style: const TextStyle(
                       fontSize: 14.0,
                       color: BODY_TEXT_COLOR,
@@ -241,8 +240,9 @@ class _DiaryDetailScreenState extends ConsumerState<DiaryDetailScreen> {
         } else if (e == DiaryContentType.img) {
           return model.imgs[imgIndex++];
         } else if (e == DiaryContentType.vid) {
-          vidControllers[model.vids[vidIndex]] =
-              VideoPlayerController.network(model.vids[vidIndex]);
+          vidControllers[model.vids[vidIndex]] = VideoPlayerController.network(
+            model.vids[vidIndex],
+          );
 
           return model.vids[vidIndex++];
         }

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:client/common/const/colors.dart';
 import 'package:client/music/model/music_model.dart';
+import 'package:marquee/marquee.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 class MusicCard extends StatelessWidget {
@@ -101,41 +102,35 @@ class MusicCard extends StatelessWidget {
                   }
                   return false;
                 },
-                background: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 9),
-                  child: Container(
-                    color: SPOTIFY_LOGO_COLOR.withAlpha(100),
-                    child: const Padding(
-                      padding: EdgeInsets.only(left: 16.0),
-                      child: Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          'Spotify',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 20,
-                            fontFamily: "sabreshark",
-                          ),
+                background: Container(
+                  color: SPOTIFY_LOGO_COLOR.withAlpha(100),
+                  child: const Padding(
+                    padding: EdgeInsets.only(left: 16.0),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'Spotify',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontFamily: "sabreshark",
                         ),
                       ),
                     ),
                   ),
                 ),
-                secondaryBackground: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 9),
-                  child: Container(
-                    color: YOUTUBE_MUSIC_LOGO_COLOR.withAlpha(100),
-                    child: const Padding(
-                      padding: EdgeInsets.only(right: 16.0),
-                      child: Align(
-                        alignment: Alignment.centerRight,
-                        child: Text(
-                          'YT Music',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 20,
-                            fontFamily: "sabreshark",
-                          ),
+                secondaryBackground: Container(
+                  color: YOUTUBE_MUSIC_LOGO_COLOR.withAlpha(100),
+                  child: const Padding(
+                    padding: EdgeInsets.only(right: 16.0),
+                    child: Align(
+                      alignment: Alignment.centerRight,
+                      child: Text(
+                        'YT Music',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontFamily: "sabreshark",
                         ),
                       ),
                     ),
@@ -154,34 +149,47 @@ class MusicCard extends StatelessWidget {
                         ),
                       ),
                       child: Padding(
-                        padding: const EdgeInsets.all(24),
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 24,
+                          horizontal: 20.0,
+                        ),
                         child: SvgPicture.asset(
                           'asset/imgs/icons/spotify-logo.svg',
                           height: 20,
                         ),
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Text(
-                            title,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 22,
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            SizedBox(
+                              height: 30,
+                              child: Marquee(
+                                text: title,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                  fontSize: 18.0,
+                                ),
+                                blankSpace: 20.0,
+                                scrollAxis: Axis.horizontal,
+                                startAfter: const Duration(seconds: 1),
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                pauseAfterRound: const Duration(seconds: 1),
+                              ),
                             ),
-                          ),
-                          Text(
-                            artiste,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 15,
+                            Text(
+                              artiste,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 14,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                     Container(
@@ -193,7 +201,10 @@ class MusicCard extends StatelessWidget {
                         ),
                       ),
                       child: Padding(
-                        padding: const EdgeInsets.all(24),
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 24,
+                          horizontal: 20.0,
+                        ),
                         child: SvgPicture.asset(
                           'asset/imgs/icons/youtube-music-logo.svg',
                           height: 20,
