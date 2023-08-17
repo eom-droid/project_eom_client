@@ -61,6 +61,7 @@ class _DiaryDetailScreenState extends ConsumerState<DiaryDetailScreen> {
       body: SafeArea(
         top: false,
         child: CustomScrollView(
+          physics: const BouncingScrollPhysics(),
           slivers: [
             _renderThumbnail(model: state),
             _renderBasicInfo(model: state),

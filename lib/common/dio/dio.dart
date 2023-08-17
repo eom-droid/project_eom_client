@@ -21,7 +21,7 @@ class CustomInterceptor extends Interceptor {
   // version1에서는 data.dart에 있는 accessToken을 헤더에 넣어준다.
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
-    print('[REQ] [${options.method}] ${options.uri}');
+    // print('[REQ] [${options.method}] ${options.uri}');
     if (options.headers['accessToken'] == 'true') {
       // 헤더 삭제
       options.headers.remove('accessToken');
@@ -36,13 +36,13 @@ class CustomInterceptor extends Interceptor {
 
   @override
   void onResponse(Response response, ResponseInterceptorHandler handler) {
-    print('[RES] [${response.statusCode}] ${response.requestOptions.uri}');
+    // print('[RES] [${response.statusCode}] ${response.requestOptions.uri}');
     super.onResponse(response, handler);
   }
 
   @override
   void onError(DioError err, ErrorInterceptorHandler handler) {
-    print('[ERR] [${err.response?.statusCode}] ${err.requestOptions.uri}');
+    // print('[ERR] [${err.response?.statusCode}] ${err.requestOptions.uri}');
     return handler.reject(err);
 
     // super.onError(err, handler);

@@ -134,6 +134,7 @@ class _DefaultPaginationNestedScrollViewLayoutState<T extends IModelPagination>
         onRefresh: widget.onRefresh,
         edgeOffset: MediaQuery.of(context).size.width + 100,
         child: CustomScrollView(
+          physics: const BouncingScrollPhysics(),
           controller: controller,
           slivers: [
             widget.sliverAppBar,
