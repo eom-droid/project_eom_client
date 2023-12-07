@@ -26,6 +26,7 @@ class CustomInterceptor extends Interceptor {
       // 헤더 삭제
       options.headers.remove('accessToken');
 
+      // 추후 변경 필요
       String token = dotenv.env['AUTH_TOKEN']!;
 
       // 임시 토큰으로 대체

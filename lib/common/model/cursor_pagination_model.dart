@@ -19,7 +19,9 @@ class CursorPaginationLoading extends CursorPaginationBase {}
 
 // 데이터 상태의 class
 // genericArgumentFactories 제너릭으로 값의 형태를 정할 수 있음
-@JsonSerializable(genericArgumentFactories: true)
+@JsonSerializable(
+  genericArgumentFactories: true,
+)
 class CursorPagination<T> extends CursorPaginationBase {
   final CursorPaginationMeta meta;
   final List<T> data;

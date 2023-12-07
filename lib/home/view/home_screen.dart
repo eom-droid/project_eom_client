@@ -1,4 +1,8 @@
+import 'package:client/auth/view/login_screen.dart';
+import 'package:client/user/model/user_with_token_model.dart';
+import 'package:client/user/provider/user_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:client/common/const/data.dart';
@@ -87,14 +91,16 @@ class BackgroundFilter extends StatelessWidget {
   }
 }
 
-class _FrontImagesRender extends StatelessWidget {
+class _FrontImagesRender extends ConsumerWidget {
   const _FrontImagesRender();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final aspectWidth = MediaQuery.of(context).size.width / defaultWidth;
     List<int> middleImageList = List.generate(
         (MediaQuery.of(context).size.width / 40).ceil(), (index) => index);
+
+    final user = ref.watch(userProvider);
 
     return SafeArea(
       top: true,
@@ -262,17 +268,25 @@ class _FrontImagesRender extends StatelessWidget {
               width: 194.0 * aspectWidth,
             ),
           ),
+
           Positioned(
             bottom: 0,
-            child: _menuBar(
-              context: context,
-              onDiaryTap: () {
-                context.pushNamed(DiaryScreen.routeName);
-              },
-              onPlayListTap: () {
-                context.pushNamed(MusicScreen.routeName);
-              },
-            ),
+            child: user is UserWithTokenModel
+                ? _menuBar(
+                    context: context,
+                    onDiaryTap: () {
+                      context.go(DiaryScreen.routeName);
+                    },
+                    onPlayListTap: () {
+                      context.go(MusicScreen.routeName);
+                    },
+                  )
+                : ElevatedButton(
+                    onPressed: () {
+                      context.pushNamed(LoginScreen.routerName);
+                    },
+                    child: const Text('로그인'),
+                  ),
           ),
         ],
       ),
