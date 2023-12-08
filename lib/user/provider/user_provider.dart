@@ -105,4 +105,9 @@ class UserStateNotifier extends StateNotifier<UserWithTokenModelBase?> {
       return;
     }
   }
+
+  logout() async {
+    // await secureStorage.deleteAll();
+    state = null;
+  }
 }

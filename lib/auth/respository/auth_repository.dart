@@ -1,24 +1,34 @@
 import 'package:client/auth/model/token_model.dart';
+import 'package:client/common/const/data.dart';
 import 'package:client/common/dio/dio.dart';
+import 'package:client/common/provider/secure_storage.dart';
 import 'package:dio/dio.dart' hide Headers;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 const SET_COOKIE_SPLIT_PATTERN = "; ";
 
 final authRepositoryProvider = Provider((ref) {
-  final dio = ref.read(dioProvider);
+  final dio = ref.watch(dioProvider);
+  final storage = ref.watch(secureStorageProvider);
   String ip = dotenv.env['IP']!;
-  return AuthRepository(dio: dio, baseUrl: 'http://$ip/api/v1/auth');
+  return AuthRepository(
+    dio: dio,
+    baseUrl: 'http://$ip/api/v1/auth',
+    storage: storage,
+  );
 });
 
 class AuthRepository {
   final String baseUrl;
   final Dio dio;
+  final FlutterSecureStorage storage;
 
   AuthRepository({
     required this.baseUrl,
     required this.dio,
+    required this.storage,
   });
 
   Future<TokenModel?> kakaoJoin(String kakaoToken) async {
@@ -55,6 +65,11 @@ class AuthRepository {
     if (refreshTokenFromCookie == null) {
       return null;
     }
+
+    await Future.wait([
+      storage.write(key: ACCESS_TOKEN_KEY, value: accessToken),
+      storage.write(key: REFRESH_TOKEN_KEY, value: refreshTokenFromCookie)
+    ]);
 
     return TokenModel(
       accessToken: accessToken,

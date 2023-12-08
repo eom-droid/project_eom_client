@@ -1,11 +1,11 @@
 import 'package:client/auth/view/login_screen.dart';
+import 'package:client/common/components/default_moving_background.dart';
 import 'package:client/user/model/user_with_token_model.dart';
 import 'package:client/user/provider/user_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:go_router/go_router.dart';
-import 'package:client/common/const/data.dart';
 import 'package:client/common/const/setting.dart';
 import 'dart:math' as math;
 
@@ -13,80 +13,13 @@ import 'package:client/diary/view/diary_screen.dart';
 import 'package:client/home/components/routing_button.dart';
 import 'package:client/music/view/music_screen.dart';
 
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
-  @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Stack(
-        children: [
-          BackgroundImage(),
-          BackgroundFilter(),
-          _FrontImagesRender(),
-        ],
-      ),
-    );
-  }
-}
-
-class BackgroundImage extends StatefulWidget {
-  const BackgroundImage({super.key});
-
-  @override
-  State<BackgroundImage> createState() => _BackgroundImageState();
-}
-
-class _BackgroundImageState extends State<BackgroundImage>
-    with TickerProviderStateMixin {
-  late final AnimationController _animationController = AnimationController(
-    duration: const Duration(seconds: 120),
-    vsync: this,
-    value: 0.0,
-    lowerBound: 0.0,
-    upperBound:
-        (homeBackgroundImageWidth * MediaQuery.of(context).size.height) -
-            (MediaQuery.of(context).size.width),
-  )..repeat(reverse: true);
-
-  @override
-  void dispose() {
-    // TODO: implement dispose
-    _animationController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _animationController,
-      builder: ((context, child) {
-        return Positioned(
-          left: -_animationController.value,
-          child: child!,
-        );
-      }),
-      child: Image.asset(
-        "asset/imgs/home_background.png",
-        height: MediaQuery.of(context).size.height,
-        fit: BoxFit.contain,
-      ),
-    );
-  }
-}
-
-class BackgroundFilter extends StatelessWidget {
-  const BackgroundFilter({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: const Color(0xFFD9D9D9).withOpacity(0.1),
+    return const DefaultMovingBackground(
+      child: _FrontImagesRender(),
     );
   }
 }
@@ -268,9 +201,16 @@ class _FrontImagesRender extends ConsumerWidget {
               width: 194.0 * aspectWidth,
             ),
           ),
+          ElevatedButton(
+            onPressed: () {
+              ref.read(userProvider.notifier).logout();
+            },
+            child: const Text("로그아웃"),
+          ),
 
           Positioned(
             bottom: 0,
+            // 현재 로그인 상태에 따라서 다른 버튼을 보여준다.
             child: user is UserWithTokenModel
                 ? _menuBar(
                     context: context,
