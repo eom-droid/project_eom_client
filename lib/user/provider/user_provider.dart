@@ -64,6 +64,39 @@ class UserStateNotifier extends StateNotifier<UserWithTokenModelBase?> {
     }
   }
 
+  Future<bool> emailLogin({
+    required String email,
+    required String password,
+  }) async {
+    try {
+      final token = await authRepository.emailLogin(
+        email: email,
+        password: password,
+      );
+      if (token == null) {
+        throw Exception("토큰이 없습니다.");
+      }
+      final user = await userRepository.getMe(
+        accessTokenWithBearer: "Bearer ${token.accessToken}",
+      );
+      if (user == null) {
+        throw Exception("유저 정보가 없습니다.");
+      }
+
+      // secureStorage write
+      await Future.wait([
+        secureStorage.write(key: ACCESS_TOKEN_KEY, value: token.accessToken),
+        secureStorage.write(key: REFRESH_TOKEN_KEY, value: token.refreshToken)
+      ]);
+
+      state = UserWithTokenModel(token: token, user: user);
+    } catch (e) {
+      state = UserWithTokenModelError(message: "로그인 실패");
+      return false;
+    }
+    return true;
+  }
+
   Future<String> getAccessTokenByRefreshToken({
     required String refreshToken,
   }) async {

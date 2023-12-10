@@ -77,6 +77,18 @@ class AuthRepository {
     );
   }
 
+  Future<bool> sendVerificationCode({
+    required String email,
+  }) async {
+    final resp = await dio.get(
+      '$baseUrl/join/email/verificationCode/send',
+      data: {
+        "email": email,
+      },
+    );
+    return resp.statusCode == 200 ? true : false;
+  }
+
   String? _extractRefreshTokenFromCookie(Response<dynamic> resp) {
     final setCookie = resp.headers['set-cookie'];
 
@@ -87,6 +99,57 @@ class AuthRepository {
     return setCookie[0]
         .split(SET_COOKIE_SPLIT_PATTERN)[0]
         .split("refreshToken=")[1];
+  }
+
+  Future<bool> join({
+    required String email,
+    required String password,
+    required String verificationCode,
+  }) async {
+    try {
+      final resp = await dio.post(
+        '$baseUrl/join/email',
+        data: {
+          "email": email,
+          "password": password,
+          "verificationCode": verificationCode,
+        },
+      );
+
+      return resp.statusCode == 200 ? true : false;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  Future<TokenModel?> emailLogin({
+    required String email,
+    required String password,
+  }) async {
+    final resp = await dio.post(
+      '$baseUrl/login/email',
+      data: {
+        "email": email,
+        "password": password,
+      },
+    );
+
+    final accessToken = resp.data['accessToken'];
+    final refreshTokenFromCookie = _extractRefreshTokenFromCookie(resp);
+
+    if (refreshTokenFromCookie == null) {
+      return null;
+    }
+
+    await Future.wait([
+      storage.write(key: ACCESS_TOKEN_KEY, value: accessToken),
+      storage.write(key: REFRESH_TOKEN_KEY, value: refreshTokenFromCookie)
+    ]);
+
+    return TokenModel(
+      accessToken: accessToken,
+      refreshToken: refreshTokenFromCookie,
+    );
   }
 
   // @POST('/access-token')

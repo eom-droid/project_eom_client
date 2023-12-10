@@ -19,7 +19,7 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const DefaultMovingBackground(
-      child: _FrontImagesRender(),
+      children: [_FrontImagesRender()],
     );
   }
 }
@@ -31,7 +31,9 @@ class _FrontImagesRender extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final aspectWidth = MediaQuery.of(context).size.width / defaultWidth;
     List<int> middleImageList = List.generate(
-        (MediaQuery.of(context).size.width / 40).ceil(), (index) => index);
+      (MediaQuery.of(context).size.width / 40).ceil(),
+      (index) => index,
+    );
 
     final user = ref.watch(userProvider);
 

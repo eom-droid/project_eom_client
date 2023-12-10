@@ -4,9 +4,12 @@ import 'package:flutter/material.dart';
 class CustomTextFormField extends StatelessWidget {
   final String? hintText;
   final String? errorText;
+  final String? labelText;
   final bool obscureText;
   final bool autofocus;
+  final TextInputType keyboardType;
   final ValueChanged<String>? onChanged;
+  final bool? enable;
 
   const CustomTextFormField({
     super.key,
@@ -14,7 +17,10 @@ class CustomTextFormField extends StatelessWidget {
     this.errorText,
     this.obscureText = false,
     this.autofocus = false,
+    this.labelText,
+    this.keyboardType = TextInputType.text,
     required this.onChanged,
+    this.enable = true,
   });
 
   @override
@@ -26,12 +32,35 @@ class CustomTextFormField extends StatelessWidget {
       ),
     );
 
+    if (labelText != null) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            labelText!,
+            style: const TextStyle(
+              color: Colors.white,
+            ),
+            textAlign: TextAlign.start,
+          ),
+          const SizedBox(height: 8),
+          textFormFiled(baseBorder),
+        ],
+      );
+    }
+    return textFormFiled(baseBorder);
+  }
+
+  Widget textFormFiled(OutlineInputBorder baseBorder) {
     return TextFormField(
+      keyboardType: keyboardType,
       cursorColor: PRIMARY_COLOR,
       // 비밀번호 입력할때
       obscureText: obscureText,
       autofocus: autofocus,
       onChanged: onChanged,
+      enabled: enable,
+
       decoration: InputDecoration(
         contentPadding: const EdgeInsets.all(10),
         hintText: hintText,
@@ -40,7 +69,11 @@ class CustomTextFormField extends StatelessWidget {
           fontSize: 14.0,
         ),
         errorText: errorText,
-        fillColor: INPUT_BG_COLOR,
+        fillColor: enable! ? INPUT_BG_COLOR : BODY_TEXT_COLOR,
+        errorStyle: const TextStyle(
+          color: Color.fromARGB(255, 255, 213, 210),
+          fontSize: 12.0,
+        ),
         // false - 배경색 없음
         // true - 배경색 있음
         filled: true,

@@ -2,20 +2,30 @@ import 'package:client/common/const/data.dart';
 import 'package:flutter/material.dart';
 
 class DefaultMovingBackground extends StatelessWidget {
-  final Widget child;
+  final List<Widget> children;
+  final double opacity;
+  final AppBar? appBar;
+  final Color filterColor;
   const DefaultMovingBackground({
     super.key,
-    required this.child,
+    required this.children,
+    this.filterColor = const Color(0xFFD9D9D9),
+    this.appBar,
+    this.opacity = 0.1,
   });
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: appBar,
       body: Stack(
         children: [
           const _BackgroundImage(),
-          const _BackgroundFilter(),
-          child,
+          _BackgroundFilter(
+            opacity: opacity,
+            filterColor: filterColor,
+          ),
+          ...children,
         ],
       ),
     );
@@ -68,12 +78,18 @@ class _BackgroundImageState extends State<_BackgroundImage>
 }
 
 class _BackgroundFilter extends StatelessWidget {
-  const _BackgroundFilter();
+  final double opacity;
+  final Color filterColor;
+  const _BackgroundFilter({
+    required this.opacity,
+    required this.filterColor,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: const Color(0xFFD9D9D9).withOpacity(0.1),
+      color: filterColor.withOpacity(opacity),
+      // color: const Color(0xFFD9D9D9).withOpacity(opacity),
     );
   }
 }

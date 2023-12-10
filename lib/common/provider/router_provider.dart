@@ -1,3 +1,4 @@
+import 'package:client/auth/view/join_screen.dart';
 import 'package:client/auth/view/login_screen.dart';
 import 'package:client/common/view/splash_screen.dart';
 import 'package:client/user/model/user_with_token_model.dart';
@@ -64,14 +65,13 @@ class RouterProvider extends ChangeNotifier {
             GoRoute(
               path: "login",
               name: LoginScreen.routerName,
-              builder: (context, state) => const LoginScreen(),
+              builder: (context, state) => LoginScreen(),
             ),
-
-            // GoRoute(
-            //   path: "/join",
-            //   name: JoinScreen.routeName,
-            //   builder: (context, state) => const JoinScreen(),
-            // ),
+            GoRoute(
+              path: "join",
+              name: JoinScreen.routeName,
+              builder: (context, state) => const JoinScreen(),
+            ),
           ],
         ),
         GoRoute(
@@ -83,13 +83,18 @@ class RouterProvider extends ChangeNotifier {
 
   String? redirectLogic(BuildContext _, GoRouterState state) {
     final UserWithTokenModelBase? user = ref.read(userProvider);
-    final logginIn = state.location == '/login';
+    final loggingIn = state.location == '/login';
+    final joiningIn = state.location == '/join';
 
     // 유저 정보가 없는데
     // 로그인 중이면 그대로 로그인 페이지에 두고
     // 만약 로그인중이 아니라면 로그인 페이지로 이동
     if (user == null) {
-      return logginIn ? null : '/login';
+      return loggingIn
+          ? null
+          : joiningIn
+              ? null
+              : '/login';
     }
 
     // user가 null이 아님
@@ -99,13 +104,13 @@ class RouterProvider extends ChangeNotifier {
     // 로그인 중이거나 현재 위치가 SplashScreen이면
     // 홈으로 이동
     if (user is UserWithTokenModel) {
-      return logginIn || state.location == '/splash' ? '/' : null;
+      return loggingIn || joiningIn || state.location == '/splash' ? '/' : null;
     }
 
     // UserModelError
     // 무조건 login페이지로 이동
     if (user is UserWithTokenModelError) {
-      return !logginIn ? '/login' : null;
+      return !loggingIn || !joiningIn ? '/login' : null;
     }
     return null;
   }
