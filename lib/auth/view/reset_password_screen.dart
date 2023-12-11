@@ -9,15 +9,16 @@ import 'package:client/user/provider/user_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class JoinScreen extends ConsumerStatefulWidget {
-  static String get routeName => "join";
-  const JoinScreen({super.key});
+class ResetPasswordScreen extends ConsumerStatefulWidget {
+  static String get routeName => "resetPassword";
+  const ResetPasswordScreen({super.key});
 
   @override
-  ConsumerState<JoinScreen> createState() => _JoinScreenState();
+  ConsumerState<ResetPasswordScreen> createState() =>
+      _ResetPasswordScreenState();
 }
 
-class _JoinScreenState extends ConsumerState<JoinScreen> {
+class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
   String _email = "";
 
   String? _emailError;
@@ -120,8 +121,8 @@ class _JoinScreenState extends ConsumerState<JoinScreen> {
                   height: 16.0,
                 ),
                 CustomTextFormField(
-                  labelText: '비밀번호',
-                  hintText: "비밀번호",
+                  labelText: '신규비밀번호',
+                  hintText: "신규비밀번호",
                   errorText: _passwordError,
                   obscureText: true,
                   onChanged: (value) {
@@ -132,8 +133,8 @@ class _JoinScreenState extends ConsumerState<JoinScreen> {
                   height: 16.0,
                 ),
                 CustomTextFormField(
-                  labelText: '비밀번호 확인',
-                  hintText: "비밀번호 확인",
+                  labelText: '신규비밀번호 확인',
+                  hintText: "신규비밀번호 확인",
                   errorText: _passwordCheckError,
                   obscureText: true,
                   onChanged: (value) {

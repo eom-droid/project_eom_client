@@ -19,7 +19,10 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const DefaultMovingBackground(
-      children: [_FrontImagesRender()],
+      showAppBar: false,
+      children: [
+        _FrontImagesRender(),
+      ],
     );
   }
 }
@@ -217,10 +220,10 @@ class _FrontImagesRender extends ConsumerWidget {
                 ? _menuBar(
                     context: context,
                     onDiaryTap: () {
-                      context.go(DiaryScreen.routeName);
+                      context.goNamed(DiaryScreen.routeName);
                     },
                     onPlayListTap: () {
-                      context.go(MusicScreen.routeName);
+                      context.goNamed(MusicScreen.routeName);
                     },
                   )
                 : ElevatedButton(

@@ -1,10 +1,11 @@
 import 'package:client/auth/view/join_screen.dart';
-import 'package:client/common/components/custom_app_bar.dart';
+import 'package:client/auth/view/reset_password_screen.dart';
 import 'package:client/common/components/custom_main_button.dart';
 import 'package:client/common/components/custom_text_form_field.dart';
 import 'package:client/common/components/default_moving_background.dart';
 import 'package:client/common/const/colors.dart';
 import 'package:client/common/utils/data_utils.dart';
+import 'package:client/common/view/root_tab.dart';
 import 'package:client/user/provider/user_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -32,73 +33,55 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final height = MediaQuery.of(context).size.height;
-    return WillPopScope(
-      onWillPop: () async => false,
-      child: DefaultMovingBackground(
-          opacity: 0.5,
-          filterColor: Colors.black,
-          children: [
-            SingleChildScrollView(
-              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-              child: SizedBox(
-                height: height,
-                child: SafeArea(
-                  bottom: true,
-                  top: true,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      CustomAppBar(close: () {
-                        context.pop();
-                      }),
-                      SizedBox(
-                        height: height * 0.15,
-                      ),
-                      _emailLoginPart(
-                        joinPressed: () {
-                          context.pushNamed(JoinScreen.routeName);
-                        },
-                        passwordFindPressed: () {
-                          context.pushNamed(JoinScreen.routeName);
-                          //추후
-                        },
-                        loginPressed: isLoading
-                            ? null
-                            : () async {
-                                setState(() {
-                                  isLoading = true;
-                                });
-                                await emailLogin(
-                                  email: _email,
-                                  password: _password,
-                                );
-                                setState(() {
-                                  isLoading = false;
-                                });
-                              },
-                      ),
-                      const Padding(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 16.0,
-                        ),
-                        child: Divider(
-                          color: INPUT_BG_COLOR,
-                          thickness: 1,
-                        ),
-                      ),
-                      const SizedBox(
-                        height: 16.0,
-                      ),
-                      _socialLoginPart(),
-                      const SizedBox(height: 16.0),
-                    ],
+    return DefaultMovingBackground(
+        opacity: 0.2,
+        filterColor: Colors.black,
+        children: [
+          SingleChildScrollView(
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              height: MediaQuery.of(context).size.height,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _emailLoginPart(
+                    joinPressed: () {
+                      context.pushNamed(JoinScreen.routeName);
+                    },
+                    passwordFindPressed: () {
+                      context.pushNamed(ResetPasswordScreen.routeName);
+                      //추후
+                    },
+                    loginPressed: isLoading
+                        ? null
+                        : () async {
+                            setState(() {
+                              isLoading = true;
+                            });
+                            await emailLogin(
+                              email: _email,
+                              password: _password,
+                            );
+                            setState(() {
+                              isLoading = false;
+                            });
+                          },
                   ),
-                ),
+                  const Divider(
+                    color: INPUT_BG_COLOR,
+                    thickness: 1,
+                  ),
+                  const SizedBox(
+                    height: 16.0,
+                  ),
+                  _socialLoginPart(),
+                ],
               ),
             ),
-          ]),
-    );
+          ),
+        ]);
   }
 
   Widget _socialLoginPart() {
@@ -114,7 +97,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         ),
         const SizedBox(height: 32.0),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 32.0),
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
@@ -152,20 +135,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         });
         final resp = await onPresseExecute();
         if (resp) {
-          context.go('/home');
+          context.goNamed(RootTab.routeName);
         } else {
           showSnackBar(
             content: "로그인에 실패했습니다",
           );
         }
         setState(() {
-          isLoading = true;
+          isLoading = false;
         });
       },
       child: Image.asset(
         url,
-        width: 50,
-        height: 50,
+        width: 47,
+        height: 47,
       ),
     );
   }
@@ -175,75 +158,72 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     required VoidCallback passwordFindPressed,
     required VoidCallback? loginPressed,
   }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          CustomTextFormField(
-            onChanged: (value) {
-              _email = value;
-            },
-            labelText: "이메일",
-          ),
-          const SizedBox(height: 16.0),
-          CustomTextFormField(
-            obscureText: true,
-            labelText: "패스워드",
-            onChanged: (value) {
-              _password = value;
-            },
-          ),
-          const SizedBox(height: 32),
-          CustomMainButton(
-            onPressed: loginPressed,
-            child: isLoading
-                ? const SizedBox(
-                    width: 23,
-                    height: 23,
-                    child: CircularProgressIndicator(
-                      color: Colors.white,
-                    ),
-                  )
-                : const Text(
-                    "로그인",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16.0,
-                    ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        CustomTextFormField(
+          onChanged: (value) {
+            _email = value;
+          },
+          labelText: "이메일",
+        ),
+        const SizedBox(height: 16.0),
+        CustomTextFormField(
+          obscureText: true,
+          labelText: "패스워드",
+          onChanged: (value) {
+            _password = value;
+          },
+        ),
+        const SizedBox(height: 32),
+        CustomMainButton(
+          onPressed: loginPressed,
+          child: isLoading
+              ? const SizedBox(
+                  width: 23,
+                  height: 23,
+                  child: CircularProgressIndicator(
+                    color: Colors.white,
                   ),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: TextButton(
-                  onPressed: joinPressed,
-                  child: const Text(
-                    '이메일 회원가입',
-                    style: TextStyle(
-                      color: INPUT_BG_COLOR,
-                      fontSize: 16.0,
-                    ),
+                )
+              : const Text(
+                  "로그인",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16.0,
+                  ),
+                ),
+        ),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Expanded(
+              child: TextButton(
+                onPressed: joinPressed,
+                child: const Text(
+                  '이메일 회원가입',
+                  style: TextStyle(
+                    color: INPUT_BG_COLOR,
+                    fontSize: 16.0,
                   ),
                 ),
               ),
-              Expanded(
-                child: TextButton(
-                  onPressed: passwordFindPressed,
-                  child: const Text(
-                    '비밀번호 까묵',
-                    style: TextStyle(
-                      color: INPUT_BG_COLOR,
-                      fontSize: 16.0,
-                    ),
+            ),
+            Expanded(
+              child: TextButton(
+                onPressed: passwordFindPressed,
+                child: const Text(
+                  '비밀번호 까묵',
+                  style: TextStyle(
+                    color: INPUT_BG_COLOR,
+                    fontSize: 16.0,
                   ),
                 ),
               ),
-            ],
-          ),
-        ],
-      ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 
@@ -289,6 +269,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           email: email,
           password: password,
         );
+    // 추후 처리 필요
   }
 
   Future<bool> kakaoLogin() async {
@@ -320,5 +301,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   Future<bool> naverLogin() async {
     return true;
+    // try {
+    //   final NaverLoginResult result = await FlutterNaverLogin.logIn();
+
+    //   if (result.status == NaverLoginStatus.loggedIn) {
+    //     print('accessToken = ${result.accessToken}');
+    //     print('id = ${result.account.id}');
+    //     print('email = ${result.account.email}');
+    //     print('name = ${result.account.name}');
+    //   }
+    //   return true;
+    // } catch (e) {
+    //   print(e);
+    //   return false;
+    // }
   }
 }
