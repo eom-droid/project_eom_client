@@ -93,6 +93,9 @@ class RouterProvider extends ChangeNotifier {
     final joinRoute = state.location == '/join';
     final resetPasswordRoute = state.location == '/resetPassword';
     final splashRoute = state.location == '/splash';
+    if (user is UserWithTokenModelError) {
+      print(user.message);
+    }
 
     // 유저 정보가 없는데
     // 로그인 중이면 그대로 로그인 페이지에 두고

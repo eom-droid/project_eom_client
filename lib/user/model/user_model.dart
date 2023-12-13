@@ -1,4 +1,4 @@
-import 'package:client/auth/model/token_model.dart';
+import 'package:client/common/const/data.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:client/common/utils/data_utils.dart';
 
@@ -9,19 +9,24 @@ class UserModel {
   // id : 유일 아이디 값
   @JsonKey(name: '_id')
   final String id;
-  // title : 노래 제목
+  // email : 이메일
   final String? email;
-  // review : 한줄평
+  // nickName : 닉네임
   final String? nickName;
-  // albumCover : 앨범 커버
+  // profileImg : 프로필 이미지
   @JsonKey(
     fromJson: DataUtils.pathToUrlNullable,
   )
   final String? profileImg;
-  // youtubeMusicId : 유튜브 뮤직 ID
+  // snsId : sns 아이디
   final String? snsId;
-  // spotifyId : Spotify ID
+  // provider : 제공자
   final String? provider;
+  // role : 권한
+  @JsonKey(
+    fromJson: DataUtils.numberToRoleType,
+  )
+  final RoleType role;
 
   UserModel({
     required this.id,
@@ -30,6 +35,7 @@ class UserModel {
     this.profileImg,
     this.snsId,
     this.provider,
+    required this.role,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) =>

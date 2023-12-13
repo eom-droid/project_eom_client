@@ -80,13 +80,17 @@ class AuthRepository {
   Future<bool> sendVerificationCode({
     required String email,
   }) async {
-    final resp = await dio.get(
-      '$baseUrl/join/email/verificationCode/send',
-      data: {
-        "email": email,
-      },
-    );
-    return resp.statusCode == 200 ? true : false;
+    try {
+      final resp = await dio.get(
+        '$baseUrl/join/email/verificationCode/send',
+        data: {
+          "email": email,
+        },
+      );
+      return true;
+    } catch (e) {
+      return false;
+    }
   }
 
   String? _extractRefreshTokenFromCookie(Response<dynamic> resp) {
@@ -152,8 +156,24 @@ class AuthRepository {
     );
   }
 
-  // @POST('/access-token')
-  // Future<UserModel> getAccessToken({
-  //   @Body() String code
-  // });
+  Future<bool> resetPassword({
+    required String email,
+    required String password,
+    required String verificationCode,
+  }) async {
+    try {
+      final resp = await dio.post(
+        '$baseUrl/password/reset',
+        data: {
+          "email": email,
+          "password": password,
+          "verificationCode": verificationCode,
+        },
+      );
+
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
 }

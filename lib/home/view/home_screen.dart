@@ -230,7 +230,7 @@ class _FrontImagesRender extends ConsumerWidget {
                     onPressed: () {
                       context.pushNamed(LoginScreen.routerName);
                     },
-                    child: const Text('로그인'),
+                    child: const Text('로그인/회원가입'),
                   ),
           ),
         ],

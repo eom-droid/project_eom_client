@@ -72,18 +72,22 @@ class _JoinScreenState extends ConsumerState<JoinScreen> {
                       width: 16.0,
                     ),
                     CustomSubButton(
-                      onPressed: () {
+                      onPressed: () async {
                         if (_isVerifiactionCodeSent == null) {
                           return;
                         }
                         setState(() {
-                          _isVerifiactionCodeSent = true;
+                          _isVerifiactionCodeSent = null;
                         });
-                        sendVerificationCode(
+                        final result = await sendVerificationCode(
                           email: _email,
                         );
                         setState(() {
-                          _isVerifiactionCodeSent = true;
+                          if (result) {
+                            _isVerifiactionCodeSent = true;
+                          } else {
+                            _isVerifiactionCodeSent = false;
+                          }
                         });
                       },
                       child: _isVerifiactionCodeSent == null
@@ -156,8 +160,12 @@ class _JoinScreenState extends ConsumerState<JoinScreen> {
                           });
                         },
                   child: isLoading
-                      ? const CircularProgressIndicator(
-                          color: Colors.white,
+                      ? const SizedBox(
+                          width: 23,
+                          height: 23,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                          ),
                         )
                       : const Text(
                           "회원가입",
@@ -249,19 +257,19 @@ class _JoinScreenState extends ConsumerState<JoinScreen> {
     // userProvider에서 state가 변경됨에 따라 redirect 로직을 따르고 있기 때문
   }
 
-  sendVerificationCode({
+  Future<bool> sendVerificationCode({
     required String email,
   }) async {
     if (email.isEmpty) {
       showSnackBar(content: "이메일을 입력해주세요.");
-      return;
+      return false;
     }
 
     final bool emailValid = DataUtils.isEmailValid(email);
 
     if (!emailValid) {
       showSnackBar(content: "이메일 형식이 올바르지 않습니다.");
-      return;
+      return false;
     }
 
     final result = await ref
@@ -270,8 +278,10 @@ class _JoinScreenState extends ConsumerState<JoinScreen> {
 
     if (result) {
       showSnackBar(content: "인증번호가 발송되었습니다.");
+      return true;
     } else {
-      showSnackBar(content: "이미 가입된 이메일입니다.");
+      showSnackBar(content: "인증번호 발송에 실패하였습니다.");
+      return false;
     }
   }
 

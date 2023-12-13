@@ -1,13 +1,14 @@
 import 'package:client/auth/respository/auth_repository.dart';
+import 'package:client/auth/view/login_screen.dart';
 import 'package:client/common/components/custom_main_button.dart';
 import 'package:client/common/components/custom_sub_button.dart';
 import 'package:client/common/components/custom_text_form_field.dart';
 import 'package:client/common/components/default_moving_background.dart';
 import 'package:client/common/const/colors.dart';
 import 'package:client/common/utils/data_utils.dart';
-import 'package:client/user/provider/user_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 class ResetPasswordScreen extends ConsumerStatefulWidget {
   static String get routeName => "resetPassword";
@@ -73,18 +74,23 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                       width: 16.0,
                     ),
                     CustomSubButton(
-                      onPressed: () {
+                      onPressed: () async {
                         if (_isVerifiactionCodeSent == null) {
                           return;
                         }
                         setState(() {
-                          _isVerifiactionCodeSent = true;
+                          _isVerifiactionCodeSent = null;
                         });
-                        sendVerificationCode(
+                        final result = await sendVerificationCode(
                           email: _email,
                         );
+
                         setState(() {
-                          _isVerifiactionCodeSent = true;
+                          if (result) {
+                            _isVerifiactionCodeSent = true;
+                          } else {
+                            _isVerifiactionCodeSent = false;
+                          }
                         });
                       },
                       child: _isVerifiactionCodeSent == null
@@ -151,7 +157,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                           setState(() {
                             isLoading = true;
                           });
-                          await join();
+                          await changePassword();
                           setState(() {
                             isLoading = false;
                           });
@@ -161,7 +167,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                           color: Colors.white,
                         )
                       : const Text(
-                          "회원가입",
+                          "비밀번호 바꾸기",
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 16.0,
@@ -176,7 +182,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
     );
   }
 
-  join() async {
+  changePassword() async {
     _emailError = null;
     _certificationNumberError = null;
     _passwordError = null;
@@ -208,8 +214,8 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
     }
 
     if (_password.isEmpty) {
-      showSnackBar(content: "비밀번호를 입력해주세요.");
-      _passwordError = "비밀번호를 입력해주세요.";
+      showSnackBar(content: "신규 비밀번호를 입력해주세요.");
+      _passwordError = "신규 비밀번호를 입력해주세요.";
       return;
     }
     if (_passwordCheck.length < 8) {
@@ -219,8 +225,8 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
     }
 
     if (_passwordCheck.isEmpty) {
-      showSnackBar(content: "비밀번호 확인을 입력해주세요.");
-      _passwordCheckError = "비밀번호 확인을 입력해주세요.";
+      showSnackBar(content: "신규 비밀번호 확인을 입력해주세요.");
+      _passwordCheckError = "신규 비밀번호 확인을 입력해주세요.";
       return;
     }
 
@@ -230,7 +236,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
       return;
     }
 
-    final joinResp = await ref.read(authRepositoryProvider).join(
+    final joinResp = await ref.read(authRepositoryProvider).resetPassword(
           email: _email,
           password: _password,
           verificationCode: _certificationNumber,
@@ -240,29 +246,27 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
       showSnackBar(content: "인증번호를 확인해주세요.");
       return;
     }
-    showSnackBar(content: "회원가입이 완료되었습니다.");
+    showSnackBar(content: "비밀번호 변경이 완료되었습니다.");
 
-    await ref.read(userProvider.notifier).emailLogin(
-          email: _email,
-          password: _password,
-        );
+    context.goNamed(LoginScreen.routerName);
+
     // 마지막에 라우팅이 없는 이유
     // userProvider에서 state가 변경됨에 따라 redirect 로직을 따르고 있기 때문
   }
 
-  sendVerificationCode({
+  Future<bool> sendVerificationCode({
     required String email,
   }) async {
     if (email.isEmpty) {
       showSnackBar(content: "이메일을 입력해주세요.");
-      return;
+      return false;
     }
 
     final bool emailValid = DataUtils.isEmailValid(email);
 
     if (!emailValid) {
       showSnackBar(content: "이메일 형식이 올바르지 않습니다.");
-      return;
+      return false;
     }
 
     final result = await ref
@@ -271,8 +275,10 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
 
     if (result) {
       showSnackBar(content: "인증번호가 발송되었습니다.");
+      return true;
     } else {
-      showSnackBar(content: "이미 가입된 이메일입니다.");
+      showSnackBar(content: "인증번호 발송에 실패하였습니다.");
+      return false;
     }
   }
 

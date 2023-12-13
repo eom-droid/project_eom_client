@@ -269,6 +269,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           email: email,
           password: password,
         );
+
+    if (!resp) {
+      showSnackBar(
+        content: "이메일과 비밀번호를 확인해주세요",
+      );
+      return;
+    }
     // 추후 처리 필요
   }
 

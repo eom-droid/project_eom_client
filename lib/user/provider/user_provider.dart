@@ -119,10 +119,14 @@ class UserStateNotifier extends StateNotifier<UserWithTokenModelBase?> {
       if (token == null) {
         throw Exception("토큰이 없습니다.");
       }
+
       final user = await userRepository.getMe(
         accessTokenWithBearer: "Bearer ${token.accessToken}",
       );
+
       if (user == null) {
+        print(user);
+
         throw Exception("유저 정보가 없습니다.");
       }
 

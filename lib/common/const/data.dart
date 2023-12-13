@@ -49,6 +49,28 @@ enum DiaryCategory {
   }
 }
 
+enum RoleType {
+  user(0),
+  manager(5),
+  admin(10);
+
+  final int value;
+  const RoleType(this.value);
+
+  factory RoleType.getByCode(int code) {
+    switch (code) {
+      case 0:
+        return RoleType.user;
+      case 5:
+        return RoleType.manager;
+      case 10:
+        return RoleType.admin;
+      default:
+        return RoleType.user;
+    }
+  }
+}
+
 const paginationDefaultFetcgCount = 10;
 
 const youtubeRatio = 0.56;
