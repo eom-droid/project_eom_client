@@ -32,7 +32,6 @@ class DiaryDetailModel extends DiaryModel {
     required super.writer,
     required super.weather,
     required super.hashtags,
-    required super.postDT,
     required super.thumbnail,
     required super.category,
     required super.isShown,
@@ -40,6 +39,7 @@ class DiaryDetailModel extends DiaryModel {
     required this.imgs,
     required this.vids,
     required this.contentOrder,
+    required super.createdAt,
   });
 
   factory DiaryDetailModel.empty() => DiaryDetailModel(
@@ -48,7 +48,6 @@ class DiaryDetailModel extends DiaryModel {
         writer: '엄태호',
         weather: '',
         hashtags: [],
-        postDT: DateTime.now(),
         thumbnail: '',
         category: DiaryCategory.daily,
         isShown: true,
@@ -56,6 +55,7 @@ class DiaryDetailModel extends DiaryModel {
         imgs: [],
         vids: [],
         contentOrder: [],
+        createdAt: DateTime.now(),
       );
 
   DiaryDetailModel copyWith({
@@ -64,10 +64,10 @@ class DiaryDetailModel extends DiaryModel {
     String? writer,
     String? weather,
     List<String>? hashtags,
-    DateTime? postDT,
     String? thumbnail,
     DiaryCategory? category,
     bool? isShown,
+    DateTime? createdAt,
     List<String>? txts,
     List<String>? imgs,
     List<String>? vids,
@@ -79,7 +79,6 @@ class DiaryDetailModel extends DiaryModel {
       writer: writer ?? this.writer,
       weather: weather ?? this.weather,
       hashtags: hashtags ?? this.hashtags,
-      postDT: postDT ?? this.postDT,
       thumbnail: thumbnail ?? this.thumbnail,
       category: category ?? this.category,
       isShown: isShown ?? this.isShown,
@@ -87,6 +86,7 @@ class DiaryDetailModel extends DiaryModel {
       imgs: imgs ?? this.imgs,
       vids: vids ?? this.vids,
       contentOrder: contentOrder ?? this.contentOrder,
+      createdAt: createdAt ?? this.createdAt,
     );
   }
 

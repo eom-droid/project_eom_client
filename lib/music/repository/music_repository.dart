@@ -19,7 +19,7 @@ final musicRepositoryProvider = Provider<MusicRepository>((ref) {
 
 @RestApi()
 abstract class MusicRepository
-    implements IBasePaginationRepository<MusicModel, PaginationParams> {
+    implements IBasePaginationRepository<MusicModel> {
   factory MusicRepository(Dio dio, {String baseUrl}) = _MusicRepository;
 
   // music pagination는

@@ -4,7 +4,6 @@ import 'package:client/common/model/cursor_pagination_model.dart';
 import 'package:client/common/provider/pagination_provider.dart';
 import 'package:client/diary/model/diary_detail_model.dart';
 import 'package:client/diary/model/diary_model.dart';
-import 'package:client/diary/model/pagination_params_diary.dart';
 import 'package:client/diary/repository/diary_repository.dart';
 
 final diaryDetailProvider = Provider.family<DiaryModel?, String>((ref, id) {
@@ -27,8 +26,8 @@ final diaryProvider =
   );
 });
 
-class DiaryStateNotifier extends PaginationProvider<DiaryModel, DiaryRepository,
-    PaginationParamsDiary> {
+class DiaryStateNotifier
+    extends PaginationProvider<DiaryModel, DiaryRepository> {
   DiaryStateNotifier({
     required super.repository,
   });

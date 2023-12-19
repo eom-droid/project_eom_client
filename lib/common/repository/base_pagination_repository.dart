@@ -4,9 +4,8 @@ import 'package:client/common/model/pagination_params.dart';
 
 // T는 paginating을 진행할 Model
 // P는 pagination을 위한 params model
-abstract class IBasePaginationRepository<T extends IModelPagination,
-    P extends PaginationParamsBase> {
+abstract class IBasePaginationRepository<T extends IModelPagination> {
   Future<CursorPagination<T>> paginate({
-    P? paginationParams,
+    PaginationParams? paginationParams = const PaginationParams(),
   });
 }

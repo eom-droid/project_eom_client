@@ -175,7 +175,7 @@ class _DiaryDetailScreenState extends ConsumerState<DiaryDetailScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    DateFormat("yy년 M월 d일   HH시 mm분").format(model.postDT),
+                    DateFormat("yy년 M월 d일   HH시 mm분").format(model.createdAt),
                     style: const TextStyle(
                       fontSize: 14.0,
                       color: BODY_TEXT_COLOR,

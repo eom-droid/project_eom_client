@@ -4,7 +4,6 @@ import 'package:client/common/model/pagination_params.dart';
 import 'package:client/common/repository/base_pagination_repository.dart';
 import 'package:debounce_throttle/debounce_throttle.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:client/diary/model/pagination_params_diary.dart';
 
 // 페이지네이션 요청을 위한 정보 클래스
 class _PaginationInfo {
@@ -22,10 +21,8 @@ class _PaginationInfo {
   });
 }
 
-class PaginationProvider<
-        T extends IModelPagination,
-        U extends IBasePaginationRepository<T, P>,
-        P extends PaginationParamsBase>
+class PaginationProvider<T extends IModelPagination,
+        U extends IBasePaginationRepository<T>>
     extends StateNotifier<CursorPaginationBase> {
   final U repository;
   final paginationThrottle = Throttle(
@@ -101,7 +98,7 @@ class PaginationProvider<
 
       // 3번 반환 상황
       // count를 넣어줘야됨
-      P? paginationParams;
+      PaginationParams? paginationParams;
 
       // fetchMore 상황
       // 데이터를 추가로 더 가져오기
@@ -161,33 +158,20 @@ class PaginationProvider<
     }
   }
 
-  P generateParams(
+  PaginationParams generateParams(
     T? pState,
     int fetchCount,
     bool fetchMore,
   ) {
-    if (P == PaginationParamsDiary) {
-      if (pState == null) {
-        return PaginationParamsDiary(
-          count: fetchCount,
-        ) as P;
-      }
-      final value = pState as IModelWithPostDT;
-      return PaginationParamsDiary(
-        postDT: fetchMore ? value.postDT : null,
-        count: fetchCount,
-      ) as P;
-    } else {
-      if (pState == null) {
-        return PaginationParams(
-          count: fetchCount,
-        ) as P;
-      }
-      final value = pState as IModelWithId;
+    if (pState == null) {
       return PaginationParams(
-        after: fetchMore ? value.id : null,
         count: fetchCount,
-      ) as P;
+      );
     }
+    final value = pState as IModelWithId;
+    return PaginationParams(
+      after: fetchMore ? value.id : null,
+      count: fetchCount,
+    );
   }
 }

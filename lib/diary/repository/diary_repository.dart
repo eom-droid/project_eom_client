@@ -1,5 +1,6 @@
 // final diaryRepositoryProvider = Provider<>
 
+import 'package:client/common/model/pagination_params.dart';
 import 'package:dio/dio.dart' hide Headers;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,7 +9,6 @@ import 'package:client/common/model/cursor_pagination_model.dart';
 import 'package:client/common/repository/base_pagination_repository.dart';
 import 'package:client/diary/model/diary_detail_model.dart';
 import 'package:client/diary/model/diary_model.dart';
-import 'package:client/diary/model/pagination_params_diary.dart';
 
 import 'package:retrofit/retrofit.dart';
 
@@ -24,7 +24,7 @@ final diaryRepositoryProvider = Provider<DiaryRepository>((ref) {
 
 @RestApi()
 abstract class DiaryRepository
-    implements IBasePaginationRepository<DiaryModel, PaginationParamsDiary> {
+    implements IBasePaginationRepository<DiaryModel> {
   factory DiaryRepository(Dio dio, {String baseUrl}) = _DiaryRepository;
 
   // diary pagination는
@@ -34,8 +34,7 @@ abstract class DiaryRepository
     'accessToken': 'true',
   })
   Future<CursorPagination<DiaryModel>> paginate({
-    @Queries()
-        PaginationParamsDiary? paginationParams = const PaginationParamsDiary(),
+    @Queries() PaginationParams? paginationParams = const PaginationParams(),
   });
 
   @GET('/{id}/detail')
