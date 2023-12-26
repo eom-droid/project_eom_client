@@ -10,6 +10,7 @@ class CustomTextFormField extends StatelessWidget {
   final TextInputType keyboardType;
   final ValueChanged<String>? onChanged;
   final bool? enable;
+  final TextEditingController? controller;
 
   const CustomTextFormField({
     super.key,
@@ -19,8 +20,9 @@ class CustomTextFormField extends StatelessWidget {
     this.autofocus = false,
     this.labelText,
     this.keyboardType = TextInputType.text,
-    required this.onChanged,
+    this.onChanged,
     this.enable = true,
+    this.controller,
   });
 
   @override
@@ -60,6 +62,7 @@ class CustomTextFormField extends StatelessWidget {
       autofocus: autofocus,
       onChanged: onChanged,
       enabled: enable,
+      controller: controller,
 
       decoration: InputDecoration(
         contentPadding: const EdgeInsets.all(10),

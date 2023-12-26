@@ -1,3 +1,4 @@
+import 'package:client/common/components/custom_text_form_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -26,7 +27,6 @@ class DiaryDetailScreen extends ConsumerStatefulWidget {
 
 class _DiaryDetailScreenState extends ConsumerState<DiaryDetailScreen> {
   final GlobalKey<FormState> formKey = GlobalKey();
-  final ScrollController scrollController = ScrollController();
   Map<String, VideoPlayerController> vidControllers = {};
 
   @override
@@ -67,6 +67,15 @@ class _DiaryDetailScreenState extends ConsumerState<DiaryDetailScreen> {
             _renderBasicInfo(model: state),
             // skeleton screen add here
             if (state is DiaryDetailModel) _renderContent(model: state),
+            if (state is DiaryDetailModel)
+              _renderComment(
+                onSend: (String content) {
+                  ref.read(diaryProvider.notifier).createComment(
+                        diaryId: widget.id,
+                        content: content,
+                      );
+                },
+              ),
           ],
         ),
       ),
@@ -241,8 +250,9 @@ class _DiaryDetailScreenState extends ConsumerState<DiaryDetailScreen> {
         } else if (e == DiaryContentType.img) {
           return model.imgs[imgIndex++];
         } else if (e == DiaryContentType.vid) {
-          vidControllers[model.vids[vidIndex]] = VideoPlayerController.network(
-            model.vids[vidIndex],
+          vidControllers[model.vids[vidIndex]] =
+              VideoPlayerController.networkUrl(
+            Uri.parse(model.vids[vidIndex]),
           );
 
           return model.vids[vidIndex++];
@@ -298,6 +308,45 @@ class _DiaryDetailScreenState extends ConsumerState<DiaryDetailScreen> {
           return null;
         },
       ),
+    );
+  }
+
+  SliverPadding _renderComment({
+    required Function(String) onSend,
+  }) {
+    TextEditingController controller = TextEditingController();
+    return SliverPadding(
+      padding: const EdgeInsets.only(
+        right: 16.0,
+        left: 16.0,
+        bottom: 100.0,
+      ),
+      sliver: SliverToBoxAdapter(
+          child: Row(
+        children: [
+          Expanded(
+            child: CustomTextFormField(
+              controller: controller,
+            ),
+          ),
+          const SizedBox(
+            width: 16.0,
+          ),
+          IconButton(
+            onPressed: () {
+              if (controller.text.isEmpty) {
+                return;
+              }
+              onSend(controller.text);
+              controller.clear();
+            },
+            icon: const Icon(
+              Icons.send,
+              color: Colors.white,
+            ),
+          )
+        ],
+      )),
     );
   }
 }

@@ -33,25 +33,4 @@ class DefaultLayout extends StatelessWidget {
       floatingActionButton: floatingActionButton,
     );
   }
-
-  // AppBar? renderAppBar() {
-  //   if (title == null) {
-  //     return null;
-  //   } else {
-  //     return AppBar(
-  //       actions: appBarActions,
-  //       backgroundColor: BACKGROUND_BLACK,
-  //       // 앞으로 튀어나온 효과
-  //       elevation: 0,
-  //       title: Text(
-  //         title!,
-  //         style: const TextStyle(
-  //           fontSize: 16.0,
-  //           fontWeight: FontWeight.w500,
-  //         ),
-  //       ),
-  //       foregroundColor: Colors.white,
-  //     );
-  //   }
-  // }
 }

@@ -1,3 +1,4 @@
+import 'package:client/diary/model/diary_comment_model.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:client/common/const/data.dart';
 import 'package:client/common/utils/data_utils.dart';
@@ -26,6 +27,8 @@ class DiaryDetailModel extends DiaryModel {
   )
   final List<DiaryContentType> contentOrder;
 
+  final List<DiaryCommentModel>? comments;
+
   DiaryDetailModel({
     required super.id,
     required super.title,
@@ -40,24 +43,12 @@ class DiaryDetailModel extends DiaryModel {
     required this.vids,
     required this.contentOrder,
     required super.createdAt,
+    required super.likeCount,
+    required super.isLike,
+    this.comments,
   });
 
-  factory DiaryDetailModel.empty() => DiaryDetailModel(
-        id: '',
-        title: '',
-        writer: '엄태호',
-        weather: '',
-        hashtags: [],
-        thumbnail: '',
-        category: DiaryCategory.daily,
-        isShown: true,
-        txts: [],
-        imgs: [],
-        vids: [],
-        contentOrder: [],
-        createdAt: DateTime.now(),
-      );
-
+  @override
   DiaryDetailModel copyWith({
     String? id,
     String? title,
@@ -72,6 +63,9 @@ class DiaryDetailModel extends DiaryModel {
     List<String>? imgs,
     List<String>? vids,
     List<DiaryContentType>? contentOrder,
+    int? likeCount,
+    bool? isLike,
+    List<DiaryCommentModel>? comments,
   }) {
     return DiaryDetailModel(
       id: id ?? this.id,
@@ -87,6 +81,9 @@ class DiaryDetailModel extends DiaryModel {
       vids: vids ?? this.vids,
       contentOrder: contentOrder ?? this.contentOrder,
       createdAt: createdAt ?? this.createdAt,
+      likeCount: likeCount ?? this.likeCount,
+      isLike: isLike ?? this.isLike,
+      comments: comments ?? this.comments,
     );
   }
 

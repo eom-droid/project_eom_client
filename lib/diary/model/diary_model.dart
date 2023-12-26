@@ -42,6 +42,11 @@ class DiaryModel implements IModelWithId {
   )
   final DateTime createdAt;
 
+  // likeCount : 좋아요 개수
+  final int likeCount;
+  // isLike : 좋아요 여부
+  final bool isLike;
+
   DiaryModel({
     required this.id,
     required this.title,
@@ -52,19 +57,37 @@ class DiaryModel implements IModelWithId {
     required this.category,
     required this.isShown,
     required this.createdAt,
+    required this.likeCount,
+    required this.isLike,
   });
 
-  factory DiaryModel.empty() => DiaryModel(
-        id: '',
-        title: '',
-        writer: '',
-        weather: '',
-        hashtags: [],
-        thumbnail: '',
-        category: DiaryCategory.daily,
-        isShown: true,
-        createdAt: DateTime.now(),
-      );
+  copyWith({
+    String? id,
+    String? title,
+    String? writer,
+    String? weather,
+    List<String>? hashtags,
+    String? thumbnail,
+    DiaryCategory? category,
+    bool? isShown,
+    DateTime? createdAt,
+    int? likeCount,
+    bool? isLike,
+  }) {
+    return DiaryModel(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      writer: writer ?? this.writer,
+      weather: weather ?? this.weather,
+      hashtags: hashtags ?? this.hashtags,
+      thumbnail: thumbnail ?? this.thumbnail,
+      category: category ?? this.category,
+      isShown: isShown ?? this.isShown,
+      createdAt: createdAt ?? this.createdAt,
+      likeCount: likeCount ?? this.likeCount,
+      isLike: isLike ?? this.isLike,
+    );
+  }
 
   factory DiaryModel.fromJson(Map<String, dynamic> json) =>
       _$DiaryModelFromJson(json);

@@ -68,11 +68,12 @@ class DiaryScreen extends ConsumerWidget {
     );
   }
 
-  Widget _renderDiaryList(
-      {required CursorPagination cp,
-      required WidgetRef ref,
-      required BuildContext context,
-      required ScrollController controller}) {
+  Widget _renderDiaryList({
+    required CursorPagination cp,
+    required WidgetRef ref,
+    required BuildContext context,
+    required ScrollController controller,
+  }) {
     final diaryList = cp.data;
     if (vidControllers == null) {
       vidControllers = {};
@@ -147,6 +148,13 @@ class DiaryScreen extends ConsumerWidget {
                 },
                 child: DiaryCard.fromModel(
                   model: diaryList[index],
+                  onTapLike: () {
+                    // NOTE : 추후 변경 필요
+                    // 좋아요 상태가 원래 상태와 같은지를 구분하여 backend에 요청을 보내지 않는 로직이 필요함
+                    ref.read(diaryProvider.notifier).toggleLike(
+                          diaryId: diaryList[index].id,
+                        );
+                  },
                 ),
               ),
             ),
