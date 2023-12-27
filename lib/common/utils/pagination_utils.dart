@@ -5,7 +5,7 @@ import 'package:client/common/provider/pagination_provider.dart';
 class PaginationUtils {
   static void paginate({
     required ScrollController controller,
-    required PaginationProvider provider,
+    required PaginationNotifier provider,
   }) {
     if (controller.position.maxScrollExtent == 0 ||
         controller.position.maxScrollExtent <= GAP_WHEN_PAGINATE) return;

@@ -1,6 +1,4 @@
-abstract class IModelPagination {}
-
-abstract class IModelWithId extends IModelPagination {
+abstract class IModelWithId {
   final String id;
   IModelWithId({required this.id});
 }

@@ -6,9 +6,9 @@ import 'package:client/common/model/cursor_pagination_model.dart';
 import 'package:client/common/provider/pagination_provider.dart';
 import 'package:client/common/utils/pagination_utils.dart';
 
-class DefaultPaginationNestedScrollViewLayout<T extends IModelPagination>
+class DefaultPaginationNestedScrollViewLayout<T extends IModelWithId>
     extends ConsumerStatefulWidget {
-  final StateNotifierProvider<PaginationProvider, CursorPaginationBase>
+  final StateNotifierProvider<PaginationNotifier, CursorPaginationBase>
       provider;
   final Widget Function(CursorPagination<T> cp, ScrollController controller)
       body;
@@ -29,7 +29,7 @@ class DefaultPaginationNestedScrollViewLayout<T extends IModelPagination>
       _DefaultPaginationNestedScrollViewLayoutState<T>();
 }
 
-class _DefaultPaginationNestedScrollViewLayoutState<T extends IModelPagination>
+class _DefaultPaginationNestedScrollViewLayoutState<T extends IModelWithId>
     extends ConsumerState<DefaultPaginationNestedScrollViewLayout> {
   late final ScrollController controller;
 

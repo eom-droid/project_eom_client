@@ -37,15 +37,15 @@ class DiaryCommentModel implements IModelWithId {
 }
 
 @JsonSerializable()
-class DiaryCommentPostReqModel {
+class DiaryCommentReqModel {
   final String content;
 
-  DiaryCommentPostReqModel({
+  DiaryCommentReqModel({
     required this.content,
   });
 
-  factory DiaryCommentPostReqModel.fromJson(Map<String, dynamic> json) =>
-      _$DiaryCommentPostReqModelFromJson(json);
+  factory DiaryCommentReqModel.fromJson(Map<String, dynamic> json) =>
+      _$DiaryCommentReqModelFromJson(json);
 
-  Map<String, dynamic> toJson() => _$DiaryCommentPostReqModelToJson(this);
+  Map<String, dynamic> toJson() => _$DiaryCommentReqModelToJson(this);
 }

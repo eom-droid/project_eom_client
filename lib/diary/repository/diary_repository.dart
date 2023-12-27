@@ -1,7 +1,6 @@
 // final diaryRepositoryProvider = Provider<>
 
 import 'package:client/common/model/pagination_params.dart';
-import 'package:client/diary/model/diary_comment_model.dart';
 import 'package:dio/dio.dart' hide Headers;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -62,12 +61,20 @@ abstract class DiaryRepository
     @Path() required String id,
   });
 
-  @POST('/{id}/comment')
-  @Headers({
-    'accessToken': 'true',
-  })
-  Future<void> createComment({
-    @Path() required String id,
-    @Body() required DiaryCommentPostReqModel content,
-  });
+  // @POST('/{id}/comment')
+  // @Headers({
+  //   'accessToken': 'true',
+  // })
+  // Future<void> createComment({
+  //   @Path() required String id,
+  //   @Body() required DiaryCommentReqModel content,
+  // });
+
+  // @GET('/{id}/comment')
+  // @Headers({
+  //   'accessToken': 'true',
+  // })
+  // Future<void> getComments({
+  //   @Queries() PaginationParams? paginationParams = const PaginationParams(),
+  // });
 }

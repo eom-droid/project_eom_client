@@ -2,7 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:client/common/const/colors.dart';
 import 'package:client/diary/model/diary_model.dart';
-import 'package:intl/intl.dart';
+import 'package:client/common/utils/data_utils.dart';
 
 class DiaryCard extends StatelessWidget {
   final String id;
@@ -46,7 +46,6 @@ class DiaryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final String postDate =
         '${createdAt.year}년 ${createdAt.month}월 ${createdAt.day}일';
-    var f = NumberFormat.compact(locale: "en_US");
 
     return Stack(
       children: [
@@ -172,7 +171,7 @@ class DiaryCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 4.0),
                   Text(
-                    f.format(likeCount),
+                    DataUtils.number2Unit.format(likeCount),
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 14.0,

@@ -1,5 +1,6 @@
 import 'package:client/common/const/data.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:intl/intl.dart';
 
 class DataUtils {
   static String pathToUrl(String value) {
@@ -90,4 +91,6 @@ class DataUtils {
         .hasMatch(email);
     return emailRegExp;
   }
+
+  static NumberFormat number2Unit = NumberFormat.compact(locale: "en_US");
 }

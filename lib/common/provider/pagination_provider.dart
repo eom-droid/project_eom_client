@@ -21,12 +21,12 @@ class _PaginationInfo {
   });
 }
 
-class PaginationProvider<T extends IModelPagination,
+class PaginationNotifier<T extends IModelWithId,
         U extends IBasePaginationRepository<T>>
     extends StateNotifier<CursorPaginationBase> {
   final U repository;
 
-  PaginationProvider({
+  PaginationNotifier({
     required this.repository,
   }) : super(CursorPaginationLoading()) {
     paginate();
@@ -166,7 +166,7 @@ class PaginationProvider<T extends IModelPagination,
         count: fetchCount,
       );
     }
-    final value = pState as IModelWithId;
+    final value = pState;
     return PaginationParams(
       after: fetchMore ? value.id : null,
       count: fetchCount,
@@ -192,7 +192,7 @@ class PaginationProvider<T extends IModelPagination,
 //   });
 // }
 
-// class PaginationProvider<T extends IModelPagination,
+// class PaginationProvider<T extends IModelWithId,
 //         U extends IBasePaginationRepository<T>>
 //     extends StateNotifier<CursorPaginationBase> {
 //   final U repository;

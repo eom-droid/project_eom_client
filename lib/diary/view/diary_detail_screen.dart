@@ -1,4 +1,5 @@
 import 'package:client/common/components/custom_text_form_field.dart';
+import 'package:client/diary/provider/diary_comment_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -60,6 +61,7 @@ class _DiaryDetailScreenState extends ConsumerState<DiaryDetailScreen> {
       backgroundColor: BACKGROUND_BLACK,
       body: SafeArea(
         top: false,
+        bottom: true,
         child: CustomScrollView(
           physics: const BouncingScrollPhysics(),
           slivers: [
@@ -70,7 +72,9 @@ class _DiaryDetailScreenState extends ConsumerState<DiaryDetailScreen> {
             if (state is DiaryDetailModel)
               _renderComment(
                 onSend: (String content) {
-                  ref.read(diaryProvider.notifier).createComment(
+                  ref
+                      .read(diaryCommentProvider(widget.id).notifier)
+                      .createComment(
                         diaryId: widget.id,
                         content: content,
                       );
