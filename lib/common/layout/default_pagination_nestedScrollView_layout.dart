@@ -13,15 +13,17 @@ class DefaultPaginationNestedScrollViewLayout<T extends IModelWithId>
   final Widget Function(CursorPagination<T> cp, ScrollController controller)
       body;
   final ScrollController? controller;
-  final Widget sliverAppBar;
+  final Widget? sliverAppBar;
   final Future<void> Function() onRefresh;
+  final bool returnListView;
   const DefaultPaginationNestedScrollViewLayout({
     Key? key,
     required this.provider,
     required this.body,
-    required this.sliverAppBar,
+    this.sliverAppBar,
     required this.onRefresh,
     this.controller,
+    this.returnListView = false,
   }) : super(key: key);
 
   @override
@@ -122,28 +124,29 @@ class _DefaultPaginationNestedScrollViewLayoutState<T extends IModelWithId>
   Widget build(BuildContext context) {
     final state = ref.watch(widget.provider);
 
-    // 이거는 refreshIndicator가 동작하지 않음
-    // 현재로서는 RefreshIndicator을 parent에 위치하고
-    // edgeOffset을 이용해서 중앙에 배치하는 방식으로 진행함
-    return Scaffold(
-      backgroundColor: BACKGROUND_BLACK,
-      body: RefreshIndicator(
-        strokeWidth: 3.0,
+    if (widget.returnListView) {
+      return loadBody(state, controller);
+    } else {
+      return Scaffold(
         backgroundColor: BACKGROUND_BLACK,
-        color: Colors.white,
-        onRefresh: widget.onRefresh,
-        edgeOffset: MediaQuery.of(context).size.width + 100,
-        child: CustomScrollView(
-          physics: const BouncingScrollPhysics(),
-          controller: controller,
-          slivers: [
-            widget.sliverAppBar,
-            SliverToBoxAdapter(
-              child: loadBody(state, controller),
-            ),
-          ],
+        body: RefreshIndicator(
+          strokeWidth: 3.0,
+          backgroundColor: BACKGROUND_BLACK,
+          color: Colors.white,
+          onRefresh: widget.onRefresh,
+          edgeOffset: MediaQuery.of(context).size.width + 100,
+          child: CustomScrollView(
+            physics: const BouncingScrollPhysics(),
+            controller: controller,
+            slivers: [
+              if (widget.sliverAppBar != null) widget.sliverAppBar!,
+              SliverToBoxAdapter(
+                child: loadBody(state, controller),
+              ),
+            ],
+          ),
         ),
-      ),
-    );
+      );
+    }
   }
 }

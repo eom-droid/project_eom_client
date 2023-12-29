@@ -11,8 +11,8 @@ class UserModel {
   final String id;
   // email : 이메일
   final String? email;
-  // nickName : 닉네임
-  final String? nickName;
+  // nickname : 닉네임
+  final String nickname;
   // profileImg : 프로필 이미지
   @JsonKey(
     fromJson: DataUtils.pathToUrlNullable,
@@ -31,7 +31,7 @@ class UserModel {
   UserModel({
     required this.id,
     this.email,
-    this.nickName,
+    required this.nickname,
     this.profileImg,
     this.snsId,
     this.provider,

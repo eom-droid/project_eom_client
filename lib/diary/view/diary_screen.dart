@@ -17,7 +17,6 @@ class DiaryScreen extends ConsumerWidget {
   DiaryScreen({super.key});
 
   Map<String, VideoPlayerController>? vidControllers;
-  ScrollController? scrollController;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

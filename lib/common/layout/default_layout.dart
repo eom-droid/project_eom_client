@@ -24,9 +24,11 @@ class DefaultLayout extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: backgroundColor ?? Colors.white,
-      body: Padding(
-        padding: EdgeInsets.symmetric(horizontal: isFullScreen ? 0.0 : 16.0),
-        child: child,
+      body: GestureDetector(
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: isFullScreen ? 0.0 : 16.0),
+          child: child,
+        ),
       ),
       appBar: appBar,
       bottomNavigationBar: bottomNavigationBar,

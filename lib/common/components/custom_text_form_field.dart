@@ -10,6 +10,7 @@ class CustomTextFormField extends StatelessWidget {
   final TextInputType keyboardType;
   final ValueChanged<String>? onChanged;
   final bool? enable;
+  final int? maxLine;
   final TextEditingController? controller;
 
   const CustomTextFormField({
@@ -23,6 +24,7 @@ class CustomTextFormField extends StatelessWidget {
     this.onChanged,
     this.enable = true,
     this.controller,
+    this.maxLine,
   });
 
   @override
@@ -55,6 +57,7 @@ class CustomTextFormField extends StatelessWidget {
 
   Widget textFormFiled(OutlineInputBorder baseBorder) {
     return TextFormField(
+      maxLines: maxLine ?? 1,
       keyboardType: keyboardType,
       cursorColor: PRIMARY_COLOR,
       // 비밀번호 입력할때

@@ -4,6 +4,7 @@ import 'package:client/common/model/pagination_params.dart';
 import 'package:client/common/repository/base_pagination_repository.dart';
 import 'package:easy_debounce/easy_throttle.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:uuid/uuid.dart';
 
 // 페이지네이션 요청을 위한 정보 클래스
 class _PaginationInfo {
@@ -25,10 +26,13 @@ class PaginationNotifier<T extends IModelWithId,
         U extends IBasePaginationRepository<T>>
     extends StateNotifier<CursorPaginationBase> {
   final U repository;
+  late final String randomKey;
 
   PaginationNotifier({
     required this.repository,
   }) : super(CursorPaginationLoading()) {
+    Uuid uuid = const Uuid();
+    randomKey = uuid.v4();
     paginate();
   }
 
@@ -43,7 +47,7 @@ class PaginationNotifier<T extends IModelWithId,
     bool forceRefetch = false,
   }) async {
     EasyThrottle.throttle(
-      "pagination",
+      randomKey,
       const Duration(seconds: 3),
       () => _throttlePagination(
         _PaginationInfo(

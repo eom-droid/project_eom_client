@@ -1,4 +1,7 @@
-import 'package:client/common/components/custom_text_form_field.dart';
+import 'package:client/common/components/custom_text_field.dart';
+import 'package:client/common/layout/default_pagination_nestedScrollView_layout.dart';
+import 'package:client/common/model/cursor_pagination_model.dart';
+import 'package:client/common/utils/data_utils.dart';
 import 'package:client/diary/provider/diary_comment_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -29,6 +32,7 @@ class DiaryDetailScreen extends ConsumerStatefulWidget {
 class _DiaryDetailScreenState extends ConsumerState<DiaryDetailScreen> {
   final GlobalKey<FormState> formKey = GlobalKey();
   Map<String, VideoPlayerController> vidControllers = {};
+  TextEditingController commentTextController = TextEditingController();
 
   @override
   void initState() {
@@ -63,22 +67,40 @@ class _DiaryDetailScreenState extends ConsumerState<DiaryDetailScreen> {
         top: false,
         bottom: true,
         child: CustomScrollView(
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           physics: const BouncingScrollPhysics(),
           slivers: [
             _renderThumbnail(model: state),
             _renderBasicInfo(model: state),
+
             // skeleton screen add here
             if (state is DiaryDetailModel) _renderContent(model: state),
             if (state is DiaryDetailModel)
-              _renderComment(
-                onSend: (String content) {
-                  ref
-                      .read(diaryCommentProvider(widget.id).notifier)
-                      .createComment(
-                        diaryId: widget.id,
-                        content: content,
+              _renderLikeRowAfterContent(
+                onTapLike: () {
+                  ref.read(diaryProvider.notifier).toggleLike(
+                        diaryId: state.id,
                       );
                 },
+                model: state,
+              ),
+
+            if (state is DiaryDetailModel)
+              _renderCommentCountAndInput(
+                onTapAddComment: () {
+                  ref
+                      .read(diaryCommentProvider(state.id).notifier)
+                      .createComment(
+                        diaryId: state.id,
+                        content: commentTextController.text,
+                      );
+                },
+                controller: commentTextController,
+              ),
+
+            if (state is DiaryDetailModel)
+              _RenderComment(
+                id: state.id,
               ),
           ],
         ),
@@ -315,42 +337,160 @@ class _DiaryDetailScreenState extends ConsumerState<DiaryDetailScreen> {
     );
   }
 
-  SliverPadding _renderComment({
-    required Function(String) onSend,
+  SliverToBoxAdapter _renderLikeRowAfterContent({
+    required VoidCallback onTapLike,
+    required DiaryDetailModel model,
   }) {
-    TextEditingController controller = TextEditingController();
-    return SliverPadding(
-      padding: const EdgeInsets.only(
-        right: 16.0,
-        left: 16.0,
-        bottom: 100.0,
-      ),
-      sliver: SliverToBoxAdapter(
-          child: Row(
+    return SliverToBoxAdapter(
+      child: Column(
         children: [
-          Expanded(
-            child: CustomTextFormField(
-              controller: controller,
-            ),
+          const Divider(
+            color: BODY_TEXT_COLOR,
+            thickness: 0.7,
+          ),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              InkWell(
+                customBorder: const CircleBorder(),
+                onTap: onTapLike,
+                child: Padding(
+                  padding: const EdgeInsets.only(
+                    bottom: 8.0,
+                    top: 8.0,
+                    right: 16.0,
+                    left: 16.0,
+                  ),
+                  child: Icon(
+                    model.isLike
+                        ? Icons.favorite
+                        : Icons.favorite_border_outlined,
+                    color: PRIMARY_COLOR,
+                    size: 32.0,
+                  ),
+                ),
+              ),
+              Text(
+                DataUtils.number2Unit.format(model.likeCount),
+                style: const TextStyle(
+                  color: BODY_TEXT_COLOR,
+                  fontSize: 16.0,
+                ),
+              ),
+            ],
           ),
           const SizedBox(
-            width: 16.0,
+            height: 20,
           ),
-          IconButton(
-            onPressed: () {
-              if (controller.text.isEmpty) {
-                return;
-              }
-              onSend(controller.text);
-              controller.clear();
-            },
-            icon: const Icon(
-              Icons.send,
-              color: Colors.white,
-            ),
-          )
         ],
-      )),
+      ),
     );
+  }
+
+  SliverToBoxAdapter _renderCommentCountAndInput({
+    required TextEditingController controller,
+    required VoidCallback onTapAddComment,
+  }) {
+    return SliverToBoxAdapter(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+        child: Column(children: [
+          Row(
+            children: [
+              Text(
+                "댓글 ${DataUtils.number2Unit.format(1)}개",
+                style: const TextStyle(
+                  color: BODY_TEXT_COLOR,
+                  fontSize: 16.0,
+                ),
+              ),
+              const SizedBox(
+                width: 8.0,
+              ),
+            ],
+          ),
+          const SizedBox(
+            height: 16.0,
+          ),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const CircleAvatar(
+                radius: 22.0,
+                backgroundColor: Colors.grey,
+                // backgroundImage: AssetImage(
+                //   'assets/images/default_profile.png',
+                // ),
+                child: Text(
+                  '?',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 22.0,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+              const SizedBox(
+                width: 18.0,
+              ),
+              Expanded(
+                child: CustomTextField(
+                  controller: controller,
+                  hintText: "댓글 추가",
+                ),
+              ),
+              const SizedBox(
+                width: 8.0,
+              ),
+              InkWell(
+                onTap: onTapAddComment,
+                child: const Padding(
+                  padding: EdgeInsets.symmetric(
+                    vertical: 10.0,
+                    horizontal: 12.0,
+                  ),
+                  child: Text(
+                    '댓글',
+                    style: TextStyle(
+                      color: PRIMARY_COLOR,
+                      fontSize: 16.0,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          )
+        ]),
+      ),
+    );
+  }
+}
+
+class _RenderComment extends ConsumerWidget {
+  final String id;
+  const _RenderComment({
+    required this.id,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return SliverToBoxAdapter(
+        child: DefaultPaginationNestedScrollViewLayout(
+      provider: diaryCommentProvider(id),
+      body: (CursorPagination cp, ScrollController controller) {
+        return Container(
+          color: Colors.white,
+          height: 50,
+          width: 50,
+        );
+      },
+      onRefresh: () async {
+        await ref.read(diaryCommentProvider(id).notifier).paginate(
+              forceRefetch: true,
+            );
+      },
+      returnListView: true,
+    ));
   }
 }

@@ -1,4 +1,5 @@
 import 'package:client/common/model/model_with_id.dart';
+import 'package:client/user/model/user_model.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:client/common/utils/data_utils.dart';
 
@@ -10,8 +11,8 @@ class DiaryCommentModel implements IModelWithId {
   @override
   @JsonKey(name: '_id')
   final String id;
-  // userId : 작성자
-  final String userId;
+  // writer : 작성자
+  final UserModel writer;
   // content : 내용
   final String content;
   // createdAt : 생성 일자
@@ -22,12 +23,18 @@ class DiaryCommentModel implements IModelWithId {
     fromJson: DataUtils.toLocalTimeZone,
   )
   final DateTime createdAt;
+  // likeCount : 좋아요 개수
+  final int likeCount;
+  // isLike : 좋아요 여부
+  final bool isLike;
 
   DiaryCommentModel({
     required this.id,
-    required this.userId,
+    required this.writer,
     required this.content,
     required this.createdAt,
+    required this.likeCount,
+    required this.isLike,
   });
 
   factory DiaryCommentModel.fromJson(Map<String, dynamic> json) =>
