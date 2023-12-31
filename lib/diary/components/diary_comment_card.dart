@@ -1,24 +1,43 @@
 import 'package:client/common/const/colors.dart';
+import 'package:client/common/utils/data_utils.dart';
+import 'package:client/diary/model/diary_comment_model.dart';
+import 'package:client/user/model/user_model.dart';
 import 'package:flutter/material.dart';
 
 class DiaryCommentCard extends StatelessWidget {
-  final String nickname;
-  final String? profileImg;
+  final String id;
+  final UserModel writer;
+  final String content;
+  final DateTime createdAt;
+  final int likeCount;
+  final bool isLike;
+  final Function(String commentId) onLike;
 
   const DiaryCommentCard({
     super.key,
-    required this.nickname,
-    this.profileImg,
+    required this.content,
+    required this.createdAt,
+    required this.likeCount,
+    required this.isLike,
+    required this.id,
+    required this.writer,
+    required this.onLike,
   });
 
-  // factory DiaryCommentCard.fromModel({
-  //   required DiaryCommentModel model,
-  // }) {
-  //   return DiaryCommentCard(
-  //     nickname: model.nickname,
-  //     profileImg: model.profileImg,
-  //   );
-  // }
+  factory DiaryCommentCard.fromModel({
+    required DiaryCommentModel model,
+    required Function(String commentId) onLike,
+  }) {
+    return DiaryCommentCard(
+      id: model.id,
+      content: model.content,
+      createdAt: model.createdAt,
+      likeCount: model.likeCount,
+      isLike: model.isLike,
+      writer: model.writer,
+      onLike: onLike,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -54,18 +73,19 @@ class DiaryCommentCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      nickname,
+                      writer.nickname,
                       style: const TextStyle(
-                          fontSize: 14.0,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.white),
+                        fontSize: 14.0,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.white,
+                      ),
                     ),
                     const SizedBox(
                       height: 2.0,
                     ),
-                    const Text(
-                      '댓글 내용내용',
-                      style: TextStyle(
+                    Text(
+                      content,
+                      style: const TextStyle(
                         fontSize: 15.0,
                         fontWeight: FontWeight.w400,
                         color: Colors.white,
@@ -74,9 +94,9 @@ class DiaryCommentCard extends StatelessWidget {
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        const Text(
-                          "2년전",
-                          style: TextStyle(
+                        Text(
+                          DataUtils.timeAgoSinceDate(createdAt),
+                          style: const TextStyle(
                             fontSize: 13.0,
                             fontWeight: FontWeight.w400,
                             color: GRAY_TEXT_COLOR,
@@ -85,14 +105,15 @@ class DiaryCommentCard extends StatelessWidget {
                         const SizedBox(
                           width: 12.0,
                         ),
-                        const Text(
-                          "좋아요 3개",
-                          style: TextStyle(
-                            fontSize: 13.0,
-                            fontWeight: FontWeight.w400,
-                            color: GRAY_TEXT_COLOR,
+                        if (likeCount > 0)
+                          Text(
+                            "좋아요 $likeCount개",
+                            style: const TextStyle(
+                              fontSize: 13.0,
+                              fontWeight: FontWeight.w400,
+                              color: GRAY_TEXT_COLOR,
+                            ),
                           ),
-                        ),
                         const SizedBox(
                           width: 6.0,
                         ),
@@ -117,9 +138,11 @@ class DiaryCommentCard extends StatelessWidget {
                 ),
               ),
               IconButton(
-                onPressed: () {},
-                icon: const Icon(
-                  Icons.favorite,
+                onPressed: () {
+                  onLike(id);
+                },
+                icon: Icon(
+                  isLike ? Icons.favorite : Icons.favorite_border,
                   size: 20.0,
                   color: Colors.white,
                 ),

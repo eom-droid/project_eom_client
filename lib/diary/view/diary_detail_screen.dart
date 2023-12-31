@@ -2,6 +2,7 @@ import 'package:client/common/components/custom_text_field.dart';
 import 'package:client/common/layout/default_pagination_nestedScrollView_layout.dart';
 import 'package:client/common/model/cursor_pagination_model.dart';
 import 'package:client/common/utils/data_utils.dart';
+import 'package:client/diary/components/diary_comment_card.dart';
 import 'package:client/diary/provider/diary_comment_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -476,21 +477,47 @@ class _RenderComment extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return SliverToBoxAdapter(
-        child: DefaultPaginationNestedScrollViewLayout(
-      provider: diaryCommentProvider(id),
-      body: (CursorPagination cp, ScrollController controller) {
-        return Container(
-          color: Colors.white,
-          height: 50,
-          width: 50,
+      child: DefaultPaginationNestedScrollViewLayout(
+        provider: diaryCommentProvider(id),
+        body: (CursorPagination cp, ScrollController controller) {
+          return _renderCommentList(
+            cp: cp,
+            onTapLike: (String commentId) {
+              ref.read(diaryCommentProvider(id).notifier).toggleLike(
+                    commentId: commentId,
+                  );
+            },
+          );
+        },
+        onRefresh: () async {
+          await ref.read(diaryCommentProvider(id).notifier).paginate(
+                forceRefetch: true,
+              );
+        },
+        returnListView: true,
+      ),
+    );
+  }
+
+  Widget _renderCommentList({
+    required CursorPagination cp,
+    required Function(String commentId) onTapLike,
+  }) {
+    return ListView.separated(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      separatorBuilder: (context, index) {
+        return const SizedBox(
+          height: 16.0,
         );
       },
-      onRefresh: () async {
-        await ref.read(diaryCommentProvider(id).notifier).paginate(
-              forceRefetch: true,
-            );
+      itemCount: cp.data.length,
+      itemBuilder: (context, index) {
+        return DiaryCommentCard.fromModel(
+          model: cp.data[index],
+          onLike: onTapLike,
+        );
       },
-      returnListView: true,
-    ));
+    );
   }
 }

@@ -115,4 +115,20 @@ abstract class DiaryCommentRepository
   Future<void> patchComments({
     @Body() required DiaryCommentReqModel content,
   });
+
+  @POST('/{id}/like')
+  @Headers({
+    'accessToken': 'true',
+  })
+  Future<void> createLikeDiary({
+    @Path() required String id,
+  });
+
+  @DELETE('/{id}/like')
+  @Headers({
+    'accessToken': 'true',
+  })
+  Future<void> deleteLikeDiary({
+    @Path() required String id,
+  });
 }

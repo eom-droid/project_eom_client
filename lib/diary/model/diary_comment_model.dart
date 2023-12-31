@@ -37,6 +37,24 @@ class DiaryCommentModel implements IModelWithId {
     required this.isLike,
   });
 
+  copyWith({
+    String? id,
+    UserModel? writer,
+    String? content,
+    DateTime? createdAt,
+    int? likeCount,
+    bool? isLike,
+  }) {
+    return DiaryCommentModel(
+      id: id ?? this.id,
+      writer: writer ?? this.writer,
+      content: content ?? this.content,
+      createdAt: createdAt ?? this.createdAt,
+      likeCount: likeCount ?? this.likeCount,
+      isLike: isLike ?? this.isLike,
+    );
+  }
+
   factory DiaryCommentModel.fromJson(Map<String, dynamic> json) =>
       _$DiaryCommentModelFromJson(json);
 

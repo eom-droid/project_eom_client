@@ -31,8 +31,6 @@ class DiaryModel implements IModelWithId {
   )
   // category : 카테고리 -> 카테고리를 통해서 다이어리 리스트 페이지에서 필터링을 진행할 예정
   final DiaryCategory category;
-  // isShown : 표출 여부
-  final bool isShown;
   // createdAt : 생성 일자
   // read 해오는 경우 서버에서 UTC로 보내주기 때문에 local time zone으로 변경
   // write 경우는 따로 파싱을 하지 않음 -> 서버에서 저장 시 MongoDB가 자체적으로 UTC로 변경하여 저장
@@ -55,7 +53,6 @@ class DiaryModel implements IModelWithId {
     required this.hashtags,
     required this.thumbnail,
     required this.category,
-    required this.isShown,
     required this.createdAt,
     required this.likeCount,
     required this.isLike,
@@ -69,7 +66,6 @@ class DiaryModel implements IModelWithId {
     List<String>? hashtags,
     String? thumbnail,
     DiaryCategory? category,
-    bool? isShown,
     DateTime? createdAt,
     int? likeCount,
     bool? isLike,
@@ -82,7 +78,6 @@ class DiaryModel implements IModelWithId {
       hashtags: hashtags ?? this.hashtags,
       thumbnail: thumbnail ?? this.thumbnail,
       category: category ?? this.category,
-      isShown: isShown ?? this.isShown,
       createdAt: createdAt ?? this.createdAt,
       likeCount: likeCount ?? this.likeCount,
       isLike: isLike ?? this.isLike,
