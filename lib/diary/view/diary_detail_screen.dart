@@ -3,7 +3,10 @@ import 'package:client/common/layout/default_pagination_nestedScrollView_layout.
 import 'package:client/common/model/cursor_pagination_model.dart';
 import 'package:client/common/utils/data_utils.dart';
 import 'package:client/diary/components/diary_comment_card.dart';
+import 'package:client/diary/model/diary_comment_model.dart';
 import 'package:client/diary/provider/diary_comment_provider.dart';
+import 'package:client/user/model/user_with_token_model.dart';
+import 'package:client/user/provider/user_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -34,6 +37,7 @@ class _DiaryDetailScreenState extends ConsumerState<DiaryDetailScreen> {
   final GlobalKey<FormState> formKey = GlobalKey();
   Map<String, VideoPlayerController> vidControllers = {};
   TextEditingController commentTextController = TextEditingController();
+  bool commentLoading = false;
 
   @override
   void initState() {
@@ -88,17 +92,37 @@ class _DiaryDetailScreenState extends ConsumerState<DiaryDetailScreen> {
 
             if (state is DiaryDetailModel)
               _renderCommentCountAndInput(
-                onTapAddComment: () {
-                  ref
+                onTapAddComment: () async {
+                  if (commentLoading) return;
+                  // 1. commentLoading 활성화
+                  setState(() {
+                    commentLoading = true;
+                  });
+                  // 2. 댓글 생성
+                  await ref
                       .read(diaryCommentProvider(state.id).notifier)
                       .createComment(
                         diaryId: state.id,
                         content: commentTextController.text,
                       );
+
+                  // 3. toast 띄우기
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text("댓글이 추가되었습니다."),
+                    ),
+                  );
+
+                  // 4. commentTextController 초기화
+                  commentTextController.clear();
+                  // 5. commentLoading 비활성화
+                  setState(() {
+                    commentLoading = false;
+                  });
                 },
                 controller: commentTextController,
+                commentLoading: commentLoading,
               ),
-
             if (state is DiaryDetailModel)
               _RenderComment(
                 id: state.id,
@@ -391,6 +415,7 @@ class _DiaryDetailScreenState extends ConsumerState<DiaryDetailScreen> {
   SliverToBoxAdapter _renderCommentCountAndInput({
     required TextEditingController controller,
     required VoidCallback onTapAddComment,
+    required bool commentLoading,
   }) {
     return SliverToBoxAdapter(
       child: Padding(
@@ -435,9 +460,12 @@ class _DiaryDetailScreenState extends ConsumerState<DiaryDetailScreen> {
                 width: 18.0,
               ),
               Expanded(
-                child: CustomTextField(
-                  controller: controller,
-                  hintText: "댓글 추가",
+                child: SizedBox(
+                  height: 32.0,
+                  child: CustomTextField(
+                    controller: controller,
+                    hintText: "댓글 추가",
+                  ),
                 ),
               ),
               const SizedBox(
@@ -445,19 +473,27 @@ class _DiaryDetailScreenState extends ConsumerState<DiaryDetailScreen> {
               ),
               InkWell(
                 onTap: onTapAddComment,
-                child: const Padding(
-                  padding: EdgeInsets.symmetric(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
                     vertical: 10.0,
                     horizontal: 12.0,
                   ),
-                  child: Text(
-                    '댓글',
-                    style: TextStyle(
-                      color: PRIMARY_COLOR,
-                      fontSize: 16.0,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
+                  child: commentLoading
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            color: PRIMARY_COLOR,
+                          ),
+                        )
+                      : const Text(
+                          '댓글',
+                          style: TextStyle(
+                            color: PRIMARY_COLOR,
+                            fontSize: 16.0,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
                 ),
               ),
             ],
@@ -476,17 +512,30 @@ class _RenderComment extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final user = ref.watch(userProvider) as UserWithTokenModel;
     return SliverToBoxAdapter(
       child: DefaultPaginationNestedScrollViewLayout(
         provider: diaryCommentProvider(id),
         body: (CursorPagination cp, ScrollController controller) {
           return _renderCommentList(
-            cp: cp,
+            cp: cp as CursorPagination<DiaryCommentModel>,
             onTapLike: (String commentId) {
               ref.read(diaryCommentProvider(id).notifier).toggleLike(
                     commentId: commentId,
                   );
             },
+            onDeleteComment: (String commentId) async {
+              await ref.read(diaryCommentProvider(id).notifier).deleteComment(
+                    commentId: commentId,
+                  );
+
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text("댓글이 삭제되었습니다."),
+                ),
+              );
+            },
+            currentUserId: user.user.id,
           );
         },
         onRefresh: () async {
@@ -500,24 +549,40 @@ class _RenderComment extends ConsumerWidget {
   }
 
   Widget _renderCommentList({
-    required CursorPagination cp,
+    required CursorPagination<DiaryCommentModel> cp,
     required Function(String commentId) onTapLike,
+    required Function(String commentId) onDeleteComment,
+    required String currentUserId,
   }) {
-    return ListView.separated(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      separatorBuilder: (context, index) {
-        return const SizedBox(
-          height: 16.0,
-        );
-      },
-      itemCount: cp.data.length,
-      itemBuilder: (context, index) {
-        return DiaryCommentCard.fromModel(
-          model: cp.data[index],
-          onLike: onTapLike,
-        );
-      },
+    return Padding(
+      padding: const EdgeInsets.only(
+        bottom: 64,
+        top: 32.0,
+      ),
+      child: ListView.separated(
+        padding: EdgeInsets.zero,
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        separatorBuilder: (context, index) {
+          return const SizedBox(
+            height: 16.0,
+          );
+        },
+        itemCount: cp.data.length,
+        itemBuilder: (context, index) {
+          final writer = cp.data[index].writer;
+          return DiaryCommentCard.fromModel(
+            model: cp.data[index],
+            onLike: () {
+              onTapLike(cp.data[index].id);
+            },
+            onDelete: () {
+              onDeleteComment(cp.data[index].id);
+            },
+            isCommentMine: writer == null ? false : writer.id == currentUserId,
+          );
+        },
+      ),
     );
   }
 }

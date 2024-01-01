@@ -12,7 +12,7 @@ class DiaryCommentModel implements IModelWithId {
   @JsonKey(name: '_id')
   final String id;
   // writer : 작성자
-  final UserModel writer;
+  final UserModel? writer;
   // content : 내용
   final String content;
   // createdAt : 생성 일자
@@ -30,7 +30,7 @@ class DiaryCommentModel implements IModelWithId {
 
   DiaryCommentModel({
     required this.id,
-    required this.writer,
+    this.writer,
     required this.content,
     required this.createdAt,
     required this.likeCount,

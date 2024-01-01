@@ -1,5 +1,8 @@
 import 'package:client/diary/model/diary_comment_model.dart';
 import 'package:client/diary/repository/diary_comment_repository.dart';
+import 'package:client/user/model/user_model.dart';
+import 'package:client/user/model/user_with_token_model.dart';
+import 'package:client/user/provider/user_provider.dart';
 import 'package:easy_debounce/easy_debounce.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:client/common/model/cursor_pagination_model.dart';
@@ -13,16 +16,21 @@ import 'package:client/common/provider/pagination_provider.dart';
 final diaryCommentProvider = StateNotifierProvider.family<
     DiaryCommentStateNotifier, CursorPaginationBase, String>((ref, diaryId) {
   final diaryRepository = ref.watch(diaryCommentRepositoryProvider(diaryId));
+  final user = ref.watch(userProvider);
+
   return DiaryCommentManageStateNotifier(
     repository: diaryRepository,
+    user: user!,
   ).getCommentNotifier(diaryId: diaryId);
 });
 
 class DiaryCommentManageStateNotifier
     extends StateNotifier<Map<String, DiaryCommentStateNotifier>> {
   final DiaryCommentRepository repository;
+  final UserWithTokenModelBase? user;
   DiaryCommentManageStateNotifier({
     required this.repository,
+    required this.user,
   }) : super({});
 
   DiaryCommentStateNotifier getCommentNotifier({
@@ -38,6 +46,7 @@ class DiaryCommentManageStateNotifier
 
     state[diaryId] = DiaryCommentStateNotifier(
       repository: repository,
+      user: user,
     );
 
     return state[diaryId]!;
@@ -46,21 +55,50 @@ class DiaryCommentManageStateNotifier
 
 class DiaryCommentStateNotifier
     extends PaginationNotifier<DiaryCommentModel, DiaryCommentRepository> {
-  DiaryCommentStateNotifier({
-    required super.repository,
-  });
+  final UserWithTokenModelBase? user;
+  DiaryCommentStateNotifier({required super.repository, required this.user});
 
   // state에 추가하여 관리해야됨
   createComment({
     required String diaryId,
     required String content,
   }) async {
-    await repository.createComment(
-      id: diaryId,
-      content: DiaryCommentReqModel(
-        content: content,
-      ),
-    );
+    // 1. state가 CursorPagination인지 확인 + user가 UserWithTokenModel인지 확인
+    if (state is CursorPagination && user is UserWithTokenModel) {
+      final user = this.user as UserWithTokenModel;
+
+      var pState = state as CursorPagination<DiaryCommentModel>;
+
+      // 2. 서버에 요청을 보낸다.
+      final commentId = await repository.createComment(
+        id: diaryId,
+        content: DiaryCommentReqModel(
+          content: content,
+        ),
+      );
+      // 3. 서버에 요청을 보낸 후, 서버에서 받은 데이터를 state에 추가한다.
+      pState.data.insert(
+        0,
+        DiaryCommentModel(
+          id: commentId,
+          content: content,
+          createdAt: DateTime.now(),
+          isLike: false,
+          likeCount: 0,
+          writer: UserModel(
+            id: user.user.id,
+            nickname: user.user.nickname,
+            profileImg: user.user.profileImg,
+            role: user.user.role,
+          ),
+        ),
+      );
+
+      // 4. 변경된 데이터를 적용한다.
+      state = pState.copyWith(
+        data: pState.data,
+      );
+    }
   }
 
   void toggleLike({
@@ -102,5 +140,35 @@ class DiaryCommentStateNotifier
             : repository.deleteLikeDiary(id: commentId),
       );
     }
+  }
+
+  Future<void> deleteComment({
+    required String commentId,
+  }) async {
+    if (state is CursorPagination) {
+      var pState = state as CursorPagination<DiaryCommentModel>;
+
+      // 1. 선택된 comment를 찾는다.
+      final selecteComment = pState.data.indexWhere(
+        (element) => element.id == commentId,
+      );
+
+      // 2. 만약 선택된 comment가 없다면 그냥 리턴
+      if (selecteComment == -1) {
+        return;
+      }
+
+      // 3. 선택된 comment가 있다면 해당 데이터를 변경한다.
+      pState.data.removeAt(selecteComment);
+
+      // 4. 변경된 데이터를 적용한다.
+      state = pState.copyWith(
+        data: pState.data,
+      );
+
+      // 5. 서버에 삭제 요청을 보낸다.
+      await repository.deleteComment(id: commentId);
+    }
+    return;
   }
 }

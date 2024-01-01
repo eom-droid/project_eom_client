@@ -103,9 +103,17 @@ abstract class DiaryCommentRepository
   @Headers({
     'accessToken': 'true',
   })
-  Future<void> createComment({
+  Future<String> createComment({
     @Path() required String id,
     @Body() required DiaryCommentReqModel content,
+  });
+
+  @DELETE('/{id}')
+  @Headers({
+    'accessToken': 'true',
+  })
+  Future<String> deleteComment({
+    @Path() required String id,
   });
 
   @PATCH('')
