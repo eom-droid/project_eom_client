@@ -439,7 +439,7 @@ class _DiaryDetailScreenState extends ConsumerState<DiaryDetailScreen> {
             height: 16.0,
           ),
           Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const CircleAvatar(
                 radius: 22.0,
@@ -461,7 +461,7 @@ class _DiaryDetailScreenState extends ConsumerState<DiaryDetailScreen> {
               ),
               Expanded(
                 child: SizedBox(
-                  height: 32.0,
+                  height: 34.0,
                   child: CustomTextField(
                     controller: controller,
                     hintText: "댓글 추가",

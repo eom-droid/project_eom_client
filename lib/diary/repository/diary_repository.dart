@@ -60,21 +60,4 @@ abstract class DiaryRepository
   Future<void> deleteLikeDiary({
     @Path() required String id,
   });
-
-  // @POST('/{id}/comment')
-  // @Headers({
-  //   'accessToken': 'true',
-  // })
-  // Future<void> createComment({
-  //   @Path() required String id,
-  //   @Body() required DiaryCommentReqModel content,
-  // });
-
-  // @GET('/{id}/comment')
-  // @Headers({
-  //   'accessToken': 'true',
-  // })
-  // Future<void> getComments({
-  //   @Queries() PaginationParams? paginationParams = const PaginationParams(),
-  // });
 }

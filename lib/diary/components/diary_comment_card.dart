@@ -1,10 +1,13 @@
+import 'package:client/common/components/custom_text_field.dart';
 import 'package:client/common/const/colors.dart';
 import 'package:client/common/utils/data_utils.dart';
 import 'package:client/diary/model/diary_comment_model.dart';
+import 'package:client/diary/provider/diary_reply_provider.dart';
 import 'package:client/user/model/user_model.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class DiaryCommentCard extends StatelessWidget {
+class DiaryCommentCard extends ConsumerStatefulWidget {
   final String id;
   final UserModel? writer;
   final String content;
@@ -13,6 +16,7 @@ class DiaryCommentCard extends StatelessWidget {
   final bool isLike;
   final VoidCallback onLike;
   final bool isCommentMine;
+  final int replyCount;
   final VoidCallback onDelete;
 
   const DiaryCommentCard({
@@ -26,6 +30,7 @@ class DiaryCommentCard extends StatelessWidget {
     required this.onLike,
     required this.isCommentMine,
     required this.onDelete,
+    required this.replyCount,
   });
 
   factory DiaryCommentCard.fromModel({
@@ -44,9 +49,18 @@ class DiaryCommentCard extends StatelessWidget {
       onLike: onLike,
       isCommentMine: isCommentMine,
       onDelete: onDelete,
+      replyCount: model.replyCount,
     );
   }
 
+  @override
+  ConsumerState<DiaryCommentCard> createState() => _DiaryCommentCardState();
+}
+
+class _DiaryCommentCardState extends ConsumerState<DiaryCommentCard> {
+  bool showReply = false;
+  bool showReplyInput = false;
+  final TextEditingController replyController = TextEditingController();
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -55,7 +69,7 @@ class DiaryCommentCard extends StatelessWidget {
       ),
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onLongPress: isCommentMine
+        onLongPress: widget.isCommentMine
             ? () {
                 showDeleteDialog(context);
               }
@@ -80,7 +94,7 @@ class DiaryCommentCard extends StatelessWidget {
               ),
             ),
             const SizedBox(
-              width: 18.0,
+              width: 12.0,
             ),
             Expanded(
               child: Column(
@@ -89,18 +103,22 @@ class DiaryCommentCard extends StatelessWidget {
                   Row(
                     children: [
                       Text(
-                        writer != null ? writer!.nickname : "삭제된 사용자",
+                        widget.writer != null
+                            ? widget.writer!.nickname
+                            : "삭제된 사용자",
                         style: TextStyle(
                           fontSize: 14.0,
                           fontWeight: FontWeight.w500,
-                          color: writer != null ? Colors.white : Colors.grey,
+                          color: widget.writer != null
+                              ? Colors.white
+                              : Colors.grey,
                         ),
                       ),
                       const SizedBox(
                         width: 6.0,
                       ),
                       Text(
-                        DataUtils.timeAgoSinceDate(createdAt),
+                        DataUtils.timeAgoSinceDate(widget.createdAt),
                         style: const TextStyle(
                           fontSize: 13.0,
                           fontWeight: FontWeight.w400,
@@ -113,7 +131,7 @@ class DiaryCommentCard extends StatelessWidget {
                     height: 2.0,
                   ),
                   Text(
-                    content,
+                    widget.content,
                     style: const TextStyle(
                       fontSize: 15.0,
                       fontWeight: FontWeight.w400,
@@ -124,7 +142,11 @@ class DiaryCommentCard extends StatelessWidget {
                     height: 5.0,
                   ),
                   GestureDetector(
-                    onTap: () {},
+                    onTap: () {
+                      setState(() {
+                        showReplyInput = !showReplyInput;
+                      });
+                    },
                     child: const Text(
                       "답글달기",
                       style: TextStyle(
@@ -133,12 +155,62 @@ class DiaryCommentCard extends StatelessWidget {
                         color: GRAY_TEXT_COLOR,
                       ),
                     ),
-                  )
+                  ),
+                  if (showReplyInput)
+                    replyInput(
+                      controller: replyController,
+                      onReply: () {
+                        ref
+                            .read(diaryReplyProvider(widget.id).notifier)
+                            .createReply(
+                              content: replyController.text,
+                              commentId: widget.id,
+                            );
+                        setState(() {
+                          showReplyInput = false;
+                        });
+                      },
+                    ),
+                  if (widget.replyCount > 0)
+                    GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          showReply = !showReply;
+                        });
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.only(
+                          top: 16.0,
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 36,
+                              height: 0.5,
+                              decoration: const BoxDecoration(
+                                color: GRAY_TEXT_COLOR,
+                              ),
+                            ),
+                            const SizedBox(
+                              width: 8.0,
+                            ),
+                            Text(
+                              "답글 ${DataUtils.number2Unit.format(widget.replyCount)}개 보기",
+                              style: const TextStyle(
+                                fontSize: 13.0,
+                                fontWeight: FontWeight.w400,
+                                color: GRAY_TEXT_COLOR,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),
             GestureDetector(
-              onTap: onLike,
+              onTap: widget.onLike,
               child: Padding(
                 padding: const EdgeInsets.all(
                   12.0,
@@ -146,13 +218,13 @@ class DiaryCommentCard extends StatelessWidget {
                 child: Column(
                   children: [
                     Icon(
-                      isLike ? Icons.favorite : Icons.favorite_border,
+                      widget.isLike ? Icons.favorite : Icons.favorite_border,
                       size: 20.0,
                       color: Colors.white,
                     ),
-                    if (likeCount > 0)
+                    if (widget.likeCount > 0)
                       Text(
-                        DataUtils.number2Unit.format(likeCount),
+                        DataUtils.number2Unit.format(widget.likeCount),
                         style: const TextStyle(
                           fontSize: 13.0,
                           fontWeight: FontWeight.w400,
@@ -165,6 +237,93 @@ class DiaryCommentCard extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget replyInput({
+    required TextEditingController controller,
+    required VoidCallback onReply,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(
+        top: 8.0,
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Padding(
+            padding: EdgeInsets.only(
+              top: 8.0,
+            ),
+            child: CircleAvatar(
+              radius: 18.0,
+              backgroundColor: Colors.grey,
+              // backgroundImage: AssetImage(
+              //   'assets/images/default_profile.png',
+              // ),
+              child: Text(
+                '?',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 22.0,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(
+            width: 12.0,
+          ),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(
+                  height: 2.0,
+                ),
+                CustomTextField(
+                  controller: controller,
+                  fontSize: 14.0,
+                ),
+                const SizedBox(
+                  height: 12.0,
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          showReplyInput = false;
+                        });
+                      },
+                      child: const Text(
+                        "취소",
+                        style: TextStyle(
+                          fontSize: 13.0,
+                          fontWeight: FontWeight.w400,
+                          color: GRAY_TEXT_COLOR,
+                        ),
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: onReply,
+                      child: const Text(
+                        "답글달기",
+                        style: TextStyle(
+                          fontSize: 13.0,
+                          fontWeight: FontWeight.w400,
+                          color: PRIMARY_COLOR,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -189,7 +348,7 @@ class DiaryCommentCard extends StatelessWidget {
             children: <Widget>[
               GestureDetector(
                 onTap: () {
-                  onDelete();
+                  widget.onDelete();
                   Navigator.of(context).pop();
                 },
                 child: const Padding(

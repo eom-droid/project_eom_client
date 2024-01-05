@@ -3,10 +3,10 @@ import 'package:client/user/model/user_model.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:client/common/utils/data_utils.dart';
 
-part 'diary_comment_model.g.dart';
+part 'diary_reply_model.g.dart';
 
 @JsonSerializable()
-class DiaryCommentModel implements IModelWithId {
+class DiaryReplyModel implements IModelWithId {
   // id : 유일 아이디 값
   @override
   @JsonKey(name: '_id')
@@ -27,17 +27,14 @@ class DiaryCommentModel implements IModelWithId {
   final int likeCount;
   // isLike : 좋아요 여부
   final bool isLike;
-  // replyCount : 댓글 개수
-  final int replyCount;
 
-  DiaryCommentModel({
+  DiaryReplyModel({
     required this.id,
     this.writer,
     required this.content,
     required this.createdAt,
     required this.likeCount,
     required this.isLike,
-    required this.replyCount,
   });
 
   copyWith({
@@ -48,19 +45,18 @@ class DiaryCommentModel implements IModelWithId {
     int? likeCount,
     bool? isLike,
   }) {
-    return DiaryCommentModel(
+    return DiaryReplyModel(
       id: id ?? this.id,
       writer: writer ?? this.writer,
       content: content ?? this.content,
       createdAt: createdAt ?? this.createdAt,
       likeCount: likeCount ?? this.likeCount,
       isLike: isLike ?? this.isLike,
-      replyCount: replyCount,
     );
   }
 
-  factory DiaryCommentModel.fromJson(Map<String, dynamic> json) =>
-      _$DiaryCommentModelFromJson(json);
+  factory DiaryReplyModel.fromJson(Map<String, dynamic> json) =>
+      _$DiaryReplyModelFromJson(json);
 
-  Map<String, dynamic> toJson() => _$DiaryCommentModelToJson(this);
+  Map<String, dynamic> toJson() => _$DiaryReplyModelToJson(this);
 }

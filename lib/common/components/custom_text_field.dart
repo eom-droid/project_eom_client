@@ -4,9 +4,11 @@ import 'package:flutter/material.dart';
 class CustomTextField extends StatelessWidget {
   final String? hintText;
   final TextEditingController controller;
+  final double fontSize;
   const CustomTextField({
     super.key,
     this.hintText,
+    this.fontSize = 15.0,
     required this.controller,
   });
 
@@ -15,12 +17,13 @@ class CustomTextField extends StatelessWidget {
     return TextField(
       cursorColor: Colors.white,
       controller: controller,
-      style: const TextStyle(
+      style: TextStyle(
         color: Colors.white,
-        fontSize: 16.0,
+        fontSize: fontSize,
         fontWeight: FontWeight.w400,
       ),
       decoration: const InputDecoration(
+        isDense: true,
         enabledBorder: UnderlineInputBorder(
           borderSide: BorderSide(
             color: GRAY_TEXT_COLOR,

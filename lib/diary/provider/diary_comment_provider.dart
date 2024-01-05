@@ -1,4 +1,5 @@
 import 'package:client/diary/model/diary_comment_model.dart';
+import 'package:client/diary/model/diary_content_model.dart';
 import 'package:client/diary/repository/diary_comment_repository.dart';
 import 'package:client/user/model/user_model.dart';
 import 'package:client/user/model/user_with_token_model.dart';
@@ -72,7 +73,7 @@ class DiaryCommentStateNotifier
       // 2. 서버에 요청을 보낸다.
       final commentId = await repository.createComment(
         id: diaryId,
-        content: DiaryCommentReqModel(
+        content: DiaryContentReqModel(
           content: content,
         ),
       );
@@ -91,6 +92,7 @@ class DiaryCommentStateNotifier
             profileImg: user.user.profileImg,
             role: user.user.role,
           ),
+          replyCount: 0,
         ),
       );
 
@@ -136,8 +138,8 @@ class DiaryCommentStateNotifier
         'debounce/like/$commentId',
         const Duration(seconds: 1),
         () => pState.data[selecteComment].isLike
-            ? repository.createLikeDiary(id: commentId)
-            : repository.deleteLikeDiary(id: commentId),
+            ? repository.creatediaryCommentLike(id: commentId)
+            : repository.deleteDiaryCommentLike(id: commentId),
       );
     }
   }

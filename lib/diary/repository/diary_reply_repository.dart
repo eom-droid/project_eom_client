@@ -1,6 +1,6 @@
 import 'package:client/common/model/pagination_params.dart';
-import 'package:client/diary/model/diary_comment_model.dart';
 import 'package:client/diary/model/diary_content_model.dart';
+import 'package:client/diary/model/diary_reply_model.dart';
 import 'package:dio/dio.dart' hide Headers;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,30 +10,34 @@ import 'package:client/common/repository/base_pagination_repository.dart';
 
 import 'package:retrofit/retrofit.dart';
 
-part 'diary_comment_repository.g.dart';
+part 'diary_reply_repository.g.dart';
 
-final diaryCommentRepositoryProvider =
-    Provider.family<DiaryCommentRepository, String>((ref, diaryId) {
+final diaryReplyRepositoryProvider =
+    Provider.family<DiaryReplyRepository, String>((ref, commentId) {
   final dio = ref.read(dioProvider);
 
   String ip = dotenv.env['IP']!;
 
-  return DiaryCommentRepository(dio,
-      baseUrl: 'http://$ip/api/v1/diaries/$diaryId/comment');
+  return DiaryReplyRepository(
+    dio,
+    // diary의 id는 중요하지 않음 -> comment의 id가 중요함
+    // 따라서 diaryId는 필요하지 않음
+    baseUrl: 'http://$ip/api/v1/diaries/temp/comment/$commentId/reply',
+  );
 });
 
 @RestApi()
-abstract class DiaryCommentRepository
-    implements IBasePaginationRepository<DiaryCommentModel> {
-  factory DiaryCommentRepository(Dio dio, {String baseUrl}) =
-      _DiaryCommentRepository;
+abstract class DiaryReplyRepository
+    implements IBasePaginationRepository<DiaryReplyModel> {
+  factory DiaryReplyRepository(Dio dio, {String baseUrl}) =
+      _DiaryReplyRepository;
 
   @override
   @GET('')
   @Headers({
     'accessToken': 'true',
   })
-  Future<CursorPagination<DiaryCommentModel>> paginate({
+  Future<CursorPagination<DiaryReplyModel>> paginate({
     @Queries() PaginationParams? paginationParams = const PaginationParams(),
   });
 
@@ -41,7 +45,7 @@ abstract class DiaryCommentRepository
   @Headers({
     'accessToken': 'true',
   })
-  Future<String> createComment({
+  Future<String> createReply({
     @Path() required String id,
     @Body() required DiaryContentReqModel content,
   });
@@ -50,7 +54,7 @@ abstract class DiaryCommentRepository
   @Headers({
     'accessToken': 'true',
   })
-  Future<String> deleteComment({
+  Future<String> deleteReply({
     @Path() required String id,
   });
 
@@ -58,7 +62,7 @@ abstract class DiaryCommentRepository
   @Headers({
     'accessToken': 'true',
   })
-  Future<void> patchComments({
+  Future<void> patchReply({
     @Body() required DiaryContentReqModel content,
   });
 
@@ -66,7 +70,7 @@ abstract class DiaryCommentRepository
   @Headers({
     'accessToken': 'true',
   })
-  Future<void> creatediaryCommentLike({
+  Future<void> createReplyLike({
     @Path() required String id,
   });
 
@@ -74,7 +78,7 @@ abstract class DiaryCommentRepository
   @Headers({
     'accessToken': 'true',
   })
-  Future<void> deleteDiaryCommentLike({
+  Future<void> deleteReplyLike({
     @Path() required String id,
   });
 }
