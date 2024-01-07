@@ -6,7 +6,7 @@ import 'package:client/common/model/cursor_pagination_model.dart';
 import 'package:client/common/provider/pagination_provider.dart';
 import 'package:client/common/utils/pagination_utils.dart';
 
-class DefaultPaginationNestedScrollViewLayout<T extends IModelWithId>
+class DefaultScrollBasePaginationLayout<T extends IModelWithId>
     extends ConsumerStatefulWidget {
   final StateNotifierProvider<PaginationNotifier, CursorPaginationBase>
       provider;
@@ -15,24 +15,25 @@ class DefaultPaginationNestedScrollViewLayout<T extends IModelWithId>
   final ScrollController? controller;
   final Widget? sliverAppBar;
   final Future<void> Function() onRefresh;
-  final bool returnListView;
-  const DefaultPaginationNestedScrollViewLayout({
+  final bool useDefaultListView;
+
+  const DefaultScrollBasePaginationLayout({
     Key? key,
     required this.provider,
     required this.body,
     this.sliverAppBar,
     required this.onRefresh,
     this.controller,
-    this.returnListView = false,
+    this.useDefaultListView = true,
   }) : super(key: key);
 
   @override
-  ConsumerState<DefaultPaginationNestedScrollViewLayout> createState() =>
-      _DefaultPaginationNestedScrollViewLayoutState<T>();
+  ConsumerState<DefaultScrollBasePaginationLayout> createState() =>
+      _DefaultScrollBasePaginationLayoutState<T>();
 }
 
-class _DefaultPaginationNestedScrollViewLayoutState<T extends IModelWithId>
-    extends ConsumerState<DefaultPaginationNestedScrollViewLayout> {
+class _DefaultScrollBasePaginationLayoutState<T extends IModelWithId>
+    extends ConsumerState<DefaultScrollBasePaginationLayout> {
   late final ScrollController controller;
 
   @override
@@ -124,7 +125,7 @@ class _DefaultPaginationNestedScrollViewLayoutState<T extends IModelWithId>
   Widget build(BuildContext context) {
     final state = ref.watch(widget.provider);
 
-    if (widget.returnListView) {
+    if (!widget.useDefaultListView) {
       return loadBody(state, controller);
     } else {
       return Scaffold(

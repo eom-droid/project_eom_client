@@ -4,6 +4,7 @@ import 'package:client/diary/repository/diary_reply_repository.dart';
 import 'package:client/user/model/user_model.dart';
 import 'package:client/user/model/user_with_token_model.dart';
 import 'package:client/user/provider/user_provider.dart';
+import 'package:easy_debounce/easy_debounce.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:client/common/model/cursor_pagination_model.dart';
 import 'package:client/common/provider/pagination_provider.dart';
@@ -106,46 +107,46 @@ class DiaryReplyStateNotifier
     }
   }
 
-  // void toggleLike({
-  //   required String replyId,
-  // }) {
-  //   if (state is CursorPagination) {
-  //     var pState = state as CursorPagination<DiaryReplyModel>;
+  void toggleLike({
+    required String replyId,
+  }) {
+    if (state is CursorPagination) {
+      var pState = state as CursorPagination<DiaryReplyModel>;
 
-  //     // 1. 선택된 commentId를 찾는다.
-  //     final selecteComment = pState.data.indexWhere(
-  //       (element) => element.id == replyId,
-  //     );
+      // 1. 선택된 commentId를 찾는다.
+      final selecteComment = pState.data.indexWhere(
+        (element) => element.id == replyId,
+      );
 
-  //     // 2. 만약 선택된 commentId가 없다면 그냥 리턴
-  //     if (selecteComment == -1) {
-  //       return;
-  //     }
+      // 2. 만약 선택된 commentId가 없다면 그냥 리턴
+      if (selecteComment == -1) {
+        return;
+      }
 
-  //     // 3. 선택된 commentId가 있다면 해당 데이터를 변경한다.
-  //     pState.data[selecteComment] = pState.data[selecteComment].copyWith(
-  //       isLike: !pState.data[selecteComment].isLike,
-  //       likeCount: pState.data[selecteComment].likeCount +
-  //           (pState.data[selecteComment].isLike ? -1 : 1),
-  //     );
+      // 3. 선택된 commentId가 있다면 해당 데이터를 변경한다.
+      pState.data[selecteComment] = pState.data[selecteComment].copyWith(
+        isLike: !pState.data[selecteComment].isLike,
+        likeCount: pState.data[selecteComment].likeCount +
+            (pState.data[selecteComment].isLike ? -1 : 1),
+      );
 
-  //     // 4. 변경된 데이터를 적용한다.
-  //     state = pState.copyWith(
-  //       data: pState.data,
-  //     );
+      // 4. 변경된 데이터를 적용한다.
+      state = pState.copyWith(
+        data: pState.data,
+      );
 
-  //     // 5. 서버에 좋아요를 요청한다.
-  //     // 요청 시 현재의 상태가 0 -> 1 이면 좋아요를 생성
-  //     // 요청 시 현재의 상태가 1 -> 0 이면 좋아요를 삭제
-  //     EasyDebounce.debounce(
-  //       'debounce/like/$replyId',
-  //       const Duration(seconds: 1),
-  //       () => pState.data[selecteComment].isLike
-  //           ? repository.createReplyLike(id: replyId)
-  //           : repository.deleteReplyLike(id: replyId),
-  //     );
-  //   }
-  // }
+      // 5. 서버에 좋아요를 요청한다.
+      // 요청 시 현재의 상태가 0 -> 1 이면 좋아요를 생성
+      // 요청 시 현재의 상태가 1 -> 0 이면 좋아요를 삭제
+      EasyDebounce.debounce(
+        'debounce/like/$replyId',
+        const Duration(seconds: 1),
+        () => pState.data[selecteComment].isLike
+            ? repository.createReplyLike(id: replyId)
+            : repository.deleteReplyLike(id: replyId),
+      );
+    }
+  }
 
   // Future<void> deleteComment({
   //   required String replyId,

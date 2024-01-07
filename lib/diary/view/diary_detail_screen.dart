@@ -1,5 +1,5 @@
 import 'package:client/common/components/custom_text_field.dart';
-import 'package:client/common/layout/default_pagination_nestedScrollView_layout.dart';
+import 'package:client/common/layout/default_scroll_base_pagination_layout.dart';
 import 'package:client/common/model/cursor_pagination_model.dart';
 import 'package:client/common/utils/data_utils.dart';
 import 'package:client/diary/components/diary_comment_card.dart';
@@ -514,7 +514,7 @@ class _RenderComment extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(userProvider) as UserWithTokenModel;
     return SliverToBoxAdapter(
-      child: DefaultPaginationNestedScrollViewLayout(
+      child: DefaultScrollBasePaginationLayout<DiaryCommentModel>(
         provider: diaryCommentProvider(id),
         body: (CursorPagination cp, ScrollController controller) {
           return _renderCommentList(
@@ -543,7 +543,7 @@ class _RenderComment extends ConsumerWidget {
                 forceRefetch: true,
               );
         },
-        returnListView: true,
+        useDefaultListView: false,
       ),
     );
   }

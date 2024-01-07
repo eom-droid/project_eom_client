@@ -1,7 +1,9 @@
 import 'package:client/common/components/custom_text_field.dart';
 import 'package:client/common/const/colors.dart';
+import 'package:client/common/model/cursor_pagination_model.dart';
 import 'package:client/common/utils/data_utils.dart';
 import 'package:client/diary/model/diary_comment_model.dart';
+import 'package:client/diary/model/diary_reply_model.dart';
 import 'package:client/diary/provider/diary_reply_provider.dart';
 import 'package:client/user/model/user_model.dart';
 import 'package:flutter/material.dart';
@@ -59,66 +61,373 @@ class DiaryCommentCard extends ConsumerStatefulWidget {
 
 class _DiaryCommentCardState extends ConsumerState<DiaryCommentCard> {
   bool showReply = false;
+
   bool showReplyInput = false;
   final TextEditingController replyController = TextEditingController();
   @override
   Widget build(BuildContext context) {
+    final replyState = ref.watch(diaryReplyProvider(widget.id));
     return Padding(
       padding: const EdgeInsets.symmetric(
         horizontal: 16.0,
       ),
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onLongPress: widget.isCommentMine
-            ? () {
-                showDeleteDialog(context);
-              }
-            : null,
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            const CircleAvatar(
-              radius: 22.0,
-              backgroundColor: Colors.grey,
-              // backgroundImage: AssetImage(
-              //   'assets/images/default_profile.png',
-              // ),
-              child: Text(
-                '?',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 22.0,
-                  fontWeight: FontWeight.w500,
+      child: Column(
+        children: [
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onLongPress: widget.isCommentMine
+                ? () {
+                    showDeleteDialog(context);
+                  }
+                : null,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                const Padding(
+                  padding: EdgeInsets.only(
+                    top: 2.0,
+                  ),
+                  child: CircleAvatar(
+                    radius: 22.0,
+                    backgroundColor: Colors.grey,
+                    // backgroundImage: AssetImage(
+                    //   'assets/images/default_profile.png',
+                    // ),
+                    child: Text(
+                      '?',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 22.0,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
                 ),
+                const SizedBox(
+                  width: 12.0,
+                ),
+                Expanded(
+                  child: Column(
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Text(
+                                      widget.writer != null
+                                          ? widget.writer!.nickname
+                                          : "삭제된 사용자",
+                                      style: TextStyle(
+                                        fontSize: 14.0,
+                                        fontWeight: FontWeight.w500,
+                                        color: widget.writer != null
+                                            ? Colors.white
+                                            : Colors.grey,
+                                      ),
+                                    ),
+                                    const SizedBox(
+                                      width: 6.0,
+                                    ),
+                                    Text(
+                                      DataUtils.timeAgoSinceDate(
+                                          widget.createdAt),
+                                      style: const TextStyle(
+                                        fontSize: 13.0,
+                                        fontWeight: FontWeight.w400,
+                                        color: GRAY_TEXT_COLOR,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(
+                                  height: 2.0,
+                                ),
+                                Text(
+                                  widget.content,
+                                  style: const TextStyle(
+                                    fontSize: 15.0,
+                                    fontWeight: FontWeight.w400,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                const SizedBox(
+                                  height: 5.0,
+                                ),
+                                GestureDetector(
+                                  onTap: () {
+                                    setState(() {
+                                      showReplyInput = !showReplyInput;
+                                    });
+                                  },
+                                  child: const Text(
+                                    "답글달기",
+                                    style: TextStyle(
+                                      fontSize: 13.0,
+                                      fontWeight: FontWeight.w400,
+                                      color: GRAY_TEXT_COLOR,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: widget.onLike,
+                            child: Padding(
+                              padding: const EdgeInsets.all(
+                                12.0,
+                              ),
+                              child: Column(
+                                children: [
+                                  Icon(
+                                    widget.isLike
+                                        ? Icons.favorite
+                                        : Icons.favorite_border,
+                                    size: 20.0,
+                                    color: Colors.white,
+                                  ),
+                                  Text(
+                                    widget.likeCount > 0
+                                        ? DataUtils.number2Unit
+                                            .format(widget.likeCount)
+                                        : "",
+                                    style: const TextStyle(
+                                      fontSize: 13.0,
+                                      fontWeight: FontWeight.w400,
+                                      color: GRAY_TEXT_COLOR,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (showReplyInput)
+            replyInput(
+              controller: replyController,
+              onReply: () {
+                ref.read(diaryReplyProvider(widget.id).notifier).createReply(
+                      content: replyController.text,
+                      commentId: widget.id,
+                    );
+                setState(() {
+                  showReplyInput = false;
+                });
+              },
+            ),
+          if (showReply && replyState is CursorPagination)
+            Padding(
+              padding: const EdgeInsets.only(
+                top: 8.0,
+                left: 56.0,
+              ),
+              child: ListView.separated(
+                padding: EdgeInsets.zero,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemBuilder: (BuildContext context, int index) {
+                  final reply =
+                      (replyState as CursorPagination<DiaryReplyModel>)
+                          .data[index];
+                  return Padding(
+                    padding: const EdgeInsets.only(
+                      top: 8.0,
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Padding(
+                          padding: EdgeInsets.only(
+                            top: 4.5,
+                          ),
+                          child: CircleAvatar(
+                            radius: 18.0,
+                            backgroundColor: Colors.grey,
+                            // backgroundImage: AssetImage(
+                            //   'assets/images/default_profile.png',
+                            // ),
+                            child: Text(
+                              '?',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 22.0,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(
+                          width: 12.0,
+                        ),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const SizedBox(
+                                height: 2.0,
+                              ),
+                              Row(
+                                children: [
+                                  Text(
+                                    widget.writer != null
+                                        ? widget.writer!.nickname
+                                        : "삭제된 사용자",
+                                    style: TextStyle(
+                                      fontSize: 14.0,
+                                      fontWeight: FontWeight.w500,
+                                      color: widget.writer != null
+                                          ? Colors.white
+                                          : Colors.grey,
+                                    ),
+                                  ),
+                                  const SizedBox(
+                                    width: 6.0,
+                                  ),
+                                  Text(
+                                    DataUtils.timeAgoSinceDate(reply.createdAt),
+                                    style: const TextStyle(
+                                      fontSize: 13.0,
+                                      fontWeight: FontWeight.w400,
+                                      color: GRAY_TEXT_COLOR,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(
+                                height: 2.0,
+                              ),
+                              Text(
+                                reply.content,
+                                style: const TextStyle(
+                                  fontSize: 15.0,
+                                  fontWeight: FontWeight.w400,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () {
+                            ref
+                                .read(diaryReplyProvider(widget.id).notifier)
+                                .toggleLike(
+                                  replyId: reply.id,
+                                );
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12.0,
+                              vertical: 4.0,
+                            ),
+                            child: Column(
+                              children: [
+                                Icon(
+                                  reply.isLike
+                                      ? Icons.favorite
+                                      : Icons.favorite_border,
+                                  size: 20.0,
+                                  color: Colors.white,
+                                ),
+                                Text(
+                                  reply.likeCount > 0
+                                      ? DataUtils.number2Unit
+                                          .format(reply.likeCount)
+                                      : "",
+                                  style: const TextStyle(
+                                    fontSize: 13.0,
+                                    fontWeight: FontWeight.w400,
+                                    color: GRAY_TEXT_COLOR,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+                separatorBuilder: (BuildContext context, int index) {
+                  return const SizedBox(
+                    height: 10.0,
+                  );
+                },
+                itemCount: (replyState).data.length,
               ),
             ),
-            const SizedBox(
-              width: 12.0,
-            ),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
+          if (widget.replyCount > 0 && replyState is CursorPagination)
+            Padding(
+              padding: const EdgeInsets.only(
+                left: 56.0,
+              ),
+              child: GestureDetector(
+                onTap: () {
+                  // 전제 : 답글이 12개 있는 상태
+                  // 0. 로딩중
+                  // 굳이 구현이 필요없음
+
+                  // 1. 처음 답글을 가져올때
+                  // 2. 답글을 2개 더 가져올때
+
+                  if (replyState.data.isEmpty) {
+                    setState(() {
+                      showReply = !showReply;
+                    });
+                  }
+                  ref.read(diaryReplyProvider(widget.id).notifier).paginate(
+                        bounceMilSec: 100,
+                        fetchMore: replyState.meta.hasMore,
+                      );
+                  // 3. 답글을 모두 가져온 상태에서 버튼을 누르면 -> 숨기기 버튼을 누른것과 같음
+                  // 4. 답글을 모두 가져온 상태 + 숨김 상태에서 버튼을 누르면 -> x개 보기
+                  // 위 페이징을 진행한 이유는 paginate에서 자체적으로 hasMore를 체크하기 때문에
+                  if (!replyState.meta.hasMore) {
+                    setState(() {
+                      showReply = !showReply;
+                    });
+                  }
+                  return;
+                },
+                child: Padding(
+                  padding: const EdgeInsets.only(
+                    top: 16.0,
+                  ),
+                  child: Row(
                     children: [
-                      Text(
-                        widget.writer != null
-                            ? widget.writer!.nickname
-                            : "삭제된 사용자",
-                        style: TextStyle(
-                          fontSize: 14.0,
-                          fontWeight: FontWeight.w500,
-                          color: widget.writer != null
-                              ? Colors.white
-                              : Colors.grey,
+                      Container(
+                        width: 36,
+                        height: 0.5,
+                        decoration: const BoxDecoration(
+                          color: GRAY_TEXT_COLOR,
                         ),
                       ),
                       const SizedBox(
-                        width: 6.0,
+                        width: 8.0,
                       ),
                       Text(
-                        DataUtils.timeAgoSinceDate(widget.createdAt),
+                        replyState is CursorPagination
+                            ? replyState.meta.hasMore || !showReply
+                                ? showReply || replyState.data.isEmpty
+                                    ? "답글 ${DataUtils.number2Unit.format((widget.replyCount - replyState.data.length).abs())}개 보기"
+                                    : "답글 ${DataUtils.number2Unit.format(replyState.data.length)}개 보기"
+                                : "답글 숨기기"
+                            : "읽어들이는중...",
                         style: const TextStyle(
                           fontSize: 13.0,
                           fontWeight: FontWeight.w400,
@@ -127,116 +436,10 @@ class _DiaryCommentCardState extends ConsumerState<DiaryCommentCard> {
                       ),
                     ],
                   ),
-                  const SizedBox(
-                    height: 2.0,
-                  ),
-                  Text(
-                    widget.content,
-                    style: const TextStyle(
-                      fontSize: 15.0,
-                      fontWeight: FontWeight.w400,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 5.0,
-                  ),
-                  GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        showReplyInput = !showReplyInput;
-                      });
-                    },
-                    child: const Text(
-                      "답글달기",
-                      style: TextStyle(
-                        fontSize: 13.0,
-                        fontWeight: FontWeight.w400,
-                        color: GRAY_TEXT_COLOR,
-                      ),
-                    ),
-                  ),
-                  if (showReplyInput)
-                    replyInput(
-                      controller: replyController,
-                      onReply: () {
-                        ref
-                            .read(diaryReplyProvider(widget.id).notifier)
-                            .createReply(
-                              content: replyController.text,
-                              commentId: widget.id,
-                            );
-                        setState(() {
-                          showReplyInput = false;
-                        });
-                      },
-                    ),
-                  if (widget.replyCount > 0)
-                    GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          showReply = !showReply;
-                        });
-                      },
-                      child: Padding(
-                        padding: const EdgeInsets.only(
-                          top: 16.0,
-                        ),
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 36,
-                              height: 0.5,
-                              decoration: const BoxDecoration(
-                                color: GRAY_TEXT_COLOR,
-                              ),
-                            ),
-                            const SizedBox(
-                              width: 8.0,
-                            ),
-                            Text(
-                              "답글 ${DataUtils.number2Unit.format(widget.replyCount)}개 보기",
-                              style: const TextStyle(
-                                fontSize: 13.0,
-                                fontWeight: FontWeight.w400,
-                                color: GRAY_TEXT_COLOR,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-            GestureDetector(
-              onTap: widget.onLike,
-              child: Padding(
-                padding: const EdgeInsets.all(
-                  12.0,
-                ),
-                child: Column(
-                  children: [
-                    Icon(
-                      widget.isLike ? Icons.favorite : Icons.favorite_border,
-                      size: 20.0,
-                      color: Colors.white,
-                    ),
-                    if (widget.likeCount > 0)
-                      Text(
-                        DataUtils.number2Unit.format(widget.likeCount),
-                        style: const TextStyle(
-                          fontSize: 13.0,
-                          fontWeight: FontWeight.w400,
-                          color: GRAY_TEXT_COLOR,
-                        ),
-                      ),
-                  ],
                 ),
               ),
             ),
-          ],
-        ),
+        ],
       ),
     );
   }
@@ -247,6 +450,8 @@ class _DiaryCommentCardState extends ConsumerState<DiaryCommentCard> {
   }) {
     return Padding(
       padding: const EdgeInsets.only(
+        left: 56.0,
+        right: 48.0,
         top: 8.0,
       ),
       child: Row(
@@ -347,6 +552,7 @@ class _DiaryCommentCardState extends ConsumerState<DiaryCommentCard> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
               GestureDetector(
+                behavior: HitTestBehavior.opaque,
                 onTap: () {
                   widget.onDelete();
                   Navigator.of(context).pop();
@@ -372,6 +578,7 @@ class _DiaryCommentCardState extends ConsumerState<DiaryCommentCard> {
                 thickness: 1,
               ),
               GestureDetector(
+                behavior: HitTestBehavior.opaque,
                 onTap: () {
                   Navigator.of(context).pop();
                 },

@@ -1,4 +1,4 @@
-import 'package:client/common/layout/default_pagination_nestedScrollView_layout.dart';
+import 'package:client/common/layout/default_scroll_base_pagination_layout.dart';
 import 'package:client/music/provider/music_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -123,7 +123,7 @@ class MusicScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return DefaultPaginationNestedScrollViewLayout(
+    return DefaultScrollBasePaginationLayout(
       provider: musicProvider,
       body: (CursorPagination cp, ScrollController controller) {
         return _renderMusicList(

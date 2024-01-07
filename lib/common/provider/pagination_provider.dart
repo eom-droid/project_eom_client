@@ -57,10 +57,11 @@ class PaginationNotifier<T extends IModelWithId,
     // 강제로 다시 로딩하기
     // true - CursorPaginationLoading()
     bool forceRefetch = false,
+    int bounceMilSec = 3000,
   }) async {
     EasyThrottle.throttle(
       randomKey,
-      const Duration(seconds: 3),
+      Duration(milliseconds: bounceMilSec),
       () => _throttlePagination(
         _PaginationInfo(
           fetchCount: fetchCount,
