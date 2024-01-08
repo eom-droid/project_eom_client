@@ -535,6 +535,18 @@ class _RenderComment extends ConsumerWidget {
                 ),
               );
             },
+            onPatchComment: (String commentId, String content) async {
+              await ref.read(diaryCommentProvider(id).notifier).patchComment(
+                    commentId: commentId,
+                    content: content,
+                  );
+
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text("댓글이 수정되었습니다."),
+                ),
+              );
+            },
             currentUserId: user.user.id,
           );
         },
@@ -552,6 +564,7 @@ class _RenderComment extends ConsumerWidget {
     required CursorPagination<DiaryCommentModel> cp,
     required Function(String commentId) onTapLike,
     required Function(String commentId) onDeleteComment,
+    required Function(String commentId, String content) onPatchComment,
     required String currentUserId,
   }) {
     return Padding(
@@ -578,6 +591,9 @@ class _RenderComment extends ConsumerWidget {
             },
             onDelete: () {
               onDeleteComment(cp.data[index].id);
+            },
+            onUpdate: (String content) {
+              onPatchComment(cp.data[index].id, content);
             },
             isCommentMine: writer == null ? false : writer.id == currentUserId,
           );

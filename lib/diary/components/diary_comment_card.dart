@@ -6,6 +6,8 @@ import 'package:client/diary/model/diary_comment_model.dart';
 import 'package:client/diary/model/diary_reply_model.dart';
 import 'package:client/diary/provider/diary_reply_provider.dart';
 import 'package:client/user/model/user_model.dart';
+import 'package:client/user/model/user_with_token_model.dart';
+import 'package:client/user/provider/user_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -20,6 +22,7 @@ class DiaryCommentCard extends ConsumerStatefulWidget {
   final bool isCommentMine;
   final int replyCount;
   final VoidCallback onDelete;
+  final Function(String) onUpdate;
 
   const DiaryCommentCard({
     super.key,
@@ -33,12 +36,14 @@ class DiaryCommentCard extends ConsumerStatefulWidget {
     required this.isCommentMine,
     required this.onDelete,
     required this.replyCount,
+    required this.onUpdate,
   });
 
   factory DiaryCommentCard.fromModel({
     required DiaryCommentModel model,
     required VoidCallback onLike,
     required VoidCallback onDelete,
+    required Function(String) onUpdate,
     required bool isCommentMine,
   }) {
     return DiaryCommentCard(
@@ -51,6 +56,7 @@ class DiaryCommentCard extends ConsumerStatefulWidget {
       onLike: onLike,
       isCommentMine: isCommentMine,
       onDelete: onDelete,
+      onUpdate: onUpdate,
       replyCount: model.replyCount,
     );
   }
@@ -60,13 +66,25 @@ class DiaryCommentCard extends ConsumerStatefulWidget {
 }
 
 class _DiaryCommentCardState extends ConsumerState<DiaryCommentCard> {
+  // 답글을 보여줄지 말지
   bool showReply = false;
-
+  // 답글을 작성하는 input을 보여줄지 말지
   bool showReplyInput = false;
+  // 답글을 작성하는 input의 컨트롤러
   final TextEditingController replyController = TextEditingController();
+
+  // 수정을 위한 변수
+  bool isCommentUpdating = false;
+  String replyUpdatingId = "";
+
+  // 수정을 위한 컨트롤러
+  final TextEditingController commentUpdateController = TextEditingController();
+  final TextEditingController replyUpdateController = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     final replyState = ref.watch(diaryReplyProvider(widget.id));
+    final userState = ref.watch(userProvider) as UserWithTokenModel;
     return Padding(
       padding: const EdgeInsets.symmetric(
         horizontal: 16.0,
@@ -77,7 +95,16 @@ class _DiaryCommentCardState extends ConsumerState<DiaryCommentCard> {
             behavior: HitTestBehavior.opaque,
             onLongPress: widget.isCommentMine
                 ? () {
-                    showDeleteDialog(context);
+                    showDeleteDialog(
+                      context: context,
+                      onUpdate: () {
+                        setState(() {
+                          isCommentUpdating = true;
+                          commentUpdateController.text = widget.content;
+                        });
+                      },
+                      onDelete: widget.onDelete,
+                    );
                   }
                 : null,
             child: Row(
@@ -148,14 +175,65 @@ class _DiaryCommentCardState extends ConsumerState<DiaryCommentCard> {
                                 const SizedBox(
                                   height: 2.0,
                                 ),
-                                Text(
-                                  widget.content,
-                                  style: const TextStyle(
-                                    fontSize: 15.0,
-                                    fontWeight: FontWeight.w400,
-                                    color: Colors.white,
+                                if (isCommentUpdating)
+                                  Column(
+                                    children: [
+                                      CustomTextField(
+                                        controller: commentUpdateController,
+                                        fontSize: 14.0,
+                                      ),
+                                      const SizedBox(
+                                        height: 12.0,
+                                      ),
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          GestureDetector(
+                                            onTap: () {
+                                              setState(() {
+                                                isCommentUpdating = false;
+                                              });
+                                            },
+                                            child: const Text(
+                                              "취소",
+                                              style: TextStyle(
+                                                fontSize: 13.0,
+                                                fontWeight: FontWeight.w400,
+                                                color: GRAY_TEXT_COLOR,
+                                              ),
+                                            ),
+                                          ),
+                                          GestureDetector(
+                                            onTap: () {
+                                              widget.onUpdate(
+                                                  commentUpdateController.text);
+                                              setState(() {
+                                                isCommentUpdating = false;
+                                              });
+                                            },
+                                            child: const Text(
+                                              "수정",
+                                              style: TextStyle(
+                                                fontSize: 13.0,
+                                                fontWeight: FontWeight.w400,
+                                                color: PRIMARY_COLOR,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
                                   ),
-                                ),
+                                if (!isCommentUpdating)
+                                  Text(
+                                    widget.content,
+                                    style: const TextStyle(
+                                      fontSize: 15.0,
+                                      fontWeight: FontWeight.w400,
+                                      color: Colors.white,
+                                    ),
+                                  ),
                                 const SizedBox(
                                   height: 5.0,
                                 ),
@@ -224,6 +302,7 @@ class _DiaryCommentCardState extends ConsumerState<DiaryCommentCard> {
                       content: replyController.text,
                       commentId: widget.id,
                     );
+                replyController.text = "";
                 setState(() {
                   showReplyInput = false;
                 });
@@ -243,62 +322,197 @@ class _DiaryCommentCardState extends ConsumerState<DiaryCommentCard> {
                   final reply =
                       (replyState as CursorPagination<DiaryReplyModel>)
                           .data[index];
-                  return Padding(
-                    padding: const EdgeInsets.only(
-                      top: 8.0,
-                    ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Padding(
-                          padding: EdgeInsets.only(
-                            top: 4.5,
-                          ),
-                          child: CircleAvatar(
-                            radius: 18.0,
-                            backgroundColor: Colors.grey,
-                            // backgroundImage: AssetImage(
-                            //   'assets/images/default_profile.png',
-                            // ),
-                            child: Text(
-                              '?',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 22.0,
-                                fontWeight: FontWeight.w500,
+                  return GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onLongPress: reply.writer != null &&
+                            reply.writer!.id == userState.user.id
+                        ? () {
+                            showDeleteDialog(
+                              context: context,
+                              onUpdate: () {
+                                setState(() {
+                                  replyUpdatingId = reply.id;
+                                  replyUpdateController.text = reply.content;
+                                });
+                              },
+                              onDelete: () {
+                                ref
+                                    .read(
+                                        diaryReplyProvider(widget.id).notifier)
+                                    .deleteReply(
+                                      replyId: reply.id,
+                                    );
+                              },
+                            );
+                          }
+                        : null,
+                    child: Padding(
+                      padding: const EdgeInsets.only(
+                        top: 8.0,
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Padding(
+                            padding: EdgeInsets.only(
+                              top: 4.5,
+                            ),
+                            child: CircleAvatar(
+                              radius: 18.0,
+                              backgroundColor: Colors.grey,
+                              // backgroundImage: AssetImage(
+                              //   'assets/images/default_profile.png',
+                              // ),
+                              child: Text(
+                                '?',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 22.0,
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                        const SizedBox(
-                          width: 12.0,
-                        ),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const SizedBox(
-                                height: 2.0,
-                              ),
-                              Row(
-                                children: [
+                          const SizedBox(
+                            width: 12.0,
+                          ),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const SizedBox(
+                                  height: 2.0,
+                                ),
+                                Row(
+                                  children: [
+                                    Text(
+                                      reply.writer != null
+                                          ? reply.writer!.nickname
+                                          : "삭제된 사용자",
+                                      style: TextStyle(
+                                        fontSize: 14.0,
+                                        fontWeight: FontWeight.w500,
+                                        color: reply.writer != null
+                                            ? Colors.white
+                                            : Colors.grey,
+                                      ),
+                                    ),
+                                    const SizedBox(
+                                      width: 6.0,
+                                    ),
+                                    Text(
+                                      DataUtils.timeAgoSinceDate(
+                                        reply.createdAt,
+                                      ),
+                                      style: const TextStyle(
+                                        fontSize: 13.0,
+                                        fontWeight: FontWeight.w400,
+                                        color: GRAY_TEXT_COLOR,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(
+                                  height: 2.0,
+                                ),
+                                if (replyUpdatingId == reply.id)
+                                  Column(
+                                    children: [
+                                      CustomTextField(
+                                        controller: replyUpdateController,
+                                        fontSize: 14.0,
+                                      ),
+                                      const SizedBox(
+                                        height: 12.0,
+                                      ),
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          GestureDetector(
+                                            onTap: () {
+                                              setState(() {
+                                                replyUpdatingId = "";
+                                              });
+                                            },
+                                            child: const Text(
+                                              "취소",
+                                              style: TextStyle(
+                                                fontSize: 13.0,
+                                                fontWeight: FontWeight.w400,
+                                                color: GRAY_TEXT_COLOR,
+                                              ),
+                                            ),
+                                          ),
+                                          GestureDetector(
+                                            onTap: () {
+                                              ref
+                                                  .read(diaryReplyProvider(
+                                                          widget.id)
+                                                      .notifier)
+                                                  .patchReply(
+                                                    content:
+                                                        replyUpdateController
+                                                            .text,
+                                                    replyId: reply.id,
+                                                  );
+                                              setState(() {
+                                                replyUpdatingId = "";
+                                              });
+                                            },
+                                            child: const Text(
+                                              "수정",
+                                              style: TextStyle(
+                                                fontSize: 13.0,
+                                                fontWeight: FontWeight.w400,
+                                                color: PRIMARY_COLOR,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                if (replyUpdatingId != reply.id)
                                   Text(
-                                    widget.writer != null
-                                        ? widget.writer!.nickname
-                                        : "삭제된 사용자",
-                                    style: TextStyle(
-                                      fontSize: 14.0,
-                                      fontWeight: FontWeight.w500,
-                                      color: widget.writer != null
-                                          ? Colors.white
-                                          : Colors.grey,
+                                    reply.content,
+                                    style: const TextStyle(
+                                      fontSize: 15.0,
+                                      fontWeight: FontWeight.w400,
+                                      color: Colors.white,
                                     ),
                                   ),
-                                  const SizedBox(
-                                    width: 6.0,
+                              ],
+                            ),
+                          ),
+                          GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: () {
+                              ref
+                                  .read(diaryReplyProvider(widget.id).notifier)
+                                  .toggleLike(
+                                    replyId: reply.id,
+                                  );
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12.0,
+                                vertical: 4.0,
+                              ),
+                              child: Column(
+                                children: [
+                                  Icon(
+                                    reply.isLike
+                                        ? Icons.favorite
+                                        : Icons.favorite_border,
+                                    size: 20.0,
+                                    color: Colors.white,
                                   ),
                                   Text(
-                                    DataUtils.timeAgoSinceDate(reply.createdAt),
+                                    reply.likeCount > 0
+                                        ? DataUtils.number2Unit
+                                            .format(reply.likeCount)
+                                        : "",
                                     style: const TextStyle(
                                       fontSize: 13.0,
                                       fontWeight: FontWeight.w400,
@@ -307,59 +521,10 @@ class _DiaryCommentCardState extends ConsumerState<DiaryCommentCard> {
                                   ),
                                 ],
                               ),
-                              const SizedBox(
-                                height: 2.0,
-                              ),
-                              Text(
-                                reply.content,
-                                style: const TextStyle(
-                                  fontSize: 15.0,
-                                  fontWeight: FontWeight.w400,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onTap: () {
-                            ref
-                                .read(diaryReplyProvider(widget.id).notifier)
-                                .toggleLike(
-                                  replyId: reply.id,
-                                );
-                          },
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12.0,
-                              vertical: 4.0,
-                            ),
-                            child: Column(
-                              children: [
-                                Icon(
-                                  reply.isLike
-                                      ? Icons.favorite
-                                      : Icons.favorite_border,
-                                  size: 20.0,
-                                  color: Colors.white,
-                                ),
-                                Text(
-                                  reply.likeCount > 0
-                                      ? DataUtils.number2Unit
-                                          .format(reply.likeCount)
-                                      : "",
-                                  style: const TextStyle(
-                                    fontSize: 13.0,
-                                    fontWeight: FontWeight.w400,
-                                    color: GRAY_TEXT_COLOR,
-                                  ),
-                                ),
-                              ],
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   );
                 },
@@ -421,13 +586,14 @@ class _DiaryCommentCardState extends ConsumerState<DiaryCommentCard> {
                         width: 8.0,
                       ),
                       Text(
-                        replyState is CursorPagination
-                            ? replyState.meta.hasMore || !showReply
-                                ? showReply || replyState.data.isEmpty
-                                    ? "답글 ${DataUtils.number2Unit.format((widget.replyCount - replyState.data.length).abs())}개 보기"
-                                    : "답글 ${DataUtils.number2Unit.format(replyState.data.length)}개 보기"
-                                : "답글 숨기기"
-                            : "읽어들이는중...",
+                        // replyState is CursorPagination
+                        //? replyState.meta.hasMore || !showReply
+                        replyState.meta.hasMore || !showReply
+                            ? showReply || replyState.data.isEmpty
+                                ? "답글 ${DataUtils.number2Unit.format((widget.replyCount - replyState.data.length).abs())}개 보기"
+                                : "답글 ${DataUtils.number2Unit.format(replyState.data.length)}개 보기"
+                            : "답글 숨기기",
+                        // : "읽어들이는중...",
                         style: const TextStyle(
                           fontSize: 13.0,
                           fontWeight: FontWeight.w400,
@@ -499,6 +665,7 @@ class _DiaryCommentCardState extends ConsumerState<DiaryCommentCard> {
                   children: [
                     GestureDetector(
                       onTap: () {
+                        replyController.text = "";
                         setState(() {
                           showReplyInput = false;
                         });
@@ -533,7 +700,11 @@ class _DiaryCommentCardState extends ConsumerState<DiaryCommentCard> {
     );
   }
 
-  showDeleteDialog(BuildContext context) {
+  showDeleteDialog({
+    required BuildContext context,
+    required Function() onUpdate,
+    required Function() onDelete,
+  }) {
     showDialog(
       context: context,
       builder: (BuildContext ctx) {
@@ -554,8 +725,8 @@ class _DiaryCommentCardState extends ConsumerState<DiaryCommentCard> {
               GestureDetector(
                 behavior: HitTestBehavior.opaque,
                 onTap: () {
-                  widget.onDelete();
                   Navigator.of(context).pop();
+                  onDelete();
                 },
                 child: const Padding(
                   padding: EdgeInsets.symmetric(
@@ -565,6 +736,32 @@ class _DiaryCommentCardState extends ConsumerState<DiaryCommentCard> {
                     '삭제',
                     style: TextStyle(
                       color: Colors.red,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ),
+              const Divider(
+                height: 0,
+                color: BODY_TEXT_COLOR,
+                thickness: 1,
+              ),
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () {
+                  Navigator.of(context).pop();
+                  onUpdate();
+                },
+                child: const Padding(
+                  padding: EdgeInsets.symmetric(
+                    vertical: 13.0,
+                  ),
+                  child: Text(
+                    '수정',
+                    style: TextStyle(
+                      color: Colors.blue,
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                     ),

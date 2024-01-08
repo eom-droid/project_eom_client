@@ -173,4 +173,42 @@ class DiaryCommentStateNotifier
     }
     return;
   }
+
+  Future<void> patchComment({
+    required String commentId,
+    required String content,
+  }) async {
+    if (state is CursorPagination) {
+      var pState = state as CursorPagination<DiaryCommentModel>;
+
+      // 1. 선택된 comment를 찾는다.
+      final selecteComment = pState.data.indexWhere(
+        (element) => element.id == commentId,
+      );
+
+      // 2. 만약 선택된 comment가 없다면 그냥 리턴
+      if (selecteComment == -1) {
+        return;
+      }
+
+      // 3. 선택된 comment가 있다면 해당 데이터를 변경한다.
+      pState.data[selecteComment] = pState.data[selecteComment].copyWith(
+        content: content,
+      );
+
+      // 4. 변경된 데이터를 적용한다.
+      state = pState.copyWith(
+        data: pState.data,
+      );
+
+      // 5. 서버에 삭제 요청을 보낸다.
+      await repository.patchComment(
+        id: commentId,
+        content: DiaryContentReqModel(
+          content: content,
+        ),
+      );
+    }
+    return;
+  }
 }

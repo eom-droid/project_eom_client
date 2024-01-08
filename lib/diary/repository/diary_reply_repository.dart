@@ -58,11 +58,12 @@ abstract class DiaryReplyRepository
     @Path() required String id,
   });
 
-  @PATCH('')
+  @PATCH('/{id}')
   @Headers({
     'accessToken': 'true',
   })
   Future<void> patchReply({
+    @Path() required String id,
     @Body() required DiaryContentReqModel content,
   });
 

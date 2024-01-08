@@ -54,11 +54,12 @@ abstract class DiaryCommentRepository
     @Path() required String id,
   });
 
-  @PATCH('')
+  @PATCH('/{id}')
   @Headers({
     'accessToken': 'true',
   })
-  Future<void> patchComments({
+  Future<void> patchComment({
+    @Path() required String id,
     @Body() required DiaryContentReqModel content,
   });
 
