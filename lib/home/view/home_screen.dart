@@ -1,4 +1,5 @@
 import 'package:client/auth/view/login_screen.dart';
+import 'package:client/chat/view/chat_screen.dart';
 import 'package:client/common/components/default_moving_background.dart';
 import 'package:client/user/model/user_with_token_model.dart';
 import 'package:client/user/provider/user_provider.dart';
@@ -225,6 +226,9 @@ class _FrontImagesRender extends ConsumerWidget {
                     onPlayListTap: () {
                       context.goNamed(MusicScreen.routeName);
                     },
+                    onChatTap: () {
+                      context.goNamed(ChatScreen.routeName);
+                    },
                   )
                 : ElevatedButton(
                     onPressed: () {
@@ -242,6 +246,7 @@ class _FrontImagesRender extends ConsumerWidget {
     required BuildContext context,
     required VoidCallback onDiaryTap,
     required VoidCallback onPlayListTap,
+    required VoidCallback onChatTap,
   }) {
     final double deviceWidth = MediaQuery.of(context).size.width;
     final double deviceHeight = MediaQuery.of(context).size.height;
@@ -283,6 +288,14 @@ class _FrontImagesRender extends ConsumerWidget {
                     width: 50.0,
                   ),
                   routeName: 'Play\nList',
+                ),
+                RoutingButton(
+                  onDiaryTap: onChatTap,
+                  icon: SvgPicture.asset(
+                    "asset/imgs/icons/chat.svg",
+                    width: 50.0,
+                  ),
+                  routeName: 'Chat',
                 ),
               ],
             ),
