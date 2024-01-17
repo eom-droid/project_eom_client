@@ -125,8 +125,6 @@ class UserStateNotifier extends StateNotifier<UserWithTokenModelBase?> {
       );
 
       if (user == null) {
-        print(user);
-
         throw Exception("유저 정보가 없습니다.");
       }
 

@@ -124,4 +124,34 @@ class DataUtils {
       return '${(difference.inDays / 365).floor()}년 전';
     }
   }
+
+  // 오늘 안에 포함되는 날짜면
+  // "오후 1:00" 와 같이 표현하고
+  // 어제 날짜면
+  // "어제" 로 표현한다
+  // 만약 어제가 아니고 오늘도 아니면
+  // "1월 1일" 와 같이 표현한다
+  // 만약 올해가 아니면
+  // "2020.1.1" 와 같이 표현한다
+  static String timeAgoSinceDate2(DateTime date) {
+    final now = DateTime.now();
+
+    if (now.day == date.day) {
+      final hour = date.hour;
+      final minute = date.minute;
+
+      final hourStr = hour > 12 ? hour - 12 : hour;
+      final minuteStr = minute < 10 ? "0$minute" : minute;
+
+      final ampm = hour > 12 ? "오후" : "오전";
+
+      return "$ampm $hourStr:$minuteStr";
+    } else if (now.day - date.day == 1) {
+      return "어제";
+    } else if (now.year == date.year) {
+      return DateFormat("M월 d일").format(date);
+    } else {
+      return DateFormat("yyyy.M.d").format(date);
+    }
+  }
 }

@@ -1,4 +1,3 @@
-import 'package:client/chat/model/model_with_from_json.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'web_socket_model.g.dart';
@@ -25,8 +24,10 @@ class WebSocketModel<T> extends WebSocketModelBase {
   factory WebSocketModel.fromJson(
     Map<String, dynamic> json,
     T Function(Object? json) fromJsonT,
-  ) =>
-      _$WebSocketModelFromJson(json, fromJsonT);
+  ) {
+    // print((json['data'] as List<dynamic>).map(fromJsonT).toList());
+    return _$WebSocketModelFromJson(json, fromJsonT);
+  }
 }
 
 class WebSocketModelError extends WebSocketModelBase {
@@ -38,7 +39,7 @@ class WebSocketModelError extends WebSocketModelBase {
   }) : super(status: status);
 }
 
-WebSocketModelBase? parseResponse<T extends IModelWithFromJson>(
+WebSocketModelBase? parseResponse<T>(
   dynamic response,
   T Function(Object? json) fromJsonT,
 ) {

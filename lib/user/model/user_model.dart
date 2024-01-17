@@ -24,9 +24,10 @@ class UserModel {
   final String? provider;
   // role : 권한
   @JsonKey(
+    defaultValue: RoleType.user,
     fromJson: DataUtils.numberToRoleType,
   )
-  final RoleType role;
+  final RoleType? role;
 
   UserModel({
     required this.id,
