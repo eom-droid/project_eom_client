@@ -1,5 +1,5 @@
 import 'package:client/auth/view/login_screen.dart';
-import 'package:client/chat/view/chat_room_list_screen.dart';
+import 'package:client/chat/view/chat_screen.dart';
 import 'package:client/common/components/default_moving_background.dart';
 import 'package:client/user/model/user_with_token_model.dart';
 import 'package:client/user/provider/user_provider.dart';
@@ -227,7 +227,7 @@ class _FrontImagesRender extends ConsumerWidget {
                       context.goNamed(MusicScreen.routeName);
                     },
                     onChatTap: () {
-                      context.goNamed(ChatRoomListScreen.routeName);
+                      context.goNamed(ChatScreen.routeName);
                     },
                   )
                 : ElevatedButton(

@@ -1,7 +1,8 @@
 import 'package:client/auth/view/join_screen.dart';
 import 'package:client/auth/view/login_screen.dart';
 import 'package:client/auth/view/reset_password_screen.dart';
-import 'package:client/chat/view/chat_room_list_screen.dart';
+import 'package:client/chat/view/chat_detail_screen.dart';
+import 'package:client/chat/view/chat_screen.dart';
 import 'package:client/common/view/splash_screen.dart';
 import 'package:client/user/model/user_with_token_model.dart';
 import 'package:client/user/provider/user_provider.dart';
@@ -65,9 +66,16 @@ class RouterProvider extends ChangeNotifier {
               builder: (_, state) => MusicScreen(),
             ),
             GoRoute(
-              path: 'chatRoomList',
-              name: ChatRoomListScreen.routeName,
-              builder: (_, state) => const ChatRoomListScreen(),
+              path: 'chat',
+              name: ChatScreen.routeName,
+              builder: (_, state) => const ChatScreen(),
+            ),
+            GoRoute(
+              path: 'chat/:rid',
+              name: ChatDetailScreen.routeName,
+              builder: (_, state) => ChatDetailScreen(
+                id: state.pathParameters['rid']!,
+              ),
             ),
             GoRoute(
               path: "login",
