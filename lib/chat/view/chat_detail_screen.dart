@@ -1,14 +1,10 @@
-import 'package:client/chat/model/chat_room_model.dart';
-import 'package:client/chat/model/web_socket_model.dart';
 import 'package:client/common/components/custom_text_field.dart';
 import 'package:client/common/const/colors.dart';
 import 'package:client/common/const/data.dart';
 import 'package:client/common/layout/default_layout.dart';
 import 'package:client/common/provider/secure_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 class ChatDetailScreen extends ConsumerStatefulWidget {
   static const routeName = 'chatDetail';
@@ -24,13 +20,10 @@ class ChatDetailScreen extends ConsumerStatefulWidget {
 
 class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen>
     with WidgetsBindingObserver {
-  late IO.Socket socket;
-  late String token;
-
   final TextEditingController _textEditingController = TextEditingController();
 
   // app의 상태값이 변경될 때 호출되는 함수
-  // AppLifecycleState.puased : 앱이 백그라운드로 전환
+// AppLifecycleState.puased : 앱이 백그라운드로 전환
   // AppLifecycleState.resumed : 앱이 포그라운드로 전환
   // @override
   // void didChangeAppLifecycleState(AppLifecycleState state) {
@@ -51,50 +44,46 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen>
 
   initSocket() async {
     final storage = ref.read(secureStorageProvider);
-    String ip = dotenv.env['CHAT_SERVER_IP']!.toString();
 
     token = (await storage.read(key: ACCESS_TOKEN_KEY) ?? '');
 
-    socket = IO.io(
-      "http://$ip/chat",
-      IO.OptionBuilder()
-          .setTransports(['websocket'])
-          .disableAutoConnect()
-          .setPath('/project-eom/chat-server')
-          .setQuery({
-            'rid': widget.id,
-          })
-          .build(),
-    );
+    // socket = IO.io(
+    //   "http://$ip/chat",
+    //   IO.OptionBuilder()
+    //       .setTransports(['websocket'])
+    //       .disableAutoConnect()
+    //       .setPath('/project-eom/chat-server')
+    //       .build(),
+    // );
+    // socket.connect();
 
-    socket.connect();
-    socket.on(
-      "/",
-      (data) {
-        final shit = parseResponse<ChatRoomModel>(
-          data,
-          ChatRoomModel.fromObject,
-        );
+    // socket.onConnect((data) {
+    //   socket.emit('join', {
+    //     "roomId": "wefwef",
+    //   });
+    //   print("-----------------");
+    // });
+    widget.socket.emit("join", {
+      "roomId": widget.id,
+    });
 
-        // TODO : data를 받았을때 status code에 따라서 분기처리 401 시 재시도
-      },
-    );
+    widget.socket.on("join", (data) {
+      print(data);
+    });
 
-    // socket.on("message", (data) => print(data));
-
-    socket.onDisconnect((_) => print(_));
-    socket.onConnectError((err) => print(err));
-    socket.onError((err) => print(err));
+    // widget.socket.onDisconnect((_) => print(_));
+    // widget.socket.onConnectError((err) => print(err));
+    // widget.socket.onError((err) => print(err));
   }
 
   @override
   void dispose() {
-    if (!socket.disconnected) {
-      socket.disconnect();
-      socket.dispose();
-    }
+    // if (!socket.disconnected) {
+    //   socket.disconnect();
+    //   socket.dispose();
+    // }
 
-    WidgetsBinding.instance.removeObserver(this);
+    // WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 
@@ -236,13 +225,15 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen>
 
   onSendMessage(String content) {
     if (content.trim() != '') {
-      _textEditingController.clear();
+      setState(() {
+        _textEditingController.clear();
+      });
       var data = {
         'access-token': 'Bearer $token',
-        'rid': widget.id,
+        'roomId': widget.id,
         'content': content,
       };
-      socket.emit('message', data);
+      widget.socket.emit('message', data);
     }
   }
 }

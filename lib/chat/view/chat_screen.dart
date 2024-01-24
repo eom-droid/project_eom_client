@@ -1,96 +1,29 @@
 import 'package:client/chat/model/chat_room_model.dart';
-import 'package:client/chat/model/web_socket_model.dart';
+import 'package:client/chat/provider/chat_room_provider.dart';
 import 'package:client/chat/view/chat_detail_screen.dart';
 import 'package:client/common/const/colors.dart';
-import 'package:client/common/const/data.dart';
 import 'package:client/common/layout/default_layout.dart';
-import 'package:client/common/provider/secure_storage.dart';
+import 'package:client/common/model/cursor_pagination_model.dart';
 import 'package:client/common/utils/data_utils.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:socket_io_client/socket_io_client.dart' as IO;
 
-class ChatScreen extends ConsumerStatefulWidget {
+class ChatScreen extends ConsumerWidget {
+  ChatRoomModel? room;
   static String get routeName => 'chat';
 
-  const ChatScreen({
+  ChatScreen({
     super.key,
   });
 
   @override
-  ConsumerState<ChatScreen> createState() => _ChatScreenState();
-}
-
-class _ChatScreenState extends ConsumerState<ChatScreen> {
-  WebSocketModel<ChatRoomModel>? rooms;
-  late IO.Socket socket;
-
-  @override
-  void initState() {
-    initSocket();
-    super.initState();
-  }
-
-  initSocket() async {
-    final storage = ref.read(secureStorageProvider);
-    String ip = dotenv.env['CHAT_SERVER_IP']!.toString();
-
-    String token = (await storage.read(key: ACCESS_TOKEN_KEY) ?? '');
-
-    socket = IO.io(
-      "http://$ip/room",
-      IO.OptionBuilder()
-          .setTransports(['websocket'])
-          .disableAutoConnect()
-          .setPath('/project-eom/chat-server')
-          .setExtraHeaders({
-            // 첫 연결 시 쿠키을 헤더에 담아서 보낸다.
-            'authorization': 'Bearer $token',
-          })
-          .build(),
-    );
-
-    socket.connect();
-
-    socket.on(
-      "/",
-      (data) {
-        final shit = parseResponse<ChatRoomModel>(
-          data,
-          ChatRoomModel.fromObject,
-        );
-        if (shit is WebSocketModel) {
-          setState(() {
-            rooms = shit as WebSocketModel<ChatRoomModel>;
-          });
-        }
-        // TODO : data를 받았을때 status code에 따라서 분기처리 401 시 재시도
-      },
-    );
-    // WidgetsBinding.instance.addPostFrameCallback((timeStamp) { })
-
-    // socket.on("message", (data) => print(data));
-
-    socket.onDisconnect((_) => print(_));
-    socket.onConnectError((err) => print(err));
-    socket.onError((err) => print(err));
-  }
-
-  @override
-  void dispose() {
-    print('???????????');
-    if (!socket.disconnected) {
-      socket.disconnect();
-      // socket.dispose();
+  Widget build(BuildContext context, WidgetRef ref) {
+    final roomState = ref.watch(chatRoomProvider);
+    if (roomState is CursorPagination<ChatRoomModel>) {
+      room = roomState.data[0];
     }
 
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
     return DefaultLayout(
       backgroundColor: BACKGROUND_BLACK,
       appBar: AppBar(
@@ -105,13 +38,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         backgroundColor: BACKGROUND_BLACK,
       ),
       child: Center(
-        child: rooms != null
+        child: room != null
             ? GestureDetector(
                 onTap: () {
                   context.pushNamed(
                     ChatDetailScreen.routeName,
                     pathParameters: {
-                      'rid': rooms!.data[0].id.toString(),
+                      'rid': room!.id.toString(),
                     },
                   );
                 },

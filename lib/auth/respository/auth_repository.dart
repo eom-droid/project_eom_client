@@ -10,7 +10,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 const SET_COOKIE_SPLIT_PATTERN = "; ";
 
 final authRepositoryProvider = Provider((ref) {
-  final dio = ref.watch(dioProvider);
+  final dio = ref.read(dioProvider);
   final storage = ref.watch(secureStorageProvider);
   String ip = dotenv.env['IP']!;
   return AuthRepository(

@@ -70,7 +70,7 @@ class CustomInterceptor extends Interceptor {
 
   // 3) 에러가 났을때
   @override
-  void onError(DioError err, ErrorInterceptorHandler handler) async {
+  void onError(DioException err, ErrorInterceptorHandler handler) async {
     // 401에러가 났을때(status code)
     // 토큰을 재발급 받는 시도를하고 토큰이 재발급되면
     // 다시 새로운 토큰으로 요청을한다.

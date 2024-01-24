@@ -68,7 +68,7 @@ class RouterProvider extends ChangeNotifier {
             GoRoute(
               path: 'chat',
               name: ChatScreen.routeName,
-              builder: (_, state) => const ChatScreen(),
+              builder: (_, state) => ChatScreen(),
             ),
             GoRoute(
               path: 'chat/:rid',
