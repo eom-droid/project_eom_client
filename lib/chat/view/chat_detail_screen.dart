@@ -1,8 +1,6 @@
 import 'package:client/common/components/custom_text_field.dart';
 import 'package:client/common/const/colors.dart';
-import 'package:client/common/const/data.dart';
 import 'package:client/common/layout/default_layout.dart';
-import 'package:client/common/provider/secure_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -34,47 +32,6 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen>
   //     socket.connect();
   //   }
   // }
-
-  @override
-  void initState() {
-    WidgetsBinding.instance.addObserver(this);
-    initSocket();
-    super.initState();
-  }
-
-  initSocket() async {
-    final storage = ref.read(secureStorageProvider);
-
-    token = (await storage.read(key: ACCESS_TOKEN_KEY) ?? '');
-
-    // socket = IO.io(
-    //   "http://$ip/chat",
-    //   IO.OptionBuilder()
-    //       .setTransports(['websocket'])
-    //       .disableAutoConnect()
-    //       .setPath('/project-eom/chat-server')
-    //       .build(),
-    // );
-    // socket.connect();
-
-    // socket.onConnect((data) {
-    //   socket.emit('join', {
-    //     "roomId": "wefwef",
-    //   });
-    //   print("-----------------");
-    // });
-    widget.socket.emit("join", {
-      "roomId": widget.id,
-    });
-
-    widget.socket.on("join", (data) {
-      print(data);
-    });
-
-    // widget.socket.onDisconnect((_) => print(_));
-    // widget.socket.onConnectError((err) => print(err));
-    // widget.socket.onError((err) => print(err));
-  }
 
   @override
   void dispose() {
@@ -224,16 +181,16 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen>
   }
 
   onSendMessage(String content) {
-    if (content.trim() != '') {
-      setState(() {
-        _textEditingController.clear();
-      });
-      var data = {
-        'access-token': 'Bearer $token',
-        'roomId': widget.id,
-        'content': content,
-      };
-      widget.socket.emit('message', data);
-    }
+    // if (content.trim() != '') {
+    //   setState(() {
+    //     _textEditingController.clear();
+    //   });
+    //   var data = {
+    //     'access-token': 'Bearer $token',
+    //     'roomId': widget.id,
+    //     'content': content,
+    //   };
+    //   widget.socket.emit('message', data);
+    // }
   }
 }

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:client/chat/model/chat_response_model.dart';
 import 'package:client/common/socketio/socketio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -13,7 +14,7 @@ final chatRoomRepositoryProvider = Provider<ChatRoomRepository>((ref) {
 
 class ChatRoomRepository {
   final SocketIO socket;
-  final chatRoomResponse = StreamController<dynamic>();
+  final chatRoomResponse = StreamController<ChatResponseModel>();
   ChatRoomRepository({
     required this.socket,
   }) : super() {
@@ -22,7 +23,12 @@ class ChatRoomRepository {
 
   void onGetChatRoomsRes() async {
     socket.on('getChatRoomsRes', (data) {
-      chatRoomResponse.sink.add(data);
+      chatRoomResponse.sink.add(
+        ChatResponseModel(
+          state: ChatResponseState.getChatRoomsRes,
+          data: data,
+        ),
+      );
     });
   }
 }

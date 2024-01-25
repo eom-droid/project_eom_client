@@ -1,36 +1,96 @@
-import 'package:client/chat/model/chat_model.dart';
-import 'package:client/common/model/cursor_pagination_model.dart';
+import 'dart:async';
+
+import 'package:client/chat/model/chat_response_model.dart';
 import 'package:client/common/model/pagination_params.dart';
-import 'package:client/common/repository/base_pagination_repository.dart';
+import 'package:client/common/socketio/socketio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final chatRepositoryProvider =
     Provider.family<ChatRepository, String>((ref, roomId) {
-  return ChatRepository();
+  final SocketIO socketIO = ref.read(socketIOProvider);
+  return ChatRepository(
+    socket: socketIO,
+    roomId: roomId,
+  );
 });
 
-class ChatRepository implements IBasePaginationRepository<ChatModel> {
-  ChatRepository();
+class ChatRepository {
+  final SocketIO socket;
+  final String roomId;
+  final chatResponse = StreamController<ChatResponseModel>();
+  ChatRepository({
+    required this.socket,
+    required this.roomId,
+  });
 
-  @override
-  Future<CursorPagination<ChatModel>> paginate(
-      {PaginationParams? paginationParams}) {
-    return Future.value(CursorPagination<ChatModel>(
-      meta: CursorPaginationMeta(
-        hasMore: true,
-        count: 0,
-      ),
-      data: [],
-    ));
-    // paginate작업 진행
+  void paginate({
+    required PaginationParams paginationParams,
+  }) {
+    socket.emit("paginateMessageReq", {
+      "roomId": roomId,
+      "paginationParams": paginationParams.toJson(),
+    });
+    return;
   }
 
-  Future<ChatModel> createChat() {
-    return Future.value(ChatModel(
-      id: '1',
-      content: "test",
-      createdAt: DateTime.now(),
-      userId: '1',
-    ));
+  void joinRoom({
+    required String accessToken,
+  }) {
+    socket.emit("joinRoomReq", {
+      "accessToken": accessToken,
+      "roomId": roomId,
+    });
+    return;
   }
+
+  void postMessage({
+    required String roomId,
+    required String content,
+    required String tempMessageId,
+    required String accessToken,
+  }) {
+    socket.emit("postMessageReq", {
+      "accessToken": accessToken,
+      "roomId": roomId,
+      "content": content,
+      "id": tempMessageId,
+      "createdAt": DateTime.now(),
+    });
+  }
+
+  //
+  void onGetMessageRes() async {
+    socket.on('getMessageRes', (data) {
+      chatResponse.sink.add(
+        ChatResponseModel(
+          state: ChatResponseState.getMessageRes,
+          data: data,
+        ),
+      );
+    });
+  }
+
+  // join 시에도 이 경로를 통해 들어옴
+  void onPaginateMessageRes() async {
+    socket.on('paginateMessageRes', (data) {
+      chatResponse.sink.add(
+        ChatResponseModel(
+          state: ChatResponseState.paginateMessageRes,
+          data: data,
+        ),
+      );
+    });
+  }
+
+  // 여기는 사실상 에러처리함
+  // void onJoinRoomRes() async {
+  //   socket.on('joinRoomRes', (data) {
+  //     chatResponse.sink.add(
+  //       ChatResponseModel(
+  //         state: ChatResponseState.joinRoomRes,
+  //         data: data,
+  //       ),
+  //     );
+  //   });
+  // }
 }

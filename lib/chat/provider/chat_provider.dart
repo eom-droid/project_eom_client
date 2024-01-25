@@ -1,10 +1,11 @@
 import 'package:client/chat/model/chat_model.dart';
+import 'package:client/chat/model/chat_response_model.dart';
 import 'package:client/chat/repository/chat_repository.dart';
 import 'package:client/user/model/user_with_token_model.dart';
 import 'package:client/user/provider/user_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:client/common/model/cursor_pagination_model.dart';
-import 'package:client/common/provider/pagination_provider.dart';
+import 'package:uuid/uuid.dart';
 
 final chatProvider = StateNotifierProvider.family<ChatStateNotifier,
     CursorPaginationBase, String>((ref, roomId) {
@@ -14,6 +15,7 @@ final chatProvider = StateNotifierProvider.family<ChatStateNotifier,
   return ChatManageStateNotifier(
     repository: chatRepository,
     user: user!,
+    ref: ref,
   ).getChatNotifier(
     roomId: roomId,
   );
@@ -22,10 +24,12 @@ final chatProvider = StateNotifierProvider.family<ChatStateNotifier,
 class ChatManageStateNotifier
     extends StateNotifier<Map<String, ChatStateNotifier>> {
   final ChatRepository repository;
+  final StateNotifierProviderRef ref;
   final UserWithTokenModelBase? user;
   ChatManageStateNotifier({
     required this.repository,
     required this.user,
+    required this.ref,
   }) : super({});
 
   ChatStateNotifier getChatNotifier({
@@ -42,19 +46,100 @@ class ChatManageStateNotifier
     state[roomId] = ChatStateNotifier(
       repository: repository,
       user: user,
+      roomId: roomId,
+      ref: ref,
     );
 
     return state[roomId]!;
   }
 }
 
-class ChatStateNotifier extends PaginationNotifier<ChatModel, ChatRepository> {
+final chatStreamProvider =
+    StreamProvider.family<ChatResponseModel, String>((ref, roomId) {
+  final chatRepository = ref.read(chatRepositoryProvider(roomId));
+  return chatRepository.chatResponse.stream;
+});
+
+class ChatStateNotifier extends StateNotifier<CursorPaginationBase> {
+  final ChatRepository repository;
   final UserWithTokenModelBase? user;
-  ChatStateNotifier({required super.repository, required this.user});
+  final StateNotifierProviderRef ref;
+  final String roomId;
+  ChatStateNotifier({
+    required this.repository,
+    required this.user,
+    required this.roomId,
+    required this.ref,
+  }) : super(CursorPaginationLoading()) {
+    repository.joinRoom(
+      accessToken: (user as UserWithTokenModel).token.accessToken,
+    );
+    repository.onGetMessageRes();
+    repository.onPaginateMessageRes();
+    ref.listen(
+      chatStreamProvider(roomId),
+      (previous, AsyncValue<ChatResponseModel> next) {
+        try {
+          // 1. next.value가 null이면 에러를 발생시킨다.
+          if (next.value == null) {
+            throw Exception('채팅을 불러오는데 실패하였습니다.');
+          }
+          final resObj = next.value!.data;
+          final statusCode = resObj['status'];
+          // 2. status code가 200 ~ 300이 아니면 에러를 발생시킨다.
+          if (statusCode < 200 || statusCode >= 300) {
+            throw Exception('채팅을 불러오는데 실패하였습니다.');
+          }
+
+          CursorPagination<ChatModel> pState;
+          // 3. 현재 state가 CursorPagination 이거나 CursorPaginationLoading이 아니라면 에러.
+          if (state is CursorPagination) {
+            pState = state as CursorPagination<ChatModel>;
+          } else if (state is CursorPaginationLoading) {
+            pState = CursorPagination<ChatModel>(
+              meta: CursorPaginationMeta(
+                hasMore: false,
+                count: 0,
+              ),
+              data: [],
+            );
+          } else {
+            throw Exception('채팅을 불러오는데 실패하였습니다.');
+          }
+
+          switch (next.value!.state) {
+            case ChatResponseState.getMessageRes:
+              final chatMessage = ChatModel.fromJson(resObj['data']);
+              state = pState.copyWith(
+                data: [
+                  chatMessage,
+                  ...pState.data,
+                ],
+              );
+              break;
+            case ChatResponseState.paginateMessageRes:
+              final resp = CursorPagination<ChatModel>.fromJson(
+                resObj['data'],
+                (e) => ChatModel.fromJson(e as Map<String, dynamic>),
+              );
+
+              state = resp.copyWith(meta: resp.meta, data: [
+                ...pState.data,
+                ...resp.data,
+              ]);
+              break;
+            default:
+              throw Exception('채팅을 불러오는데 실패하였습니다.');
+          }
+        } catch (error) {
+          state = CursorPaginationError(message: '채팅을 불러오는데 실패하였습니다.');
+        }
+      },
+    );
+  }
 
   // state에 추가하여 관리해야됨
-  createComment({
-    required String chatId,
+  postMessage({
     required String content,
   }) async {
     // 1. state가 CursorPagination인지 확인 + user가 UserWithTokenModel인지 확인
@@ -62,14 +147,21 @@ class ChatStateNotifier extends PaginationNotifier<ChatModel, ChatRepository> {
       final user = this.user as UserWithTokenModel;
 
       var pState = state as CursorPagination<ChatModel>;
+      // 2. uuidv4를 이용하여 임시 아이디를 생성한다.
+      final tempMessageId = const Uuid().v4();
 
       // 2. 서버에 요청을 보낸다.
-      final chatId = (await repository.createChat()).id;
+      repository.postMessage(
+        roomId: roomId,
+        content: content,
+        tempMessageId: tempMessageId,
+        accessToken: user.token.accessToken,
+      );
       // 3. 서버에 요청을 보낸 후, 서버에서 받은 데이터를 state에 추가한다.
       pState.data.insert(
         0,
-        ChatModel(
-          id: chatId,
+        ChatModelTemp(
+          id: tempMessageId,
           content: content,
           createdAt: DateTime.now(),
           userId: user.user.id,

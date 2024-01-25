@@ -1,16 +1,4 @@
-// // final chatRoomProvider
-
-// import 'package:client/chat/model/chat_room_model.dart';
-// import 'package:client/chat/repository/chat_repository.dart';
-// import 'package:client/common/provider/pagination_provider.dart';
-
-// class ChatRoomStateNotifier
-//     extends PaginationNotifier<ChatRoomModel, ChatRepository> {
-//   ChatRoomStateNotifier({
-//     required super.repository,
-//   });
-// }
-
+import 'package:client/chat/model/chat_response_model.dart';
 import 'package:client/chat/model/chat_room_model.dart';
 import 'package:client/chat/repository/chat_room_repository.dart';
 import 'package:client/common/model/cursor_pagination_model.dart';
@@ -25,7 +13,7 @@ final chatRoomProvider =
   );
 });
 
-final chatRoomStreamProvider = StreamProvider<dynamic>((ref) {
+final chatRoomStreamProvider = StreamProvider<ChatResponseModel>((ref) {
   final chatRoomRepository = ref.read(chatRoomRepositoryProvider);
   return chatRoomRepository.chatRoomResponse.stream;
 });
@@ -41,13 +29,16 @@ class ChatRoomStateNotifier extends StateNotifier<CursorPaginationBase> {
     required this.repository,
     required this.ref,
   }) : super(CursorPaginationLoading()) {
-    ref.listen(chatRoomStreamProvider,
-        (AsyncValue<dynamic>? previous, AsyncValue<dynamic> next) async {
+    ref.listen(chatRoomStreamProvider, (AsyncValue<dynamic>? previous,
+        AsyncValue<ChatResponseModel> next) async {
       try {
         if (next.value == null) {
           throw Exception('채팅방을 불러오는데 실패하였습니다.');
         }
-        final resObj = next.value;
+        if (next.value!.state != ChatResponseState.getChatRoomsRes) {
+          throw Exception('채팅방을 불러오는데 실패하였습니다.');
+        }
+        final resObj = next.value!.data;
 
         final statusCode = resObj['status'];
 
