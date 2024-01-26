@@ -1,3 +1,5 @@
+import 'package:client/common/components/cursor_pagination_error_comp.dart';
+import 'package:client/common/components/cursor_pagination_loading_comp.dart';
 import 'package:client/common/const/colors.dart';
 import 'package:client/common/model/model_with_id.dart';
 import 'package:flutter/material.dart';
@@ -58,59 +60,22 @@ class _DefaultScrollBasePaginationLayoutState<T extends IModelWithId>
     super.dispose();
   }
 
-  Widget whenLoading() {
-    return const SizedBox(
-      height: 100.0,
-      child: Center(
-        child: CircularProgressIndicator(
-          color: Colors.white,
-        ),
-      ),
-    );
-  }
-
-  Widget whenError(CursorPaginationError state) {
-    return SizedBox(
-      height: 300.0,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(state.message,
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 16.0, color: Colors.white)),
-            const SizedBox(
-              height: 16.0,
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: Colors.black,
-              ),
-              onPressed: () {
-                ref.read(widget.provider.notifier).paginate(
-                      forceRefetch: true,
-                    );
-              },
-              child: const Text('다시시도'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget loadBody(CursorPaginationBase state, ScrollController controller) {
     // 초기 로딩
     if (state is CursorPaginationLoading) {
-      return whenLoading();
+      return const CursorPaginationLoadingComp();
     }
 
     // 에러 발생 시
     if (state is CursorPaginationError) {
-      return whenError(state);
+      return CursorPaginationErrorComp(
+        state: state,
+        onRetry: () {
+          ref.read(widget.provider.notifier).paginate(
+                forceRefetch: true,
+              );
+        },
+      );
     }
 
     // CursorPagination

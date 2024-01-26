@@ -37,7 +37,7 @@ class ChatRepository {
     required String accessToken,
   }) {
     socket.emit("joinRoomReq", {
-      "accessToken": accessToken,
+      "accessToken": "Bearer $accessToken",
       "roomId": roomId,
     });
     return;
@@ -73,6 +73,7 @@ class ChatRepository {
   // join 시에도 이 경로를 통해 들어옴
   void onPaginateMessageRes() async {
     socket.on('paginateMessageRes', (data) {
+      print(data);
       chatResponse.sink.add(
         ChatResponseModel(
           state: ChatResponseState.paginateMessageRes,
@@ -83,14 +84,14 @@ class ChatRepository {
   }
 
   // 여기는 사실상 에러처리함
-  // void onJoinRoomRes() async {
-  //   socket.on('joinRoomRes', (data) {
-  //     chatResponse.sink.add(
-  //       ChatResponseModel(
-  //         state: ChatResponseState.joinRoomRes,
-  //         data: data,
-  //       ),
-  //     );
-  //   });
-  // }
+  void onJoinRoomRes() async {
+    socket.on('joinRoomRes', (data) {
+      chatResponse.sink.add(
+        ChatResponseModel(
+          state: ChatResponseState.joinRoomRes,
+          data: data,
+        ),
+      );
+    });
+  }
 }

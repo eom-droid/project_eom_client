@@ -7,7 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
 // 페이지네이션 요청을 위한 정보 클래스
-class _PaginationInfo {
+class PaginationInfo {
   // fetch 해올 갯수
   final int fetchCount;
   // 추가로 데이터 더 가져올지의 여부
@@ -15,8 +15,8 @@ class _PaginationInfo {
   // 강제로 다시 로딩할지의 여부
   final bool forceRefetch;
 
-  _PaginationInfo({
-    this.fetchCount = 10,
+  PaginationInfo({
+    required this.fetchCount,
     this.fetchMore = false,
     this.forceRefetch = false,
   });
@@ -63,7 +63,7 @@ class PaginationNotifier<T extends IModelWithId,
       randomKey,
       Duration(milliseconds: bounceMilSec),
       () => _throttlePagination(
-        _PaginationInfo(
+        PaginationInfo(
           fetchCount: fetchCount,
           fetchMore: fetchMore,
           forceRefetch: forceRefetch,
@@ -72,7 +72,7 @@ class PaginationNotifier<T extends IModelWithId,
     );
   }
 
-  _throttlePagination(_PaginationInfo info) async {
+  _throttlePagination(PaginationInfo info) async {
     final fetchCount = info.fetchCount;
     final fetchMore = info.fetchMore;
     final forceRefetch = info.forceRefetch;

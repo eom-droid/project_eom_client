@@ -1,8 +1,11 @@
 import 'package:client/chat/model/chat_model.dart';
 import 'package:client/chat/model/chat_response_model.dart';
 import 'package:client/chat/repository/chat_repository.dart';
+import 'package:client/common/model/pagination_params.dart';
+import 'package:client/common/provider/pagination_provider.dart';
 import 'package:client/user/model/user_with_token_model.dart';
 import 'package:client/user/provider/user_provider.dart';
+import 'package:easy_debounce/easy_throttle.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:client/common/model/cursor_pagination_model.dart';
 import 'package:uuid/uuid.dart';
@@ -65,17 +68,22 @@ class ChatStateNotifier extends StateNotifier<CursorPaginationBase> {
   final UserWithTokenModelBase? user;
   final StateNotifierProviderRef ref;
   final String roomId;
+  late final String randomKey;
+
   ChatStateNotifier({
     required this.repository,
     required this.user,
     required this.roomId,
     required this.ref,
   }) : super(CursorPaginationLoading()) {
+    Uuid uuid = const Uuid();
+    randomKey = uuid.v4();
     repository.joinRoom(
       accessToken: (user as UserWithTokenModel).token.accessToken,
     );
     repository.onGetMessageRes();
     repository.onPaginateMessageRes();
+    repository.onJoinRoomRes();
     ref.listen(
       chatStreamProvider(roomId),
       (previous, AsyncValue<ChatResponseModel> next) {
@@ -129,7 +137,8 @@ class ChatStateNotifier extends StateNotifier<CursorPaginationBase> {
               ]);
               break;
             default:
-              throw Exception('채팅을 불러오는데 실패하였습니다.');
+              break;
+            // throw Exception('채팅을 불러오는데 실패하였습니다.');
           }
         } catch (error) {
           state = CursorPaginationError(message: '채팅을 불러오는데 실패하였습니다.');
@@ -138,7 +147,136 @@ class ChatStateNotifier extends StateNotifier<CursorPaginationBase> {
     );
   }
 
+/**
+ * pagination_provider를 사용하지 않고 직접 throttle을 사용하여 구현
+ * 이유 : pagination_provider와 겹치는 부분은 많기는 하지만
+ * pagination_provider는 기본적으로 요청과 응답에 대한 처리가 일괄적인 반면에
+ * 이 부분은 요청과 응답에 대한 처리가 다르기 때문에(stream을 통한 응답을 받아서 처리)
+ * pagination_provider를 사용하기에는 어려움이 있음
+ * 추후 pagination_provider를 사용할 수 있도록 수정 필요
+ */ ///
+
+  Future<void> paginate({
+    int fetchCount = 30,
+    bool fetchMore = false,
+    bool forceRefetch = false,
+    int bounceMilSec = 3000,
+  }) async {
+    EasyThrottle.throttle(
+      randomKey,
+      Duration(milliseconds: bounceMilSec),
+      () => _throttlePagination(
+        PaginationInfo(
+          fetchCount: fetchCount,
+          forceRefetch: forceRefetch,
+          fetchMore: fetchMore,
+        ),
+      ),
+    );
+  }
+
+  _throttlePagination(PaginationInfo info) async {
+    final fetchCount = info.fetchCount;
+    final fetchMore = info.fetchMore;
+    final forceRefetch = info.forceRefetch;
+    try {
+      // 5가지 상태
+      // 1. CursorPagination - 정상적인 데이터 존재 상태
+      // 2. CursorPaginationLoading - 로딩 중(현재 캐시 없음)
+      // 3. CursorPaginationError - 에러 존재 상태
+      // 4. CursorPaginationRefetching - 첫번째 페이지부터 다시 데이터를 가져올때(맨 상단에서 재요청)
+      // 5. CursorPaginationMoreLoading - 추가로 데이터를 가져올때 paginate상태임(맨 하단에서 재요청)
+
+      // 바로 반환하는 상황
+      // 1) hasMore이 false인 경우(기존 상태에서 이미 다음 데이터가 없다는 값을 가지고 있음)
+      // 2) 로딩중 - fetchMore : true
+      //    fetchMore이 false -> 새로고침의 의도를 가지고 있음
+      // 2) 이외의 상황
+
+      // 1번 반환 상황
+      // 현재 값이 있는 상태이며(CusroPagination) 강제 refetch가 아닌 경우
+      if (state is CursorPagination && !forceRefetch) {
+        final pState = state as CursorPagination;
+
+        // 데이터가 더이상 없는 경우
+        if (!pState.meta.hasMore) {
+          return;
+        }
+      }
+
+      // 2번 반환 상황
+      final isLoading = state is CursorPaginationLoading;
+      final isFetchingMore = state is CursorPaginationFetchingMore;
+      // 추가로 데이터를 가져오는 상황인데 이미 한번 요청해서 로딩중인 경우
+      if (fetchMore && (isLoading || isFetchingMore)) {
+        return;
+      }
+
+      // 3번 반환 상황
+      // count를 넣어줘야됨
+      PaginationParams? paginationParams;
+
+      // fetchMore 상황
+      // 데이터를 추가로 더 가져오기
+      if (fetchMore) {
+        final pState = state as CursorPagination<ChatModel>;
+
+        state = CursorPaginationFetchingMore(
+          meta: pState.meta,
+          data: pState.data,
+        );
+        paginationParams =
+            _generateParams(pState.data.lastOrNull, fetchCount, fetchMore);
+      }
+      // 처음부터 데이터를 가져오는 상황
+      else {
+        // 만약 데이터가 현재 있다면
+        // 기존 데이터를 캐싱한 상태에서 Fetch(API 요청)를 진행
+        if (state is CursorPagination && !forceRefetch) {
+          final pState = state as CursorPagination<ChatModel>;
+
+          state = CursorPaginationRefetching(
+            meta: pState.meta,
+            data: pState.data,
+          );
+        }
+        // 현재 데이터가 없다면
+        // 로딩 상태임을 반환함
+        else {
+          state = CursorPaginationLoading();
+        }
+        paginationParams = _generateParams(null, fetchCount, fetchMore);
+      }
+
+      repository.paginate(
+        paginationParams: paginationParams,
+      );
+      // 요청에 대한 응답은 StreamProvider를 통해 받음
+    } catch (e) {
+      print(e);
+      state = CursorPaginationError(message: '데이터 가져오기 실패');
+    }
+  }
+
+  PaginationParams _generateParams(
+    ChatModel? pState,
+    int fetchCount,
+    bool fetchMore,
+  ) {
+    if (pState == null) {
+      return PaginationParams(
+        count: fetchCount,
+      );
+    }
+    final value = pState;
+    return PaginationParams(
+      after: fetchMore ? value.id : null,
+      count: fetchCount,
+    );
+  }
+
   // state에 추가하여 관리해야됨
+  // TODO : throttle 관리 진행 필요
   postMessage({
     required String content,
   }) async {
@@ -174,113 +312,4 @@ class ChatStateNotifier extends StateNotifier<CursorPaginationBase> {
       );
     }
   }
-
-  // void toggleLike({
-  //   required String commentId,
-  // }) {
-  //   if (state is CursorPagination) {
-  //     var pState = state as CursorPagination<chatModel>;
-
-  //     // 1. 선택된 chatId를 찾는다.
-  //     final selecteComment = pState.data.indexWhere(
-  //       (element) => element.id == commentId,
-  //     );
-
-  //     // 2. 만약 선택된 chatId가 없다면 그냥 리턴
-  //     if (selecteComment == -1) {
-  //       return;
-  //     }
-
-  //     // 3. 선택된 chatId가 있다면 해당 데이터를 변경한다.
-  //     pState.data[selecteComment] = pState.data[selecteComment].copyWith(
-  //       isLike: !pState.data[selecteComment].isLike,
-  //       likeCount: pState.data[selecteComment].likeCount +
-  //           (pState.data[selecteComment].isLike ? -1 : 1),
-  //     );
-
-  //     // 4. 변경된 데이터를 적용한다.
-  //     state = pState.copyWith(
-  //       data: pState.data,
-  //     );
-
-  //     // 5. 서버에 좋아요를 요청한다.
-  //     // 요청 시 현재의 상태가 0 -> 1 이면 좋아요를 생성
-  //     // 요청 시 현재의 상태가 1 -> 0 이면 좋아요를 삭제
-  //     EasyDebounce.debounce(
-  //       'debounce/like/$commentId',
-  //       const Duration(seconds: 1),
-  //       () => pState.data[selecteComment].isLike
-  //           ? repository.createchatLike(id: commentId)
-  //           : repository.deletechatLike(id: commentId),
-  //     );
-  //   }
-  // }
-
-  // Future<void> deleteComment({
-  //   required String commentId,
-  // }) async {
-  //   if (state is CursorPagination) {
-  //     var pState = state as CursorPagination<chatModel>;
-
-  //     // 1. 선택된 comment를 찾는다.
-  //     final selecteComment = pState.data.indexWhere(
-  //       (element) => element.id == commentId,
-  //     );
-
-  //     // 2. 만약 선택된 comment가 없다면 그냥 리턴
-  //     if (selecteComment == -1) {
-  //       return;
-  //     }
-
-  //     // 3. 선택된 comment가 있다면 해당 데이터를 변경한다.
-  //     pState.data.removeAt(selecteComment);
-
-  //     // 4. 변경된 데이터를 적용한다.
-  //     state = pState.copyWith(
-  //       data: pState.data,
-  //     );
-
-  //     // 5. 서버에 삭제 요청을 보낸다.
-  //     await repository.deleteComment(id: commentId);
-  //   }
-  //   return;
-  // }
-
-  // Future<void> patchComment({
-  //   required String commentId,
-  //   required String content,
-  // }) async {
-  //   if (state is CursorPagination) {
-  //     var pState = state as CursorPagination<chatModel>;
-
-  //     // 1. 선택된 comment를 찾는다.
-  //     final selecteComment = pState.data.indexWhere(
-  //       (element) => element.id == commentId,
-  //     );
-
-  //     // 2. 만약 선택된 comment가 없다면 그냥 리턴
-  //     if (selecteComment == -1) {
-  //       return;
-  //     }
-
-  //     // 3. 선택된 comment가 있다면 해당 데이터를 변경한다.
-  //     pState.data[selecteComment] = pState.data[selecteComment].copyWith(
-  //       content: content,
-  //     );
-
-  //     // 4. 변경된 데이터를 적용한다.
-  //     state = pState.copyWith(
-  //       data: pState.data,
-  //     );
-
-  //     // 5. 서버에 삭제 요청을 보낸다.
-  //     await repository.patchComment(
-  //       id: commentId,
-  //       content: chatContentReqModel(
-  //         content: content,
-  //       ),
-  //     );
-  //   }
-  //   return;
-  // }
 }

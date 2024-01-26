@@ -64,4 +64,14 @@ class ChatRoomStateNotifier extends StateNotifier<CursorPaginationBase> {
       }
     });
   }
+
+  ChatRoomModel? getChatRoomInfo(String roomId) {
+    final chatRoomState = state;
+    if (chatRoomState is CursorPagination) {
+      final chatRoom = chatRoomState.data.firstWhere((e) => e.id == roomId);
+      return chatRoom;
+    } else {
+      return null;
+    }
+  }
 }

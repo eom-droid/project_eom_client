@@ -100,7 +100,7 @@ class SocketIO {
   }
 
   on(String eventName, Function(dynamic) callback) {
-    print('[SocketIO] Event Requested: $eventName');
+    print('[SocketIO] Event Listen: $eventName');
     socket.on(eventName, callback);
   }
 
