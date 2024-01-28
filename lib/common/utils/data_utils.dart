@@ -154,4 +154,17 @@ class DataUtils {
       return DateFormat("yyyy.M.d").format(date);
     }
   }
+
+  // DateTime to HH:mm
+  static String dateTimeToHHmm(DateTime date) {
+    final hour = date.hour;
+    final minute = date.minute;
+
+    final hourStr = hour > 12 ? hour - 12 : hour;
+    final minuteStr = minute < 10 ? "0$minute" : minute;
+
+    final ampm = hour > 12 ? "오후" : "오전";
+
+    return "$ampm $hourStr:$minuteStr";
+  }
 }

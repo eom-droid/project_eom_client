@@ -160,7 +160,7 @@ class ChatStateNotifier extends StateNotifier<CursorPaginationBase> {
     int fetchCount = 30,
     bool fetchMore = false,
     bool forceRefetch = false,
-    int bounceMilSec = 3000,
+    int bounceMilSec = 1000,
   }) async {
     EasyThrottle.throttle(
       randomKey,
@@ -179,6 +179,7 @@ class ChatStateNotifier extends StateNotifier<CursorPaginationBase> {
     final fetchCount = info.fetchCount;
     final fetchMore = info.fetchMore;
     final forceRefetch = info.forceRefetch;
+
     try {
       // 5가지 상태
       // 1. CursorPagination - 정상적인 데이터 존재 상태
@@ -197,6 +198,7 @@ class ChatStateNotifier extends StateNotifier<CursorPaginationBase> {
       // 현재 값이 있는 상태이며(CusroPagination) 강제 refetch가 아닌 경우
       if (state is CursorPagination && !forceRefetch) {
         final pState = state as CursorPagination;
+        print(pState.meta.hasMore);
 
         // 데이터가 더이상 없는 경우
         if (!pState.meta.hasMore) {
@@ -250,6 +252,7 @@ class ChatStateNotifier extends StateNotifier<CursorPaginationBase> {
 
       repository.paginate(
         paginationParams: paginationParams,
+        accessToken: (user as UserWithTokenModel).token.accessToken,
       );
       // 요청에 대한 응답은 StreamProvider를 통해 받음
     } catch (e) {

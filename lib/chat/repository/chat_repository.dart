@@ -25,10 +25,12 @@ class ChatRepository {
 
   void paginate({
     required PaginationParams paginationParams,
+    required String accessToken,
   }) {
     socket.emit("paginateMessageReq", {
       "roomId": roomId,
       "paginationParams": paginationParams.toJson(),
+      "accessToken": "Bearer $accessToken",
     });
     return;
   }
@@ -61,6 +63,7 @@ class ChatRepository {
   //
   void onGetMessageRes() async {
     socket.on('getMessageRes', (data) {
+      print("[SocketIO] getMessageRes");
       chatResponse.sink.add(
         ChatResponseModel(
           state: ChatResponseState.getMessageRes,
@@ -73,7 +76,7 @@ class ChatRepository {
   // join 시에도 이 경로를 통해 들어옴
   void onPaginateMessageRes() async {
     socket.on('paginateMessageRes', (data) {
-      print(data);
+      print("[SocketIO] paginateMessageRes");
       chatResponse.sink.add(
         ChatResponseModel(
           state: ChatResponseState.paginateMessageRes,
@@ -86,6 +89,7 @@ class ChatRepository {
   // 여기는 사실상 에러처리함
   void onJoinRoomRes() async {
     socket.on('joinRoomRes', (data) {
+      print("[SocketIO] joinRoomRes");
       chatResponse.sink.add(
         ChatResponseModel(
           state: ChatResponseState.joinRoomRes,
