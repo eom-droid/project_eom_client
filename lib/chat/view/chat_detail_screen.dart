@@ -183,43 +183,56 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
 
                   return Column(
                     children: [
-                      if (afterCreatedAt != null &&
-                          (afterCreatedAt.day != chat.createdAt.day ||
-                              afterCreatedAt.month != chat.createdAt.month ||
-                              afterCreatedAt.year != chat.createdAt.year))
-                        Padding(
-                          padding: const EdgeInsets.only(
-                            top: 20.0,
-                            bottom: 15.0,
-                          ),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10.0,
-                              vertical: 5.0,
+                      _chatDate(
+                        createdAt: chat.createdAt,
+                        nextCreatedAt: afterCreatedAt,
+                      ),
+                      if (isMe)
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            SizedBox(
+                              width: MediaQuery.of(context).size.width * 0.12,
                             ),
-                            decoration: BoxDecoration(
-                              color: COMMON_BLACK,
-                              borderRadius: BorderRadius.circular(10.0),
-                            ),
-                            child: Text(
-                              '${chat.createdAt.year}년 ${chat.createdAt.month}월 ${chat.createdAt.day}일',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 12.0,
+                            Padding(
+                              padding: const EdgeInsets.only(
+                                left: 15.0,
+                                right: 5.0,
+                              ),
+                              child: _chatTime(
+                                chat.createdAt,
                               ),
                             ),
-                          ),
+                            Flexible(
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10.0,
+                                  vertical: 7.0,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: PRIMARY_COLOR,
+                                  borderRadius: BorderRadius.circular(10.0),
+                                ),
+                                child: Text(
+                                  chat.content,
+                                  style: const TextStyle(
+                                    color: Colors.black,
+                                    fontSize: 15.0,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                      Row(
-                        mainAxisAlignment: isMe
-                            ? MainAxisAlignment.end
-                            : MainAxisAlignment.start,
-                        children: [
-                          if (showAvatar)
-                            // user profile이 없는 경우는 ?로 대체
-                            const Align(
-                              alignment: Alignment.topCenter,
-                              child: CircleAvatar(
+                      if (!isMe)
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (showAvatar)
+                              // user profile이 없는 경우는 ?로 대체
+                              const CircleAvatar(
                                 radius: 20.0,
                                 backgroundColor: Colors.grey,
                                 // backgroundImage: AssetImage(
@@ -234,80 +247,65 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
                                   ),
                                 ),
                               ),
+                            SizedBox(
+                              width: showAvatar ? 10 : 50,
                             ),
-                          if (!showAvatar)
-                            const SizedBox(
-                              width: 40,
-                            ),
-                          const SizedBox(
-                            width: 10,
-                          ),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: isMe
-                                  ? CrossAxisAlignment.end
-                                  : CrossAxisAlignment.start,
+                            Column(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 if (showAvatar)
                                   Text(
                                     user.nickname,
                                     style: const TextStyle(
                                       color: Colors.white,
-                                      // fontWeight: FontWeight.bold,
                                     ),
+                                    overflow: TextOverflow.ellipsis,
                                   ),
                                 const SizedBox(
                                   height: 5,
                                 ),
-                                Row(
-                                  crossAxisAlignment: CrossAxisAlignment.end,
-                                  children: [
-                                    Expanded(
-                                      child: Container(
-                                        padding: const EdgeInsets.only(
-                                          left: 10.0,
-                                          right: 10.0,
-                                          top: 7.0,
-                                          bottom: 7.0,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: BACKGROUND_LIGHT_BLACK,
-                                          borderRadius:
-                                              BorderRadius.circular(10.0),
-                                        ),
-                                        child: Text(
-                                          chat.content,
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 16.0,
+                                SizedBox(
+                                  width:
+                                      MediaQuery.of(context).size.width * 0.78,
+                                  child: Row(
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: [
+                                      Flexible(
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 10.0,
+                                            vertical: 7.0,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: BACKGROUND_LIGHT_BLACK,
+                                            borderRadius:
+                                                BorderRadius.circular(10.0),
+                                          ),
+                                          child: Text(
+                                            chat.content,
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 15.0,
+                                            ),
                                           ),
                                         ),
                                       ),
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.only(
-                                        left: 5.0,
-                                        right: 15.0,
-                                      ),
-                                      child: Text(
-                                        DataUtils.dateTimeToHHmm(
-                                            chat.createdAt),
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 12.0,
+                                      Padding(
+                                        padding: const EdgeInsets.only(
+                                          left: 5.0,
+                                        ),
+                                        child: _chatTime(
+                                          chat.createdAt,
                                         ),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
-                                const SizedBox(
-                                  height: 2,
-                                )
                               ],
                             ),
-                          ),
-                        ],
-                      ),
+                          ],
+                        ),
                     ],
                   );
                 },
@@ -323,6 +321,54 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
         ],
       ),
     );
+  }
+
+  _chatTime(DateTime createdAt) {
+    return Text(
+      DataUtils.dateTimeToHHmm(
+        createdAt,
+      ),
+      style: const TextStyle(
+        color: Colors.white,
+        fontSize: 12.0,
+      ),
+    );
+  }
+
+  _chatDate({
+    required DateTime createdAt,
+    required DateTime? nextCreatedAt,
+  }) {
+    if (nextCreatedAt != null &&
+        (nextCreatedAt.day != createdAt.day ||
+            nextCreatedAt.month != createdAt.month ||
+            nextCreatedAt.year != createdAt.year)) {
+      return Padding(
+        padding: const EdgeInsets.only(
+          top: 20.0,
+          bottom: 15.0,
+        ),
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: 10.0,
+            vertical: 5.0,
+          ),
+          decoration: BoxDecoration(
+            color: COMMON_BLACK,
+            borderRadius: BorderRadius.circular(10.0),
+          ),
+          child: Text(
+            '${createdAt.year}년 ${createdAt.month}월 ${createdAt.day}일',
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 12.0,
+            ),
+          ),
+        ),
+      );
+    } else {
+      return Container();
+    }
   }
 
   onSendMessage(String content) {
