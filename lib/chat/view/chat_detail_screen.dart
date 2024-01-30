@@ -372,7 +372,9 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
   }
 
   onSendMessage(String content) {
-    print(content);
+    ref.read(chatProvider(widget.id).notifier).sendMessage(
+          content: content,
+        );
   }
 }
 

@@ -98,4 +98,17 @@ class ChatRepository {
       );
     });
   }
+
+  // 여기는 사실상 에러처리함
+  void onPostMessageRes() async {
+    socket.on('postMessageRes', (data) {
+      print("[SocketIO] postMessageRes");
+      chatResponse.sink.add(
+        ChatResponseModel(
+          state: ChatResponseState.postMessageRes,
+          data: data,
+        ),
+      );
+    });
+  }
 }

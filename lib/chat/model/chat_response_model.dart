@@ -3,6 +3,7 @@ enum ChatResponseState {
   getMessageRes,
   paginateMessageRes,
   joinRoomRes,
+  postMessageRes,
 }
 
 class ChatResponseModel {

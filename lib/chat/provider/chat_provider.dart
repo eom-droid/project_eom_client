@@ -117,12 +117,25 @@ class ChatStateNotifier extends StateNotifier<CursorPaginationBase> {
 
           switch (next.value!.state) {
             case ChatResponseState.getMessageRes:
-              final chatMessage = ChatModel.fromJson(resObj['data']);
+              final chatMessage = ChatModelTemp.fromJson(resObj['data']);
+              final me = user as UserWithTokenModel;
+              // 1. 본인이 보낸 메시지인지 확인하기
+              // 2. 본인이 보낸 메시지라면 tempMessageId를 찾아서 변경한다.
+              if (chatMessage.userId == me.user.id) {
+                final index = pState.data.indexWhere(
+                  (element) => element.id == chatMessage.id,
+                );
+                if (index != -1) {
+                  pState.data[index] = chatMessage.parseToChatModel();
+                }
+              } else {
+                // 3. 본인이 보낸 메시지가 아니라면 그냥 추가한다.
+
+                pState.data.insert(0, chatMessage.parseToChatModel());
+              }
+              // 4. 추가된 데이터를 state에 추가한다.
               state = pState.copyWith(
-                data: [
-                  chatMessage,
-                  ...pState.data,
-                ],
+                data: pState.data,
               );
               break;
             case ChatResponseState.paginateMessageRes:
@@ -136,6 +149,20 @@ class ChatStateNotifier extends StateNotifier<CursorPaginationBase> {
                 ...resp.data,
               ]);
               break;
+
+            case ChatResponseState.postMessageRes:
+              final chatMessage = ChatModel.fromJson(resObj['data']);
+              final index = pState.data.indexWhere(
+                (element) => element.id == chatMessage.id,
+              );
+              if (index != -1) {
+                pState.data[index] = chatMessage;
+              }
+              state = pState.copyWith(
+                data: pState.data,
+              );
+              break;
+
             default:
               break;
             // throw Exception('채팅을 불러오는데 실패하였습니다.');
@@ -147,14 +174,16 @@ class ChatStateNotifier extends StateNotifier<CursorPaginationBase> {
     );
   }
 
-/**
- * pagination_provider를 사용하지 않고 직접 throttle을 사용하여 구현
- * 이유 : pagination_provider와 겹치는 부분은 많기는 하지만
- * pagination_provider는 기본적으로 요청과 응답에 대한 처리가 일괄적인 반면에
- * 이 부분은 요청과 응답에 대한 처리가 다르기 때문에(stream을 통한 응답을 받아서 처리)
- * pagination_provider를 사용하기에는 어려움이 있음
- * 추후 pagination_provider를 사용할 수 있도록 수정 필요
- */ ///
+  _getMessageResProccess() {}
+
+  /**
+   * pagination_provider를 사용하지 않고 직접 throttle을 사용하여 구현
+   * 이유 : pagination_provider와 겹치는 부분은 많기는 하지만
+   * pagination_provider는 기본적으로 요청과 응답에 대한 처리가 일괄적인 반면에
+   * 이 부분은 요청과 응답에 대한 처리가 다르기 때문에(stream을 통한 응답을 받아서 처리)
+   * pagination_provider를 사용하기에는 어려움이 있음
+   * 추후 pagination_provider를 사용할 수 있도록 수정 필요
+   */ ///
 
   Future<void> paginate({
     int fetchCount = 30,
@@ -280,7 +309,7 @@ class ChatStateNotifier extends StateNotifier<CursorPaginationBase> {
 
   // state에 추가하여 관리해야됨
   // TODO : throttle 관리 진행 필요
-  postMessage({
+  sendMessage({
     required String content,
   }) async {
     // 1. state가 CursorPagination인지 확인 + user가 UserWithTokenModel인지 확인

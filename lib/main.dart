@@ -23,7 +23,7 @@ class _App extends ConsumerWidget {
       ),
       debugShowCheckedModeBanner: false,
       routerConfig: router,
-      showPerformanceOverlay: true,
+      // showPerformanceOverlay: true,
     );
   }
 }
