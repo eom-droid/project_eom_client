@@ -38,12 +38,14 @@ class ChatModel implements IModelWithId {
 }
 
 @JsonSerializable()
-class ChatModelTemp extends ChatModel {
-  ChatModelTemp({
+class ChatTempModel extends ChatModel {
+  final String tempMessageId;
+  ChatTempModel({
     required super.id,
     required super.userId,
     required super.content,
     required super.createdAt,
+    required this.tempMessageId,
   });
   ChatModel parseToChatModel() {
     return ChatModel(
@@ -54,53 +56,61 @@ class ChatModelTemp extends ChatModel {
     );
   }
 
-  factory ChatModelTemp.fromObject(Object? o) =>
-      ChatModelTemp.fromJson(o as Map<String, dynamic>);
+  ChatModel parseToChatFailedModel(String error) {
+    return ChatFailedModel(
+      id: id,
+      userId: userId,
+      content: content,
+      createdAt: createdAt,
+      error: error,
+    );
+  }
 
-  factory ChatModelTemp.fromJson(Map<String, dynamic> json) =>
-      _$ChatModelTempFromJson(json);
+  factory ChatTempModel.fromObject(Object? o) =>
+      ChatTempModel.fromJson(o as Map<String, dynamic>);
+
+  factory ChatTempModel.fromJson(Map<String, dynamic> json) =>
+      _$ChatTempModelFromJson(json);
 
   @override
-  Map<String, dynamic> toJson() => _$ChatModelTempToJson(this);
+  Map<String, dynamic> toJson() => _$ChatTempModelToJson(this);
 }
 
+@JsonSerializable()
+class ChatFailedModel extends ChatModel {
+  final String error;
+  ChatFailedModel({
+    required super.id,
+    required super.userId,
+    required super.content,
+    required super.createdAt,
+    required this.error,
+  });
+  ChatModel parseToChatModel() {
+    return ChatModel(
+      id: id,
+      userId: userId,
+      content: content,
+      createdAt: createdAt,
+    );
+  }
 
-// @JsonSerializable()
-// class ChatModelFailed extends ChatModel {
-//   ChatModelTemp({
-//     required super.id,
-//     required super.userId,
-//     required super.content,
-//     required super.createdAt,
-//   });
+  ChatModel parseToChatModelTemp(String tempMessageId) {
+    return ChatTempModel(
+      id: id,
+      userId: userId,
+      content: content,
+      createdAt: createdAt,
+      tempMessageId: tempMessageId,
+    );
+  }
 
-//   factory ChatModelTemp.fromObject(Object? o) =>
-//       ChatModelTemp.fromJson(o as Map<String, dynamic>);
+  factory ChatFailedModel.fromObject(Object? o) =>
+      ChatFailedModel.fromJson(o as Map<String, dynamic>);
 
-//   factory ChatModelTemp.fromJson(Map<String, dynamic> json) =>
-//       _$ChatModelTempFromJson(json);
+  factory ChatFailedModel.fromJson(Map<String, dynamic> json) =>
+      _$ChatFailedModelFromJson(json);
 
-//   @override
-//   Map<String, dynamic> toJson() => _$ChatModelTempToJson(this);
-// }
-
-
-// @JsonSerializable()
-// class TempChatModel extends ChatModel {
-//   TempChatModel({
-//     required super.id,
-//     required super.userId,
-//     required super.content,
-//     required super.createdAt,
-//   });
-
-//   factory TempChatModel.fromObject(Object? o) =>
-//       TempChatModel.fromJson(o as Map<String, dynamic>);
-
-//   factory TempChatModel.fromJson(Map<String, dynamic> json) =>
-//       _$TempChatModelFromJson(json);
-
-//   @override
-//   Map<String, dynamic> toJson() => _$TempChatModelToJson(this);
-// }
-
+  @override
+  Map<String, dynamic> toJson() => _$ChatFailedModelToJson(this);
+}

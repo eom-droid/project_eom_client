@@ -195,14 +195,36 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
                             SizedBox(
                               width: MediaQuery.of(context).size.width * 0.12,
                             ),
-                            Padding(
-                              padding: const EdgeInsets.only(
-                                left: 15.0,
-                                right: 5.0,
-                              ),
-                              child: _chatTime(
-                                chat.createdAt,
-                              ),
+                            Row(
+                              children: [
+                                if (chat is ChatTempModel)
+                                  Transform.flip(
+                                    flipX: true,
+                                    child: const Icon(
+                                      Icons.send,
+                                      color: BODY_TEXT_COLOR,
+                                      size: 12.0,
+                                    ),
+                                  ),
+                                if (chat is ChatFailedModel)
+                                  Transform.flip(
+                                    flipX: true,
+                                    child: const Icon(
+                                      Icons.error,
+                                      color: BODY_TEXT_COLOR,
+                                      size: 12.0,
+                                    ),
+                                  ),
+                                Padding(
+                                  padding: const EdgeInsets.only(
+                                    left: 5.0,
+                                    right: 5.0,
+                                  ),
+                                  child: _chatTime(
+                                    chat.createdAt,
+                                  ),
+                                ),
+                              ],
                             ),
                             Flexible(
                               child: Container(
@@ -262,9 +284,6 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
                                     ),
                                     overflow: TextOverflow.ellipsis,
                                   ),
-                                const SizedBox(
-                                  height: 5,
-                                ),
                                 SizedBox(
                                   width:
                                       MediaQuery.of(context).size.width * 0.78,
@@ -306,6 +325,9 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
                             ),
                           ],
                         ),
+                      const SizedBox(
+                        height: 5.0,
+                      )
                     ],
                   );
                 },
