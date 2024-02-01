@@ -54,7 +54,7 @@ class ChatRepository {
   }) {
     socket.emit("postMessageReq", {
       "accessToken": "Bearer $accessToken",
-      // "roomId": roomId,
+      "roomId": roomId,
       "content": content,
       "id": tempMessageId,
       "createdAt": createdAt,

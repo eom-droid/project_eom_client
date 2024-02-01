@@ -4,7 +4,6 @@ import 'package:client/chat/provider/chat_provider.dart';
 import 'package:client/chat/provider/chat_room_provider.dart';
 import 'package:client/common/components/cursor_pagination_error_comp.dart';
 import 'package:client/common/components/cursor_pagination_loading_comp.dart';
-import 'package:client/common/components/custom_text_field.dart';
 import 'package:client/common/const/colors.dart';
 import 'package:client/common/const/setting.dart';
 import 'package:client/common/layout/default_layout.dart';
@@ -207,23 +206,122 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
                                     ),
                                   ),
                                 if (chat is ChatFailedModel)
-                                  Transform.flip(
-                                    flipX: true,
-                                    child: const Icon(
-                                      Icons.error,
-                                      color: BODY_TEXT_COLOR,
-                                      size: 12.0,
+                                  GestureDetector(
+                                    onTap: () {
+                                      showDialog(
+                                          context: context,
+                                          builder: (context) {
+                                            return AlertDialog(
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(10.0),
+                                              ),
+                                              backgroundColor: BACKGROUND_BLACK,
+                                              content: const Text(
+                                                '재전송하시겠습니까?',
+                                                style: TextStyle(
+                                                  color: GRAY_TEXT_COLOR,
+                                                ),
+                                              ),
+                                              actions: [
+                                                TextButton(
+                                                  onPressed: () {
+                                                    ref
+                                                        .read(chatProvider(
+                                                                widget.id)
+                                                            .notifier)
+                                                        .deleteFailedMessage(
+                                                          tempMessageId: chat
+                                                              .tempMessageId,
+                                                        );
+                                                    Navigator.pop(context);
+                                                  },
+                                                  child: const Text(
+                                                    '삭제',
+                                                    style: TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                ),
+                                                TextButton(
+                                                  onPressed: () {
+                                                    ref
+                                                        .read(chatProvider(
+                                                                widget.id)
+                                                            .notifier)
+                                                        .resendMessage(
+                                                          tempMessageId: chat
+                                                              .tempMessageId,
+                                                        );
+
+                                                    Navigator.pop(context);
+                                                  },
+                                                  child: const Text(
+                                                    '재전송',
+                                                    style: TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            );
+                                          });
+                                    },
+                                    child: Padding(
+                                      padding: const EdgeInsets.only(
+                                        right: 5.0,
+                                      ),
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          borderRadius:
+                                              BorderRadius.circular(6.0),
+                                          color: BACKGROUND_LIGHT_BLACK,
+                                        ),
+                                        child: IntrinsicHeight(
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceAround,
+                                            children: [
+                                              const Padding(
+                                                padding: EdgeInsets.all(3),
+                                                child: Icon(
+                                                  Icons.refresh_outlined,
+                                                  color: Colors.white,
+                                                  size: 11.0,
+                                                ),
+                                              ),
+                                              const VerticalDivider(
+                                                color: BACKGROUND_BLACK,
+                                                thickness: 0.5,
+                                                width: 0.0,
+                                              ),
+                                              Padding(
+                                                padding:
+                                                    const EdgeInsets.all(3),
+                                                child: Icon(
+                                                  Icons.close_sharp,
+                                                  color: Colors.red[400],
+                                                  size: 12.0,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
                                     ),
                                   ),
-                                Padding(
-                                  padding: const EdgeInsets.only(
-                                    left: 5.0,
-                                    right: 5.0,
+                                if (chat is! ChatFailedModel)
+                                  Padding(
+                                    padding: const EdgeInsets.only(
+                                      left: 5.0,
+                                      right: 5.0,
+                                    ),
+                                    child: _chatTime(
+                                      chat.createdAt,
+                                    ),
                                   ),
-                                  child: _chatTime(
-                                    chat.createdAt,
-                                  ),
-                                ),
                               ],
                             ),
                             Flexible(
@@ -241,6 +339,7 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
                                   style: const TextStyle(
                                     color: Colors.black,
                                     fontSize: 15.0,
+                                    height: 1.2,
                                   ),
                                 ),
                               ),
@@ -306,6 +405,7 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
                                             style: const TextStyle(
                                               color: Colors.white,
                                               fontSize: 15.0,
+                                              height: 1.2,
                                             ),
                                           ),
                                         ),
@@ -417,43 +517,75 @@ class _BottomInputState extends State<BottomInput> {
   Widget build(BuildContext context) {
     return Container(
       color: BACKGROUND_LIGHT_BLACK,
-      child: Row(
-        children: [
-          InkWell(
-            onTap: () {},
-            child: const Padding(
-              padding: EdgeInsets.all(10.0),
-              child: Icon(
-                Icons.add_a_photo_outlined,
-                color: Colors.white,
-              ),
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const SizedBox(
+              width: 15.0,
             ),
-          ),
-          Expanded(
-            child: CustomTextField(
-              controller: _textEditingController,
-              underline: false,
-              onChanged: (value) {
-                setState(() {});
-              },
-            ),
-          ),
-          if (_textEditingController.text.isNotEmpty)
-            InkWell(
-              onTap: () {
-                widget.onSendMessage(_textEditingController.text);
-                _textEditingController.clear();
-              },
+            // TODO : 이미지 전송 기능 추가
+            // InkWell(
+            //   onTap: () {},
+            //   child: const Padding(
+            //     padding: EdgeInsets.all(10.0),
+            //     child: Icon(
+            //       Icons.add_a_photo_outlined,
+            //       color: Colors.white,
+            //     ),
+            //   ),
+            // ),
+            Expanded(
               child: Container(
-                padding: const EdgeInsets.all(10.0),
-                color: PRIMARY_COLOR,
-                child: const Icon(
-                  Icons.send,
-                  color: Colors.black,
+                constraints: const BoxConstraints(
+                  maxHeight: 100,
+                ),
+                child: TextField(
+                  controller: _textEditingController,
+                  onChanged: (value) {
+                    setState(() {});
+                  },
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 15.0,
+                    fontWeight: FontWeight.w400,
+                    height: 1.4,
+                  ),
+                  cursorColor: Colors.white,
+                  cursorHeight: 16.0,
+                  maxLines: null,
+                  keyboardType: TextInputType.multiline,
+                  decoration: const InputDecoration(
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                  ),
                 ),
               ),
             ),
-        ],
+            const SizedBox(
+              width: 15.0,
+            ),
+            if (_textEditingController.text.isNotEmpty)
+              InkWell(
+                onTap: () {
+                  widget.onSendMessage(_textEditingController.text);
+                  _textEditingController.clear();
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(10.0),
+                  color: PRIMARY_COLOR,
+                  child: const Align(
+                    alignment: Alignment.bottomCenter,
+                    child: Icon(
+                      size: 24.0,
+                      Icons.send,
+                      color: Colors.black,
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }

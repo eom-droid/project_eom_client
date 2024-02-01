@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:client/chat/provider/chat_room_provider.dart';
 import 'package:client/user/model/user_with_token_model.dart';
 import 'package:client/user/provider/user_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -13,6 +14,7 @@ final socketIOProvider = Provider<SocketIO>((ref) {
 
   final result = SocketIO(
     initAccessToken: user.token.accessToken,
+    ref: ref,
   );
 
   return result;
@@ -25,9 +27,11 @@ final socketIOProvider = Provider<SocketIO>((ref) {
 class SocketIO {
   late final IO.Socket socket;
   final String initAccessToken;
+  final ProviderRef ref;
 
   SocketIO({
     required this.initAccessToken,
+    required this.ref,
   }) : super() {
     socket = IO.io(
       'http://localhost:3002/chat',
@@ -45,6 +49,7 @@ class SocketIO {
     // 연결 실패시의 이벤트 핸들러
     socket.onError((error) {
       print("onError: $error");
+      ref.read(chatRoomProvider.notifier).setError("SocketIO 연결 실패");
       // TODO : 에러 처리
     });
 

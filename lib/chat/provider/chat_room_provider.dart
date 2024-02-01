@@ -32,6 +32,7 @@ class ChatRoomStateNotifier extends StateNotifier<CursorPaginationBase> {
     ref.listen(chatRoomStreamProvider, (AsyncValue<dynamic>? previous,
         AsyncValue<ChatResponseModel> next) async {
       try {
+        // getChatRoomsRes 에 대한 처리만 담겨있음
         if (next.value == null) {
           throw Exception('채팅방을 불러오는데 실패하였습니다.');
         }
@@ -73,5 +74,11 @@ class ChatRoomStateNotifier extends StateNotifier<CursorPaginationBase> {
     } else {
       return null;
     }
+  }
+
+  void setError(String eventName) {
+    print(eventName);
+    state = CursorPaginationError(message: eventName);
+    print(state);
   }
 }

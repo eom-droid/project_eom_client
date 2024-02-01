@@ -90,13 +90,15 @@ class ChatStateNotifier extends StateNotifier<CursorPaginationBase> {
       chatStreamProvider(roomId),
       (previous, AsyncValue<ChatResponseModel> next) {
         try {
-          // TODO : 401 error 처리
           // 1. next.value가 null이면 에러를 발생시킨다.
           if (next.value == null) {
             throw Exception('채팅을 불러오는데 실패하였습니다.');
           }
           final resObj = next.value!.data;
           final statusCode = resObj['status'];
+          // * 401 에러가 발생하면 로그인 페이지로 이동
+          // 원래는 여기서 401 에러를 처리하려고 했지만 과거에 발송한 메시지를 가져올수가 없음.....
+          if (statusCode == 401) {}
 
           switch (next.value!.state) {
             case ChatResponseState.getMessageRes:
@@ -316,7 +318,6 @@ class ChatStateNotifier extends StateNotifier<CursorPaginationBase> {
       // 현재 값이 있는 상태이며(CusroPagination) 강제 refetch가 아닌 경우
       if (state is CursorPagination && !forceRefetch) {
         final pState = state as CursorPagination;
-        print(pState.meta.hasMore);
 
         // 데이터가 더이상 없는 경우
         if (!pState.meta.hasMore) {
@@ -435,6 +436,60 @@ class ChatStateNotifier extends StateNotifier<CursorPaginationBase> {
       state = pState.copyWith(
         data: pState.data,
       );
+    }
+  }
+
+  resendMessage({
+    required String tempMessageId,
+  }) async {
+    if (state is CursorPagination && user is UserWithTokenModel) {
+      final user = this.user as UserWithTokenModel;
+
+      var pState = state as CursorPagination<ChatModel>;
+      final tempMessageIndex = pState.data.indexWhere(
+        (element) =>
+            element is ChatFailedModel &&
+            element.tempMessageId == tempMessageId,
+      );
+      if (tempMessageIndex != -1) {
+        final tempMessage = pState.data[tempMessageIndex] as ChatFailedModel;
+
+        final now = DateTime.now();
+
+        repository.postMessage(
+          roomId: roomId,
+          content: tempMessage.content,
+          tempMessageId: tempMessage.tempMessageId,
+          accessToken: user.token.accessToken,
+          createdAt: now.toString(),
+        );
+
+        pState.data[tempMessageIndex] =
+            tempMessage.parseToChatModelTemp(tempMessageId);
+
+        state = pState.copyWith(
+          data: pState.data,
+        );
+      }
+    }
+  }
+
+  deleteFailedMessage({
+    required String tempMessageId,
+  }) {
+    if (state is CursorPagination) {
+      var pState = state as CursorPagination<ChatModel>;
+      final tempMessageIndex = pState.data.indexWhere(
+        (element) =>
+            element is ChatFailedModel &&
+            element.tempMessageId == tempMessageId,
+      );
+      if (tempMessageIndex != -1) {
+        pState.data.removeAt(tempMessageIndex);
+        state = pState.copyWith(
+          data: pState.data,
+        );
+      }
     }
   }
 }

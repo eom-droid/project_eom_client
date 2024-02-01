@@ -62,6 +62,7 @@ class ChatTempModel extends ChatModel {
       userId: userId,
       content: content,
       createdAt: createdAt,
+      tempMessageId: tempMessageId,
       error: error,
     );
   }
@@ -79,13 +80,16 @@ class ChatTempModel extends ChatModel {
 @JsonSerializable()
 class ChatFailedModel extends ChatModel {
   final String error;
+  final String tempMessageId;
   ChatFailedModel({
     required super.id,
     required super.userId,
     required super.content,
     required super.createdAt,
+    required this.tempMessageId,
     required this.error,
   });
+  @override
   ChatModel parseToChatModel() {
     return ChatModel(
       id: id,

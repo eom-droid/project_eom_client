@@ -10,19 +10,20 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 class ChatScreen extends ConsumerWidget {
-  ChatRoomModel? room;
   static String get routeName => 'chat';
 
-  ChatScreen({
+  const ChatScreen({
     super.key,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final roomState = ref.watch(chatRoomProvider);
+    ChatRoomModel? room;
     if (roomState is CursorPagination<ChatRoomModel>) {
       room = roomState.data[0];
     }
+    if (roomState is CursorPaginationError) {}
 
     return DefaultLayout(
       backgroundColor: BACKGROUND_BLACK,
