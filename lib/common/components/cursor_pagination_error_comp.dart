@@ -20,12 +20,12 @@ class CursorPaginationErrorComp extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(state.message,
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 16.0, color: Colors.white)),
-            const SizedBox(
-              height: 16.0,
-            ),
+            // Text(state.message,
+            //     textAlign: TextAlign.center,
+            //     style: const TextStyle(fontSize: 16.0, color: Colors.white)),
+            // const SizedBox(
+            //   height: 16.0,
+            // ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.white,

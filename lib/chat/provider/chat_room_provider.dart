@@ -2,6 +2,7 @@ import 'package:client/chat/model/chat_response_model.dart';
 import 'package:client/chat/model/chat_room_model.dart';
 import 'package:client/chat/repository/chat_room_repository.dart';
 import 'package:client/common/model/cursor_pagination_model.dart';
+import 'package:client/common/socketio/socketio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final chatRoomProvider =
@@ -43,6 +44,11 @@ class ChatRoomStateNotifier extends StateNotifier<CursorPaginationBase> {
 
         final statusCode = resObj['status'];
 
+        // getChatRoomsRes는 401 받기는 하지만 결국에는 error로 인한 socketiio 재연결 시도를 진행해야함
+        // if (statusCode == 401) {
+        //   ref.read(socketIOProvider).initAccessToken;
+        // }
+
         if (statusCode >= 200 && statusCode < 300) {
           final chatRooms = resObj['data'] as List<dynamic>;
 
@@ -77,8 +83,12 @@ class ChatRoomStateNotifier extends StateNotifier<CursorPaginationBase> {
   }
 
   void setError(String eventName) {
-    print(eventName);
     state = CursorPaginationError(message: eventName);
-    print(state);
+  }
+
+  void reconnect() {
+    ref.read(socketIOProvider).socketInit(
+          getNewAccessToken: true,
+        );
   }
 }

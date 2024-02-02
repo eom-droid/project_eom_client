@@ -10,10 +10,8 @@ import 'package:socket_io_client/socket_io_client.dart' as IO;
 // 그리고 만약 진행했더라도 token이 만료되었다면 socketio통신을 진행할 수 없음
 final socketIOProvider = Provider<SocketIO>((ref) {
   // 조금 위험한 코드이기는 함.....
-  final user = ref.read(userProvider) as UserWithTokenModel;
 
   final result = SocketIO(
-    initAccessToken: user.token.accessToken,
     ref: ref,
   );
 
@@ -25,14 +23,34 @@ final socketIOProvider = Provider<SocketIO>((ref) {
 // 가져오는데 비동기로 진행할 수가 없음.....
 // 근데 contructor라서 이거 가능할지가 모르겠네.......
 class SocketIO {
-  late final IO.Socket socket;
-  final String initAccessToken;
+  late IO.Socket? socket;
+
   final ProviderRef ref;
 
   SocketIO({
-    required this.initAccessToken,
     required this.ref,
   }) : super() {
+    socketInit();
+  }
+
+  socketInit({
+    bool getNewAccessToken = false,
+  }) async {
+    // 만약 socket이 이미 연결되어있었다면, 연결을 끊고 다시 연결한다.
+    if (socket != null) {
+      socket!.dispose();
+    }
+    String accessToken = "";
+    if (getNewAccessToken) {
+      // 만약 accessToken이 만료되었을경우
+      accessToken =
+          await ref.read(userProvider.notifier).getAccessTokenByRefreshToken();
+    } else {
+      // 만약 accessToken이 만료되지 않았을 경우
+      final user = ref.read(userProvider) as UserWithTokenModel;
+      accessToken = user.token.accessToken;
+    }
+
     socket = IO.io(
       'http://localhost:3002/chat',
       IO.OptionBuilder()
@@ -41,62 +59,25 @@ class SocketIO {
           .disableAutoConnect()
           .setExtraHeaders({
             // 첫 연결 시 쿠키을 헤더에 담아서 보낸다.
-            'authorization': 'Bearer $initAccessToken',
+            'authorization': 'Bearer $accessToken',
           })
           .build(),
     );
 
     // 연결 실패시의 이벤트 핸들러
-    socket.onError((error) {
-      print("onError: $error");
+    socket!.onError((error) {
       ref.read(chatRoomProvider.notifier).setError("SocketIO 연결 실패");
       // TODO : 에러 처리
     });
 
     // 연결 시작
-    socket.connect();
+    socket!.connect();
   }
-
-  // Future<IO.Socket> init() {
-  //   final completer = Completer<IO.Socket>();
-
-  //   socket = IO.io(
-  //     'http://localhost:3002/chat',
-  //     IO.OptionBuilder()
-  //         .setPath("/project-eom/chat-server")
-  //         .setTransports(['websocket'])
-  //         .disableAutoConnect()
-  //         .setExtraHeaders({
-  //           // 첫 연결 시 쿠키을 헤더에 담아서 보낸다.
-  //           'authorization': 'Bearer $initAccessToken',
-  //         })
-  //         .build(),
-  //   );
-
-  //   // 연결되었을 때의 이벤트 핸들러
-  //   socket.onConnect((_) {
-  //     print("connect");
-  //     completer.complete(socket);
-  //   });
-  //   socket.emit('msg', 'test');
-
-  //   // 연결 실패시의 이벤트 핸들러
-  //   socket.onError((error) {
-  //     print("onError: $error");
-  //     // TODO : 에러 처리
-  //     completer.completeError(error);
-  //   });
-
-  //   // 연결 시작
-  //   socket.connect();
-
-  //   return completer.future;
-  // }
 
   Future<bool> connect() async {
     // 연결되지 않은 상태에서 요청을 보내려고 할 때, 100ms 간격으로 20번 재시도
     for (var i = 0; i < 20; i++) {
-      if (socket.connected) {
+      if (socket != null && socket!.connected) {
         return true;
       }
       await Future.delayed(const Duration(milliseconds: 100));
@@ -105,17 +86,20 @@ class SocketIO {
   }
 
   on(String eventName, Function(dynamic) callback) {
+    if (socket == null) {
+      throw Exception('SocketIO 연결이 되어있지 않습니다.');
+    }
     print('[SocketIO] Event Listen: $eventName');
-    socket.on(eventName, callback);
+    socket!.on(eventName, callback);
   }
 
   Future<void> emit(String eventName, dynamic data) async {
-    if (!socket.connected) {
+    if (socket == null || !socket!.connected) {
       final result = await connect();
       if (!result) throw Exception('SocketIO 연결 실패');
     }
     print('[SocketIO] Event Emitted: $eventName, Data: $data');
-    socket.emit(eventName, data);
+    socket!.emit(eventName, data);
     return;
   }
 }

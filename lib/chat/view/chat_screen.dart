@@ -1,6 +1,7 @@
 import 'package:client/chat/model/chat_room_model.dart';
 import 'package:client/chat/provider/chat_room_provider.dart';
 import 'package:client/chat/view/chat_detail_screen.dart';
+import 'package:client/common/components/cursor_pagination_error_comp.dart';
 import 'package:client/common/const/colors.dart';
 import 'package:client/common/layout/default_layout.dart';
 import 'package:client/common/model/cursor_pagination_model.dart';
@@ -23,7 +24,8 @@ class ChatScreen extends ConsumerWidget {
     if (roomState is CursorPagination<ChatRoomModel>) {
       room = roomState.data[0];
     }
-    if (roomState is CursorPaginationError) {}
+
+    // TODO : 나중에 CusrsorPaginationError 상태에 따른 분기가 필요함
 
     return DefaultLayout(
       backgroundColor: BACKGROUND_BLACK,
@@ -168,7 +170,16 @@ class ChatScreen extends ConsumerWidget {
                   ),
                 ),
               )
-            : const CircularProgressIndicator(),
+            : roomState is CursorPaginationError
+                ?
+                // 에러 상태일 때
+                CursorPaginationErrorComp(
+                    state: roomState,
+                    onRetry: () {
+                      ref.read(chatRoomProvider.notifier).reconnect();
+                    },
+                  )
+                : const CircularProgressIndicator(),
       ),
     );
   }

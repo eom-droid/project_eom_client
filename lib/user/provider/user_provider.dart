@@ -98,10 +98,11 @@ class UserStateNotifier extends StateNotifier<UserWithTokenModelBase?> {
   }
 
   Future<String> getAccessTokenByRefreshToken({
-    required String refreshToken,
+    String? refreshToken,
   }) async {
+    refreshToken ??= await secureStorage.read(key: REFRESH_TOKEN_KEY);
     final token = await authRepository.getAccessTokenByRefreshToken(
-      refreshToken: refreshToken,
+      refreshToken: refreshToken!,
     );
     if (token == null) {
       throw Exception("토큰이 없습니다.");
