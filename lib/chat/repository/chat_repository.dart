@@ -6,7 +6,7 @@ import 'package:client/common/socketio/socketio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final chatRepositoryProvider =
-    Provider.family<ChatRepository, String>((ref, roomId) {
+    Provider.family.autoDispose<ChatRepository, String>((ref, roomId) {
   final SocketIO socketIO = ref.read(socketIOProvider);
   return ChatRepository(
     socket: socketIO,
@@ -22,6 +22,15 @@ class ChatRepository {
     required this.socket,
     required this.roomId,
   });
+
+  void dispose() {
+    _leaveRoom();
+    chatResponse.close();
+    socket.off("getMessageRes", _getMessageResListener);
+    socket.off("paginateMessageRes", _paginateMessageResListener);
+    socket.off("joinRoomRes", _joinRoomResListener);
+    socket.off("postMessageRes", _postMessageRes);
+  }
 
   void paginate({
     required PaginationParams paginationParams,
@@ -40,6 +49,13 @@ class ChatRepository {
   }) {
     socket.emit("joinRoomReq", {
       "accessToken": "Bearer $accessToken",
+      "roomId": roomId,
+    });
+    return;
+  }
+
+  void _leaveRoom() {
+    socket.emit("leaveRoomReq", {
       "roomId": roomId,
     });
     return;
@@ -64,53 +80,61 @@ class ChatRepository {
 
   //
   void onGetMessageRes() async {
-    socket.on('getMessageRes', (data) {
-      print("[SocketIO] getMessageRes");
-      chatResponse.sink.add(
-        ChatResponseModel(
-          state: ChatResponseState.getMessageRes,
-          data: data,
-        ),
-      );
-    });
+    socket.on('getMessageRes', _getMessageResListener);
+  }
+
+  void _getMessageResListener(dynamic data) {
+    print("[SocketIO] getMessageRes");
+    chatResponse.sink.add(
+      ChatResponseModel(
+        state: ChatResponseState.getMessageRes,
+        data: data,
+      ),
+    );
   }
 
   // join 시에도 이 경로를 통해 들어옴
   void onPaginateMessageRes() async {
-    socket.on('paginateMessageRes', (data) {
-      print("[SocketIO] paginateMessageRes");
-      chatResponse.sink.add(
-        ChatResponseModel(
-          state: ChatResponseState.paginateMessageRes,
-          data: data,
-        ),
-      );
-    });
+    socket.on('paginateMessageRes', _paginateMessageResListener);
+  }
+
+  void _paginateMessageResListener(dynamic data) {
+    print("[SocketIO] paginateMessageRes");
+    chatResponse.sink.add(
+      ChatResponseModel(
+        state: ChatResponseState.paginateMessageRes,
+        data: data,
+      ),
+    );
   }
 
   // 여기는 사실상 에러처리함
   void onJoinRoomRes() async {
-    socket.on('joinRoomRes', (data) {
-      print("[SocketIO] joinRoomRes");
-      chatResponse.sink.add(
-        ChatResponseModel(
-          state: ChatResponseState.joinRoomRes,
-          data: data,
-        ),
-      );
-    });
+    socket.on('joinRoomRes', _joinRoomResListener);
+  }
+
+  void _joinRoomResListener(dynamic data) {
+    print("[SocketIO] joinRoomRes");
+    chatResponse.sink.add(
+      ChatResponseModel(
+        state: ChatResponseState.joinRoomRes,
+        data: data,
+      ),
+    );
   }
 
   // 여기는 사실상 에러처리함
   void onPostMessageRes() async {
-    socket.on('postMessageRes', (data) {
-      print("[SocketIO] postMessageRes");
-      chatResponse.sink.add(
-        ChatResponseModel(
-          state: ChatResponseState.postMessageRes,
-          data: data,
-        ),
-      );
-    });
+    socket.on('postMessageRes', _postMessageRes);
+  }
+
+  void _postMessageRes(dynamic data) async {
+    print("[SocketIO] postMessageRes");
+    chatResponse.sink.add(
+      ChatResponseModel(
+        state: ChatResponseState.postMessageRes,
+        data: data,
+      ),
+    );
   }
 }

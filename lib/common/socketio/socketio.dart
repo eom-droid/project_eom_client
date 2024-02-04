@@ -23,7 +23,7 @@ final socketIOProvider = Provider<SocketIO>((ref) {
 // 가져오는데 비동기로 진행할 수가 없음.....
 // 근데 contructor라서 이거 가능할지가 모르겠네.......
 class SocketIO {
-  late IO.Socket? socket;
+  IO.Socket? socket;
 
   final ProviderRef ref;
 
@@ -91,6 +91,14 @@ class SocketIO {
     }
     print('[SocketIO] Event Listen: $eventName');
     socket!.on(eventName, callback);
+  }
+
+  off(String eventName, Function(dynamic) callback) {
+    if (socket == null) {
+      throw Exception('SocketIO 연결이 되어있지 않습니다.');
+    }
+    print('[SocketIO] Event Off: $eventName');
+    socket!.off(eventName, callback);
   }
 
   Future<void> emit(String eventName, dynamic data) async {

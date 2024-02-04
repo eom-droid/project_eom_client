@@ -11,8 +11,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:client/common/model/cursor_pagination_model.dart';
 import 'package:uuid/uuid.dart';
 
-final chatProvider = StateNotifierProvider.family<ChatStateNotifier,
-    CursorPaginationBase, String>((ref, roomId) {
+final chatProvider = StateNotifierProvider.family
+    .autoDispose<ChatStateNotifier, CursorPaginationBase, String>(
+        (ref, roomId) {
   final chatRepository = ref.watch(chatRepositoryProvider(roomId));
   final user = ref.watch(userProvider);
 
@@ -59,7 +60,7 @@ class ChatManageStateNotifier
 }
 
 final chatStreamProvider =
-    StreamProvider.family<ChatResponseModel, String>((ref, roomId) {
+    StreamProvider.family.autoDispose<ChatResponseModel, String>((ref, roomId) {
   final chatRepository = ref.read(chatRepositoryProvider(roomId));
   return chatRepository.chatResponse.stream;
 });
@@ -70,16 +71,19 @@ class ChatStateNotifier extends StateNotifier<CursorPaginationBase> {
   final StateNotifierProviderRef ref;
   final String roomId;
   late final String randomKey;
+  // AlwaysAliveProviderListenable<AsyncValue<ChatResponseModel>>
   // paginate가 에러가 나왔을때를 대비하기 위한 변수
   // 1회만 paginate를 다시 진행하도록 함
   bool _paginateAgain = false;
 
-  ChatStateNotifier({
-    required this.repository,
-    required this.user,
-    required this.roomId,
-    required this.ref,
-  }) : super(CursorPaginationLoading()) {
+  ChatStateNotifier(
+      {required this.repository,
+      required this.user,
+      required this.roomId,
+      required this.ref,
+      req})
+      : super(CursorPaginationLoading()) {
+    print("chat_provider init()");
     Uuid uuid = const Uuid();
     randomKey = uuid.v4();
     repository.joinRoom(
@@ -89,47 +93,53 @@ class ChatStateNotifier extends StateNotifier<CursorPaginationBase> {
     repository.onPaginateMessageRes();
     repository.onJoinRoomRes();
     repository.onPostMessageRes();
-    ref.listen(
-      chatStreamProvider(roomId),
-      (previous, AsyncValue<ChatResponseModel> next) {
-        try {
-          // 1. next.value가 null이면 에러를 발생시킨다.
-          if (next.value == null) {
-            throw Exception('채팅을 불러오는데 실패하였습니다.');
-          }
-          final resObj = next.value!.data;
-          final statusCode = resObj['status'];
-          // * 401 에러가 발생하면 로그인 페이지로 이동
-          // 원래는 여기서 401 에러를 처리하려고 했지만 과거에 발송한 메시지를 가져올수가 없음.....
-          if (statusCode == 401) {}
+    ref
+        .read(chatRepositoryProvider(roomId))
+        .chatResponse
+        .stream
+        .listen(_listener);
+  }
 
-          switch (next.value!.state) {
-            case ChatResponseState.getMessageRes:
-              _getMessageResProccess(
-                statusCode: statusCode,
-                resObj: resObj,
-              );
-              break;
-            case ChatResponseState.paginateMessageRes:
-              _paginateMessageResProccess(
-                statusCode: statusCode,
-                resObj: resObj,
-              );
-              break;
-            case ChatResponseState.postMessageRes:
-              _postMessageResProccess(resObj: resObj, statusCode: statusCode);
-              break;
+  _listener(ChatResponseModel resp) {
+    try {
+      final resObj = resp.data;
+      final statusCode = resObj['status'];
+      // * 401 에러가 발생하면 로그인 페이지로 이동
+      // 원래는 여기서 401 에러를 처리하려고 했지만 과거에 발송한 메시지를 가져올수가 없음.....
+      if (statusCode == 401) {}
 
-            default:
-              break;
-            // throw Exception('채팅을 불러오는데 실패하였습니다.');
-          }
-        } catch (error) {
-          print(error);
-          state = CursorPaginationError(message: '채팅을 불러오는데 실패하였습니다.');
-        }
-      },
-    );
+      switch (resp.state) {
+        case ChatResponseState.getMessageRes:
+          _getMessageResProccess(
+            statusCode: statusCode,
+            resObj: resObj,
+          );
+          break;
+        case ChatResponseState.paginateMessageRes:
+          _paginateMessageResProccess(
+            statusCode: statusCode,
+            resObj: resObj,
+          );
+          break;
+        case ChatResponseState.postMessageRes:
+          _postMessageResProccess(resObj: resObj, statusCode: statusCode);
+          break;
+
+        default:
+          break;
+        // throw Exception('채팅을 불러오는데 실패하였습니다.');
+      }
+    } catch (error) {
+      print(error);
+      state = CursorPaginationError(message: '채팅을 불러오는데 실패하였습니다.');
+    }
+  }
+
+  @override
+  dispose() {
+    print("chat_provider dispose()");
+    repository.dispose();
+    super.dispose();
   }
 
   // 백엔드에서 정상적인 200 데이터만 들어오도록 설계함

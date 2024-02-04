@@ -52,7 +52,6 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
   void dispose() {
     controller.removeListener(listener);
     controller.dispose();
-
     super.dispose();
   }
 
@@ -158,6 +157,8 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
                   final nextUserId = index + 1 < cp.data.length
                       ? cp.data[index + 1].userId
                       : null;
+                  final previousUserId =
+                      index - 1 > -1 ? cp.data[index - 1].userId : null;
                   final afterCreatedAt = index + 1 < cp.data.length
                       ? cp.data[index + 1].createdAt
                       : null;
@@ -168,7 +169,19 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
                           (element) => element.id == userId,
                         );
 
+                  final previousCreatedAt =
+                      index - 1 > -1 ? cp.data[index - 1].createdAt : null;
+
                   final chat = cp.data[index];
+
+                  bool showChatTime = previousCreatedAt == null
+                      ? previousUserId != userId
+                      : previousUserId != userId ||
+                          previousCreatedAt.day != chat.createdAt.day ||
+                          previousCreatedAt.month != chat.createdAt.month ||
+                          previousCreatedAt.year != chat.createdAt.year ||
+                          previousCreatedAt.hour != chat.createdAt.hour ||
+                          previousCreatedAt.minute != chat.createdAt.minute;
 
                   bool showAvatar = afterCreatedAt == null
                       ? !isMe
@@ -182,6 +195,9 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
 
                   return Column(
                     children: [
+                      SizedBox(
+                        height: showAvatar ? 8 : 0,
+                      ),
                       _chatDate(
                         createdAt: chat.createdAt,
                         nextCreatedAt: afterCreatedAt,
@@ -318,9 +334,13 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
                                       left: 5.0,
                                       right: 5.0,
                                     ),
-                                    child: _chatTime(
-                                      chat.createdAt,
-                                    ),
+                                    child: showChatTime
+                                        ? _chatTime(
+                                            chat.createdAt,
+                                          )
+                                        : const SizedBox(
+                                            width: 0,
+                                          ),
                                   ),
                               ],
                             ),
@@ -376,12 +396,15 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 if (showAvatar)
-                                  Text(
-                                    user.nickname,
-                                    style: const TextStyle(
-                                      color: Colors.white,
+                                  Padding(
+                                    padding: const EdgeInsets.only(bottom: 5.0),
+                                    child: Text(
+                                      user.nickname,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
                                     ),
-                                    overflow: TextOverflow.ellipsis,
                                   ),
                                 SizedBox(
                                   width:
@@ -414,9 +437,13 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
                                         padding: const EdgeInsets.only(
                                           left: 5.0,
                                         ),
-                                        child: _chatTime(
-                                          chat.createdAt,
-                                        ),
+                                        child: showChatTime
+                                            ? _chatTime(
+                                                chat.createdAt,
+                                              )
+                                            : const SizedBox(
+                                                width: 0,
+                                              ),
                                       ),
                                     ],
                                   ),
