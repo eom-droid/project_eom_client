@@ -1,7 +1,8 @@
 import 'dart:async';
 
 import 'package:client/chat/provider/chat_room_provider.dart';
-import 'package:client/user/model/user_with_token_model.dart';
+import 'package:client/common/const/data.dart';
+import 'package:client/common/provider/secure_storage.dart';
 import 'package:client/user/provider/user_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
@@ -39,7 +40,12 @@ class SocketIO {
     // 만약 socket이 이미 연결되어있었다면, 연결을 끊고 다시 연결한다.
     if (socket != null) {
       socket!.dispose();
+      socket = null;
     }
+    socket = IO.io(
+      'http://localhost:3002/chat',
+      IO.OptionBuilder().disableAutoConnect().build(),
+    );
     String accessToken = "";
     if (getNewAccessToken) {
       // 만약 accessToken이 만료되었을경우
@@ -47,22 +53,24 @@ class SocketIO {
           await ref.read(userProvider.notifier).getAccessTokenByRefreshToken();
     } else {
       // 만약 accessToken이 만료되지 않았을 경우
-      final user = ref.read(userProvider) as UserWithTokenModel;
-      accessToken = user.token.accessToken;
+      final storage = ref.read(secureStorageProvider);
+      accessToken = (await storage.read(key: ACCESS_TOKEN_KEY))!;
     }
 
-    socket = IO.io(
-      'http://localhost:3002/chat',
-      IO.OptionBuilder()
-          .setPath("/project-eom/chat-server")
-          .setTransports(['websocket'])
-          .disableAutoConnect()
-          .setExtraHeaders({
-            // 첫 연결 시 쿠키을 헤더에 담아서 보낸다.
-            'authorization': 'Bearer $accessToken',
-          })
-          .build(),
-    );
+    socket!.io.options = {
+      'path': '/project-eom/chat-server',
+      'transports': ['websocket'],
+      'autoConnect': false,
+      'extraHeaders': {'authorization': 'Bearer $accessToken'}
+    };
+
+    socket!.onAny((event, data) {
+      if (data != null) {
+        print('[SocketIO] Event: $event, Data: $data');
+      } else {
+        print('[SocketIO] Event: $event');
+      }
+    });
 
     // 연결 실패시의 이벤트 핸들러
     socket!.onError((error) {
@@ -74,7 +82,7 @@ class SocketIO {
     socket!.connect();
   }
 
-  Future<bool> connect() async {
+  Future<bool> socketConnected() async {
     // 연결되지 않은 상태에서 요청을 보내려고 할 때, 100ms 간격으로 20번 재시도
     for (var i = 0; i < 20; i++) {
       if (socket != null && socket!.connected) {
@@ -89,6 +97,7 @@ class SocketIO {
     if (socket == null) {
       throw Exception('SocketIO 연결이 되어있지 않습니다.');
     }
+
     print('[SocketIO] Event Listen: $eventName');
     socket!.on(eventName, callback);
   }
@@ -103,7 +112,7 @@ class SocketIO {
 
   Future<void> emit(String eventName, dynamic data) async {
     if (socket == null || !socket!.connected) {
-      final result = await connect();
+      final result = await socketConnected();
       if (!result) throw Exception('SocketIO 연결 실패');
     }
     print('[SocketIO] Event Emitted: $eventName, Data: $data');

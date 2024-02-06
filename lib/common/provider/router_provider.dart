@@ -4,7 +4,7 @@ import 'package:client/auth/view/reset_password_screen.dart';
 import 'package:client/chat/view/chat_detail_screen.dart';
 import 'package:client/chat/view/chat_screen.dart';
 import 'package:client/common/view/splash_screen.dart';
-import 'package:client/user/model/user_with_token_model.dart';
+import 'package:client/user/model/user_model.dart';
 import 'package:client/user/provider/user_provider.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -35,7 +35,7 @@ class RouterProvider extends ChangeNotifier {
   final Ref ref;
 
   RouterProvider({required this.ref}) {
-    ref.listen<UserWithTokenModelBase?>(userProvider, (previous, next) {
+    ref.listen<UserModelBase?>(userProvider, (previous, next) {
       if (previous != next) {
         notifyListeners();
       }
@@ -68,7 +68,7 @@ class RouterProvider extends ChangeNotifier {
             GoRoute(
               path: 'chat',
               name: ChatScreen.routeName,
-              builder: (_, state) => ChatScreen(),
+              builder: (_, state) => const ChatScreen(),
             ),
             GoRoute(
               path: 'chat/:rid',
@@ -102,12 +102,12 @@ class RouterProvider extends ChangeNotifier {
       ];
 
   String? redirectLogic(BuildContext _, GoRouterState state) {
-    final UserWithTokenModelBase? user = ref.read(userProvider);
+    final UserModelBase? user = ref.read(userProvider);
     final loginRoute = state.location == '/login';
     final joinRoute = state.location == '/join';
     final resetPasswordRoute = state.location == '/resetPassword';
     final splashRoute = state.location == '/splash';
-    if (user is UserWithTokenModelError) {
+    if (user is UserModelError) {
       print(user.message);
     }
 
@@ -117,7 +117,7 @@ class RouterProvider extends ChangeNotifier {
 
     // UserModelError
     // 무조건 login페이지로 이동
-    if (user == null || user is UserWithTokenModelError) {
+    if (user == null || user is UserModelError) {
       return loginRoute || joinRoute || resetPasswordRoute ? null : '/login';
     }
 
@@ -127,7 +127,7 @@ class RouterProvider extends ChangeNotifier {
     // 사용자 정보가 있는 상태면
     // 로그인 중이거나 현재 위치가 SplashScreen이면
     // 홈으로 이동
-    if (user is UserWithTokenModel) {
+    if (user is UserModel) {
       return loginRoute || joinRoute || resetPasswordRoute || splashRoute
           ? '/'
           : null;

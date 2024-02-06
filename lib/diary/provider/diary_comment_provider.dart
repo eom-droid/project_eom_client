@@ -2,7 +2,6 @@ import 'package:client/diary/model/diary_comment_model.dart';
 import 'package:client/diary/model/diary_content_model.dart';
 import 'package:client/diary/repository/diary_comment_repository.dart';
 import 'package:client/user/model/user_model.dart';
-import 'package:client/user/model/user_with_token_model.dart';
 import 'package:client/user/provider/user_provider.dart';
 import 'package:easy_debounce/easy_debounce.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -28,7 +27,7 @@ final diaryCommentProvider = StateNotifierProvider.family<
 class DiaryCommentManageStateNotifier
     extends StateNotifier<Map<String, DiaryCommentStateNotifier>> {
   final DiaryCommentRepository repository;
-  final UserWithTokenModelBase? user;
+  final UserModelBase? user;
   DiaryCommentManageStateNotifier({
     required this.repository,
     required this.user,
@@ -56,7 +55,7 @@ class DiaryCommentManageStateNotifier
 
 class DiaryCommentStateNotifier
     extends PaginationNotifier<DiaryCommentModel, DiaryCommentRepository> {
-  final UserWithTokenModelBase? user;
+  final UserModelBase? user;
   DiaryCommentStateNotifier({required super.repository, required this.user});
 
   // state에 추가하여 관리해야됨
@@ -65,8 +64,8 @@ class DiaryCommentStateNotifier
     required String content,
   }) async {
     // 1. state가 CursorPagination인지 확인 + user가 UserWithTokenModel인지 확인
-    if (state is CursorPagination && user is UserWithTokenModel) {
-      final user = this.user as UserWithTokenModel;
+    if (state is CursorPagination && user is UserModel) {
+      final user = this.user as UserModel;
 
       var pState = state as CursorPagination<DiaryCommentModel>;
 
@@ -87,10 +86,10 @@ class DiaryCommentStateNotifier
           isLike: false,
           likeCount: 0,
           writer: UserModel(
-            id: user.user.id,
-            nickname: user.user.nickname,
-            profileImg: user.user.profileImg,
-            role: user.user.role,
+            id: user.id,
+            nickname: user.nickname,
+            profileImg: user.profileImg,
+            role: user.role,
           ),
           replyCount: 0,
         ),

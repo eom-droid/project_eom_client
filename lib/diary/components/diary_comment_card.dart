@@ -6,7 +6,6 @@ import 'package:client/diary/model/diary_comment_model.dart';
 import 'package:client/diary/model/diary_reply_model.dart';
 import 'package:client/diary/provider/diary_reply_provider.dart';
 import 'package:client/user/model/user_model.dart';
-import 'package:client/user/model/user_with_token_model.dart';
 import 'package:client/user/provider/user_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -84,7 +83,7 @@ class _DiaryCommentCardState extends ConsumerState<DiaryCommentCard> {
   @override
   Widget build(BuildContext context) {
     final replyState = ref.watch(diaryReplyProvider(widget.id));
-    final userState = ref.watch(userProvider) as UserWithTokenModel;
+    final userState = ref.watch(userProvider) as UserModel;
     return Padding(
       padding: const EdgeInsets.symmetric(
         horizontal: 16.0,
@@ -325,7 +324,7 @@ class _DiaryCommentCardState extends ConsumerState<DiaryCommentCard> {
                   return GestureDetector(
                     behavior: HitTestBehavior.opaque,
                     onLongPress: reply.writer != null &&
-                            reply.writer!.id == userState.user.id
+                            reply.writer!.id == userState.id
                         ? () {
                             showDeleteDialog(
                               context: context,

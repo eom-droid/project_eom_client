@@ -2,7 +2,6 @@ import 'package:client/diary/model/diary_reply_model.dart';
 import 'package:client/diary/model/diary_content_model.dart';
 import 'package:client/diary/repository/diary_reply_repository.dart';
 import 'package:client/user/model/user_model.dart';
-import 'package:client/user/model/user_with_token_model.dart';
 import 'package:client/user/provider/user_provider.dart';
 import 'package:easy_debounce/easy_debounce.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -28,7 +27,7 @@ final diaryReplyProvider = StateNotifierProvider.family<DiaryReplyStateNotifier,
 class DiaryReplyManageStateNotifier
     extends StateNotifier<Map<String, DiaryReplyStateNotifier>> {
   final DiaryReplyRepository repository;
-  final UserWithTokenModelBase? user;
+  final UserModelBase? user;
   DiaryReplyManageStateNotifier({
     required this.repository,
     required this.user,
@@ -57,7 +56,7 @@ class DiaryReplyManageStateNotifier
 
 class DiaryReplyStateNotifier
     extends PaginationNotifier<DiaryReplyModel, DiaryReplyRepository> {
-  final UserWithTokenModelBase? user;
+  final UserModelBase? user;
   DiaryReplyStateNotifier({
     required super.repository,
     required this.user,
@@ -70,8 +69,8 @@ class DiaryReplyStateNotifier
     required String content,
   }) async {
     // 1. state가 CursorPagination인지 확인 + user가 UserWithTokenModel인지 확인
-    if (state is CursorPagination && user is UserWithTokenModel) {
-      final user = this.user as UserWithTokenModel;
+    if (state is CursorPagination && user is UserModel) {
+      final user = this.user as UserModel;
 
       var pState = state as CursorPagination<DiaryReplyModel>;
 
@@ -92,10 +91,10 @@ class DiaryReplyStateNotifier
           isLike: false,
           likeCount: 0,
           writer: UserModel(
-            id: user.user.id,
-            nickname: user.user.nickname,
-            profileImg: user.user.profileImg,
-            role: user.user.role,
+            id: user.id,
+            nickname: user.nickname,
+            profileImg: user.profileImg,
+            role: user.role,
           ),
         ),
       );

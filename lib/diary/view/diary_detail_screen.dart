@@ -5,7 +5,7 @@ import 'package:client/common/utils/data_utils.dart';
 import 'package:client/diary/components/diary_comment_card.dart';
 import 'package:client/diary/model/diary_comment_model.dart';
 import 'package:client/diary/provider/diary_comment_provider.dart';
-import 'package:client/user/model/user_with_token_model.dart';
+import 'package:client/user/model/user_model.dart';
 import 'package:client/user/provider/user_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -512,7 +512,7 @@ class _RenderComment extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final user = ref.watch(userProvider) as UserWithTokenModel;
+    final user = ref.watch(userProvider) as UserModel;
     return SliverToBoxAdapter(
       child: DefaultScrollBasePaginationLayout<DiaryCommentModel>(
         provider: diaryCommentProvider(id),
@@ -547,7 +547,7 @@ class _RenderComment extends ConsumerWidget {
                 ),
               );
             },
-            currentUserId: user.user.id,
+            currentUserId: user.id,
           );
         },
         onRefresh: () async {

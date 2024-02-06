@@ -23,9 +23,7 @@ class ChatRepository {
     required this.roomId,
   });
 
-  void dispose() {
-    _leaveRoom();
-    chatResponse.close();
+  void socketOffAll() {
     socket.off("getMessageRes", _getMessageResListener);
     socket.off("paginateMessageRes", _paginateMessageResListener);
     socket.off("joinRoomRes", _joinRoomResListener);
@@ -54,7 +52,7 @@ class ChatRepository {
     return;
   }
 
-  void _leaveRoom() {
+  void leaveRoom() {
     socket.emit("leaveRoomReq", {
       "roomId": roomId,
     });

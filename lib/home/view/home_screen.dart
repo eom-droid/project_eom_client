@@ -1,7 +1,7 @@
 import 'package:client/auth/view/login_screen.dart';
 import 'package:client/chat/view/chat_screen.dart';
 import 'package:client/common/components/default_moving_background.dart';
-import 'package:client/user/model/user_with_token_model.dart';
+import 'package:client/user/model/user_model.dart';
 import 'package:client/user/provider/user_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -217,7 +217,7 @@ class _FrontImagesRender extends ConsumerWidget {
           Positioned(
             bottom: 0,
             // 현재 로그인 상태에 따라서 다른 버튼을 보여준다.
-            child: user is UserWithTokenModel
+            child: user is UserModel
                 ? _menuBar(
                     context: context,
                     onDiaryTap: () {
