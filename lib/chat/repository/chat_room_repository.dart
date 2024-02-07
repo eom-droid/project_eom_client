@@ -18,7 +18,7 @@ class ChatRoomRepository {
   ChatRoomRepository({
     required this.socket,
   }) : super() {
-    onGetChatRoomsRes();
+    init();
   }
 
   void onGetChatRoomsRes() async {
@@ -30,5 +30,9 @@ class ChatRoomRepository {
         ),
       );
     });
+  }
+
+  init() {
+    onGetChatRoomsRes();
   }
 }

@@ -89,7 +89,7 @@ class ChatFailedModel extends ChatModel {
     required this.tempMessageId,
     required this.error,
   });
-  @override
+
   ChatModel parseToChatModel() {
     return ChatModel(
       id: id,

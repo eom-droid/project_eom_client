@@ -36,6 +36,7 @@ class SocketIO {
 
   socketInit({
     bool getNewAccessToken = false,
+    Function? reconnectListener,
   }) async {
     // 만약 socket이 이미 연결되어있었다면, 연결을 끊고 다시 연결한다.
     if (socket != null) {
@@ -64,19 +65,14 @@ class SocketIO {
       'extraHeaders': {'authorization': 'Bearer $accessToken'}
     };
 
-    socket!.onAny((event, data) {
-      if (data != null) {
-        print('[SocketIO] Event: $event, Data: $data');
-      } else {
-        print('[SocketIO] Event: $event');
-      }
-    });
-
     // 연결 실패시의 이벤트 핸들러
     socket!.onError((error) {
       ref.read(chatRoomProvider.notifier).setError("SocketIO 연결 실패");
       // TODO : 에러 처리
     });
+    if (reconnectListener != null) {
+      reconnectListener();
+    }
 
     // 연결 시작
     socket!.connect();

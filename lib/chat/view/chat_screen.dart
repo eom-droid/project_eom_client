@@ -21,6 +21,7 @@ class ChatScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final roomState = ref.watch(chatRoomProvider);
     ChatRoomModel? room;
+    print("buuild ChatScreen roomState: $roomState");
     if (roomState is CursorPagination<ChatRoomModel>) {
       room = roomState.data[0];
     }

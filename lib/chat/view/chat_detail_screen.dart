@@ -9,6 +9,8 @@ import 'package:client/common/const/setting.dart';
 import 'package:client/common/layout/default_layout.dart';
 import 'package:client/common/model/cursor_pagination_model.dart';
 import 'package:client/common/utils/data_utils.dart';
+import 'package:client/user/model/user_model.dart';
+import 'package:client/user/provider/user_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -69,7 +71,7 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen>
   Widget loadBody({
     required CursorPaginationBase state,
     required ChatRoomModel? room,
-    // required UserWithTokenModelBase? user,
+    required UserModel me,
   }) {
     // 초기 로딩
     if (state is CursorPaginationLoading) {
@@ -108,17 +110,16 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen>
     return _body(
       cp: cp,
       room: room,
-      // me: user,
+      me: me,
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    print("build");
     final chatState = ref.watch(chatProvider(widget.id));
     final room = ref.read(chatRoomProvider.notifier).getChatRoomInfo(widget.id);
-    // final user = ref.read(chatProvider(widget.id).notifier).getUserInfo();
-    print("chat_detail_screen : ${chatState.runtimeType}");
+    final me = ref.read(userProvider) as UserModel;
+
     return DefaultLayout(
       isFullScreen: true,
       backgroundColor: BACKGROUND_BLACK,
@@ -136,7 +137,7 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen>
       ),
       child: loadBody(
         room: room,
-        // user: user,
+        me: me,
         state: chatState,
       ),
     );
@@ -145,7 +146,7 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen>
   Widget _body({
     required CursorPagination<ChatModel> cp,
     required ChatRoomModel room,
-    // required UserWithTokenModel me,
+    required UserModel me,
   }) {
     return SafeArea(
       bottom: true,
@@ -174,16 +175,10 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen>
                   final afterCreatedAt = index + 1 < cp.data.length
                       ? cp.data[index + 1].createdAt
                       : null;
-                  final isMe = userId == 'me';
+                  final isMe = userId == me.id;
                   final user = room.members.firstWhere(
                     (element) => element.id == userId,
                   );
-                  // final isMe = userId == me.user.id;
-                  // final user = isMe
-                  //     ? me.user
-                  //     : room.members.firstWhere(
-                  //         (element) => element.id == userId,
-                  //       );
 
                   final previousCreatedAt =
                       index - 1 > -1 ? cp.data[index - 1].createdAt : null;

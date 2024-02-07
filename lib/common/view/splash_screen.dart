@@ -7,6 +7,6 @@ class SplashScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const DefaultLayout(child: Text('???????????'));
+    return const DefaultLayout(child: Text('!!!!!!!!!!!!!!!'));
   }
 }
