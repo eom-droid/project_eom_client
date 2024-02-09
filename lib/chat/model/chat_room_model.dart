@@ -1,3 +1,4 @@
+import 'package:client/chat/model/chat_model.dart';
 import 'package:client/user/model/user_model.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:client/common/model/model_with_id.dart';
@@ -18,23 +19,14 @@ class ChatRoomModel implements IModelWithId {
   // max : 최대 인원
   final int max;
   // lastChat : 마지막 메시지
-  final String? lastChatContent;
-  // lastChatCreatedAt : 생성 일자
-  // read 해오는 경우 서버에서 UTC로 보내주기 때문에 local time zone으로 변경
-  // write 경우는 따로 파싱을 하지 않음 -> 서버에서 저장 시 MongoDB가 자체적으로 UTC로 변경하여 저장
-  @JsonKey(
-    defaultValue: null,
-    fromJson: DataUtils.toLocalTimeZone,
-  )
-  final DateTime? lastChatCreatedAt;
+  final ChatModel? lastChat;
 
   ChatRoomModel({
     required this.id,
     required this.title,
     required this.members,
     required this.max,
-    required this.lastChatContent,
-    required this.lastChatCreatedAt,
+    required this.lastChat,
   });
 
   factory ChatRoomModel.fromObject(Object? o) =>

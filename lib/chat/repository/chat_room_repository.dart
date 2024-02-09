@@ -21,6 +21,10 @@ class ChatRoomRepository {
     init();
   }
 
+  init() {
+    onGetChatRoomsRes();
+  }
+
   void onGetChatRoomsRes() async {
     socket.on('getChatRoomsRes', (data) {
       chatRoomResponse.sink.add(
@@ -30,9 +34,5 @@ class ChatRoomRepository {
         ),
       );
     });
-  }
-
-  init() {
-    onGetChatRoomsRes();
   }
 }

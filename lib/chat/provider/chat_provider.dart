@@ -81,11 +81,10 @@ class ChatStateNotifier extends StateNotifier<CursorPaginationBase> {
   }
 
   init() {
-    joinRoom();
     repository.onGetMessageRes();
     repository.onPaginateMessageRes();
-    repository.onJoinRoomRes();
-    repository.onPostMessageRes();
+    repository.onenterRoomRes();
+    repository.onsendMessageRes();
     ref
         .read(chatRepositoryProvider(roomId))
         .chatResponse
@@ -98,7 +97,7 @@ class ChatStateNotifier extends StateNotifier<CursorPaginationBase> {
       final resObj = resp.data;
       final statusCode = resObj['status'];
       // * 401 에러가 발생하면 로그인 페이지로 이동
-      // 원래는 여기서 401 에러를 처리하려고 했지만 과거에 발송한 메시지를 가져올수가 없음.....
+      // 분기마다 401 statusCode에 대한 처리가 다름
 
       switch (resp.state) {
         case ChatResponseState.getMessageRes:
@@ -113,15 +112,15 @@ class ChatStateNotifier extends StateNotifier<CursorPaginationBase> {
             resObj: resObj,
           );
           break;
-        case ChatResponseState.postMessageRes:
-          await _postMessageResProccess(
+        case ChatResponseState.sendMessageRes:
+          await _sendMessageResProccess(
             resObj: resObj,
             statusCode: statusCode,
           );
           break;
 
-        case ChatResponseState.joinRoomRes:
-          await _joinRoomResProccess(
+        case ChatResponseState.enterRoomRes:
+          await _enterRoomResProccess(
             resObj: resObj,
             statusCode: statusCode,
           );
@@ -145,21 +144,18 @@ class ChatStateNotifier extends StateNotifier<CursorPaginationBase> {
     super.dispose();
   }
 
-  joinRoom() async {
-    repository.joinRoom(
-      accessToken:
-          (await ref.read(secureStorageProvider).read(key: ACCESS_TOKEN_KEY))!,
-    );
+  void enterRoom() {
+    repository.enterRoom();
+  }
+
+  void leaveRoom() {
+    repository.leaveRoom();
   }
 
   reJoinRoom() async {
     state = CursorPaginationLoading();
     await ref.read(userProvider.notifier).getAccessTokenByRefreshToken();
-    joinRoom();
-  }
-
-  leaveRoom() {
-    repository.leaveRoom();
+    enterRoom();
   }
 
   // 백엔드에서 정상적인 200 데이터만 들어오도록 설계함
@@ -275,7 +271,7 @@ class ChatStateNotifier extends StateNotifier<CursorPaginationBase> {
   }
 
   // 백엔드에서 비정상적인 데이터만 들어오도록 설계함
-  _postMessageResProccess({
+  _sendMessageResProccess({
     required int statusCode,
     required dynamic resObj,
   }) async {
@@ -314,14 +310,16 @@ class ChatStateNotifier extends StateNotifier<CursorPaginationBase> {
     }
   }
 
-  _joinRoomResProccess({
+  _enterRoomResProccess({
     required int statusCode,
     required dynamic resObj,
   }) async {
-    if (statusCode == 401) {
-      await ref.read(userProvider.notifier).getAccessTokenByRefreshToken();
-      joinRoom();
-    } else {
+    // if (statusCode == 401) {
+    //   await ref.read(userProvider.notifier).getAccessTokenByRefreshToken();
+    //   enterRoom();
+    //  }
+
+    if (statusCode < 200 || statusCode >= 300) {
       state = CursorPaginationError(
         message: '채팅방에 입장하는데 실패하였습니다.',
       );
@@ -432,9 +430,6 @@ class ChatStateNotifier extends StateNotifier<CursorPaginationBase> {
 
       repository.paginate(
         paginationParams: paginationParams,
-        accessToken: (await ref
-            .read(secureStorageProvider)
-            .read(key: ACCESS_TOKEN_KEY))!,
       );
       // 요청에 대한 응답은 StreamProvider를 통해 받음
     } catch (e) {
@@ -476,7 +471,7 @@ class ChatStateNotifier extends StateNotifier<CursorPaginationBase> {
       final now = DateTime.now();
 
       // 2. 서버에 요청을 보낸다.
-      repository.postMessage(
+      repository.sendMessage(
         roomId: roomId,
         content: content,
         tempMessageId: tempMessageId,
@@ -522,7 +517,7 @@ class ChatStateNotifier extends StateNotifier<CursorPaginationBase> {
 
         final now = DateTime.now();
 
-        repository.postMessage(
+        repository.sendMessage(
           roomId: roomId,
           content: tempMessage.content,
           tempMessageId: tempMessage.tempMessageId,

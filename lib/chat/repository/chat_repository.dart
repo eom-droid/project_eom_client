@@ -26,27 +26,22 @@ class ChatRepository {
   void socketOffAll() {
     socket.off("getMessageRes", _getMessageResListener);
     socket.off("paginateMessageRes", _paginateMessageResListener);
-    socket.off("joinRoomRes", _joinRoomResListener);
-    socket.off("postMessageRes", _postMessageRes);
+    socket.off("enterRoomRes", _enterRoomResListener);
+    socket.off("sendMessageRes", _sendMessageRes);
   }
 
   void paginate({
     required PaginationParams paginationParams,
-    required String accessToken,
   }) {
     socket.emit("paginateMessageReq", {
       "roomId": roomId,
       "paginationParams": paginationParams.toJson(),
-      "accessToken": "Bearer $accessToken",
     });
     return;
   }
 
-  void joinRoom({
-    required String accessToken,
-  }) {
-    socket.emit("joinRoomReq", {
-      "accessToken": "Bearer $accessToken",
+  void enterRoom() {
+    socket.emit("enterRoomReq", {
       "roomId": roomId,
     });
     return;
@@ -59,14 +54,14 @@ class ChatRepository {
     return;
   }
 
-  void postMessage({
+  void sendMessage({
     required String roomId,
     required String content,
     required String tempMessageId,
     required String accessToken,
     required String createdAt,
   }) {
-    socket.emit("postMessageReq", {
+    socket.emit("sendMessageReq", {
       "accessToken": "Bearer $accessToken",
       "roomId": roomId,
       "content": content,
@@ -107,30 +102,30 @@ class ChatRepository {
   }
 
   // 여기는 사실상 에러처리함
-  void onJoinRoomRes() async {
-    socket.on('joinRoomRes', _joinRoomResListener);
+  void onenterRoomRes() async {
+    socket.on('enterRoomRes', _enterRoomResListener);
   }
 
-  void _joinRoomResListener(dynamic data) {
-    print("[SocketIO] joinRoomRes");
+  void _enterRoomResListener(dynamic data) {
+    print("[SocketIO] enterRoomRes");
     chatResponse.sink.add(
       ChatResponseModel(
-        state: ChatResponseState.joinRoomRes,
+        state: ChatResponseState.enterRoomRes,
         data: data,
       ),
     );
   }
 
   // 여기는 사실상 에러처리함
-  void onPostMessageRes() async {
-    socket.on('postMessageRes', _postMessageRes);
+  void onsendMessageRes() async {
+    socket.on('sendMessageRes', _sendMessageRes);
   }
 
-  void _postMessageRes(dynamic data) async {
-    print("[SocketIO] postMessageRes");
+  void _sendMessageRes(dynamic data) async {
+    print("[SocketIO] sendMessageRes");
     chatResponse.sink.add(
       ChatResponseModel(
-        state: ChatResponseState.postMessageRes,
+        state: ChatResponseState.sendMessageRes,
         data: data,
       ),
     );

@@ -40,7 +40,6 @@ class ChatRoomStateNotifier extends StateNotifier<CursorPaginationBase> {
   _listner(ChatResponseModel resp) {
     try {
       final resObj = resp.data;
-
       final statusCode = resObj['status'];
 
       if (statusCode >= 200 && statusCode < 300) {
