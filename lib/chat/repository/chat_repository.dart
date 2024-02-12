@@ -30,6 +30,13 @@ class ChatRepository {
     socket.off("sendMessageRes", _sendMessageRes);
   }
 
+  void socketOnAll() {
+    socket.on('getMessageRes', _getMessageResListener);
+    socket.on('paginateMessageRes', _paginateMessageResListener);
+    socket.on('enterRoomRes', _enterRoomResListener);
+    socket.on('sendMessageRes', _sendMessageRes);
+  }
+
   void paginate({
     required PaginationParams paginationParams,
   }) {
@@ -71,11 +78,6 @@ class ChatRepository {
     });
   }
 
-  //
-  void onGetMessageRes() async {
-    socket.on('getMessageRes', _getMessageResListener);
-  }
-
   void _getMessageResListener(dynamic data) {
     print("[SocketIO] getMessageRes");
     chatResponse.sink.add(
@@ -87,9 +89,6 @@ class ChatRepository {
   }
 
   // join 시에도 이 경로를 통해 들어옴
-  void onPaginateMessageRes() async {
-    socket.on('paginateMessageRes', _paginateMessageResListener);
-  }
 
   void _paginateMessageResListener(dynamic data) {
     print("[SocketIO] paginateMessageRes");
@@ -102,10 +101,6 @@ class ChatRepository {
   }
 
   // 여기는 사실상 에러처리함
-  void onenterRoomRes() async {
-    socket.on('enterRoomRes', _enterRoomResListener);
-  }
-
   void _enterRoomResListener(dynamic data) {
     print("[SocketIO] enterRoomRes");
     chatResponse.sink.add(
@@ -117,10 +112,6 @@ class ChatRepository {
   }
 
   // 여기는 사실상 에러처리함
-  void onsendMessageRes() async {
-    socket.on('sendMessageRes', _sendMessageRes);
-  }
-
   void _sendMessageRes(dynamic data) async {
     print("[SocketIO] sendMessageRes");
     chatResponse.sink.add(

@@ -34,8 +34,11 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen>
   @override
   void initState() {
     super.initState();
+
+    // Paginating 시, 스크롤이 최하단에 닿았을 때 추가 데이터를 가져오기 위한 리스너
     controller = ScrollController();
     controller.addListener(listener);
+    // 앱 상태 변경 시 트리거
     WidgetsBinding.instance.addObserver(this);
   }
 
@@ -119,7 +122,6 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen>
     final chatState = ref.watch(chatProvider(widget.id));
     final room = ref.read(chatRoomProvider.notifier).getChatRoomInfo(widget.id);
     final me = ref.read(userProvider) as UserModel;
-
     return DefaultLayout(
       isFullScreen: true,
       backgroundColor: BACKGROUND_BLACK,

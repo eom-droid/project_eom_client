@@ -1,5 +1,6 @@
 import 'package:client/chat/model/chat_response_model.dart';
 import 'package:client/chat/model/chat_room_model.dart';
+import 'package:client/chat/provider/chat_provider.dart';
 import 'package:client/chat/repository/chat_room_repository.dart';
 import 'package:client/common/model/cursor_pagination_model.dart';
 import 'package:client/common/socketio/socketio.dart';
@@ -48,6 +49,13 @@ class ChatRoomStateNotifier extends StateNotifier<CursorPaginationBase> {
         final chatRoomModels =
             chatRooms.map((e) => ChatRoomModel.fromJson(e)).toList();
 
+        for (var chatRoom in chatRoomModels) {
+          if (chatRoom.lastChat != null) {
+            ref
+                .read(chatProvider(chatRoom.id).notifier)
+                .setFirstChat(chatRoom.lastChat!);
+          }
+        }
         state = CursorPagination<ChatRoomModel>(
           meta: CursorPaginationMeta(
             hasMore: false,

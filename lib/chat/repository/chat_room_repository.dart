@@ -27,6 +27,7 @@ class ChatRoomRepository {
 
   void onGetChatRoomsRes() async {
     socket.on('getChatRoomsRes', (data) {
+      print("[SocketIO] getChatRoomRes");
       chatRoomResponse.sink.add(
         ChatResponseModel(
           state: ChatResponseState.getChatRoomsRes,

@@ -1,3 +1,4 @@
+import 'package:client/chat/model/chat_model.dart';
 import 'package:client/chat/model/chat_room_model.dart';
 import 'package:client/chat/provider/chat_provider.dart';
 import 'package:client/chat/provider/chat_room_provider.dart';
@@ -21,15 +22,7 @@ class ChatScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    ChatRoomModel? room;
     final roomState = ref.watch(chatRoomProvider);
-    final hasRoom = roomState is CursorPagination<ChatRoomModel> &&
-        roomState.data.isNotEmpty;
-    if (hasRoom) {
-      room = roomState.data[0];
-    }
-
-    final chatState = hasRoom ? ref.watch(chatProvider(room!.id)) : null;
 
     return DefaultLayout(
       backgroundColor: BACKGROUND_BLACK,
@@ -47,7 +40,6 @@ class ChatScreen extends ConsumerWidget {
       child: loadBody(
         state: roomState,
         ref: ref,
-        chatState: chatState,
         buildContext: context,
       ),
     );
@@ -56,7 +48,6 @@ class ChatScreen extends ConsumerWidget {
   Widget loadBody({
     required CursorPaginationBase state,
     required WidgetRef ref,
-    required CursorPaginationBase? chatState,
     required BuildContext buildContext,
   }) {
     // 초기 로딩
@@ -82,19 +73,23 @@ class ChatScreen extends ConsumerWidget {
     }
     return _body(
       room: cp.data[0],
-      chatState: chatState!,
       parentBuildContext: buildContext,
+      ref: ref,
     );
   }
 
   _body({
     required ChatRoomModel room,
-    required CursorPaginationBase chatState,
     required BuildContext parentBuildContext,
+    required WidgetRef ref,
   }) {
     return Center(
         child: GestureDetector(
       onTap: () {
+        // enterRoom
+        ref.read(chatProvider(room.id).notifier).enterRoom();
+
+        // routing
         parentBuildContext.pushNamed(
           ChatDetailScreen.routeName,
           pathParameters: {
@@ -157,31 +152,8 @@ class ChatScreen extends ConsumerWidget {
                     ),
                   ),
                   const SizedBox(height: 30.0),
-                  Column(
-                    children: [
-                      Text(
-                        room.lastChat != null
-                            ? room.lastChat!.content
-                            : '첫 메시지를 남겨봐요!',
-                        style: const TextStyle(
-                          color: INPUT_BG_COLOR,
-                          fontSize: 14.0,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 6.0),
-                      Text(room.lastChat!.createdAt.toString()),
-                      Text(
-                        room.lastChat != null
-                            ? DataUtils.timeAgoSinceDate2(
-                                room.lastChat!.createdAt)
-                            : '',
-                        style: const TextStyle(
-                          color: BODY_TEXT_COLOR,
-                          fontSize: 14.0,
-                        ),
-                      ),
-                    ],
+                  _ChatPreviewWidget(
+                    roomId: room.id,
                   ),
                 ],
               ),
@@ -220,5 +192,51 @@ class ChatScreen extends ConsumerWidget {
         ),
       ),
     ));
+  }
+}
+
+class _ChatPreviewWidget extends ConsumerWidget {
+  final String roomId;
+  const _ChatPreviewWidget({
+    required this.roomId,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final chatState = ref.watch(chatProvider(roomId));
+    if (chatState is CursorPagination) {
+      return body(
+        lastChat: chatState.data.isNotEmpty ? chatState.data[0] : null,
+      );
+    } else {
+      return body();
+    }
+  }
+
+  body({
+    ChatModel? lastChat,
+  }) {
+    return Column(
+      children: [
+        Text(
+          lastChat != null ? lastChat.content : '첫 메시지를 남겨봐요!',
+          style: const TextStyle(
+            color: INPUT_BG_COLOR,
+            fontSize: 14.0,
+          ),
+          overflow: TextOverflow.ellipsis,
+        ),
+        const SizedBox(height: 6.0),
+        Text(
+          lastChat != null
+              ? DataUtils.timeAgoSinceDate2(lastChat.createdAt)
+              : '',
+          style: const TextStyle(
+            color: BODY_TEXT_COLOR,
+            fontSize: 14.0,
+          ),
+        ),
+      ],
+    );
   }
 }

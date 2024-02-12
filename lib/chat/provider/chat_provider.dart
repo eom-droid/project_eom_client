@@ -66,10 +66,6 @@ class ChatStateNotifier extends StateNotifier<CursorPaginationBase> {
   final String roomId;
   final String randomKey = const Uuid().v4();
   final UserModel user;
-  // AlwaysAliveProviderListenable<AsyncValue<ChatResponseModel>>
-  // paginate가 에러가 나왔을때를 대비하기 위한 변수
-  // 1회만 paginate를 다시 진행하도록 함
-  bool _paginateAgain = false;
 
   ChatStateNotifier({
     required this.repository,
@@ -81,15 +77,22 @@ class ChatStateNotifier extends StateNotifier<CursorPaginationBase> {
   }
 
   init() {
-    repository.onGetMessageRes();
-    repository.onPaginateMessageRes();
-    repository.onenterRoomRes();
-    repository.onsendMessageRes();
+    repository.socketOnAll();
     ref
         .read(chatRepositoryProvider(roomId))
         .chatResponse
         .stream
         .listen(_listener);
+  }
+
+  setFirstChat(ChatModel chat) {
+    state = CursorPagination(
+      meta: CursorPaginationMeta(
+        hasMore: false,
+        count: 0,
+      ),
+      data: [chat],
+    );
   }
 
   _listener(ChatResponseModel resp) async {
@@ -146,6 +149,9 @@ class ChatStateNotifier extends StateNotifier<CursorPaginationBase> {
 
   void enterRoom() {
     repository.enterRoom();
+    paginate(
+      forceRefetch: true,
+    );
   }
 
   void leaveRoom() {
@@ -154,7 +160,6 @@ class ChatStateNotifier extends StateNotifier<CursorPaginationBase> {
 
   reJoinRoom() async {
     state = CursorPaginationLoading();
-    await ref.read(userProvider.notifier).getAccessTokenByRefreshToken();
     enterRoom();
   }
 
@@ -232,12 +237,6 @@ class ChatStateNotifier extends StateNotifier<CursorPaginationBase> {
     required int statusCode,
     required dynamic resObj,
   }) async {
-    if (statusCode == 401 && !_paginateAgain) {
-      _paginateAgain = true;
-      await ref.read(userProvider.notifier).getAccessTokenByRefreshToken();
-      paginate(fetchMore: true);
-      return;
-    }
     // 1. status code가 200 ~ 300이 아니면 에러를 발생시킨다.
     if (statusCode < 200 || statusCode >= 300) {
       throw Exception('채팅을 불러오는데 실패하였습니다.');
@@ -248,8 +247,6 @@ class ChatStateNotifier extends StateNotifier<CursorPaginationBase> {
     if (state is CursorPaginationError) {
       throw Exception('채팅을 불러오는데 실패하였습니다.');
     }
-
-    _paginateAgain = false;
 
     final resp = CursorPagination<ChatModel>.fromJson(
       resObj['data'],
@@ -263,7 +260,6 @@ class ChatStateNotifier extends StateNotifier<CursorPaginationBase> {
     }
 
     pState = state as CursorPagination<ChatModel>;
-
     state = resp.copyWith(data: [
       ...pState.data,
       ...resp.data,
@@ -314,6 +310,7 @@ class ChatStateNotifier extends StateNotifier<CursorPaginationBase> {
     required int statusCode,
     required dynamic resObj,
   }) async {
+    // accessCode check를 진행하지 않아서 401 발생하지 않음
     // if (statusCode == 401) {
     //   await ref.read(userProvider.notifier).getAccessTokenByRefreshToken();
     //   enterRoom();
