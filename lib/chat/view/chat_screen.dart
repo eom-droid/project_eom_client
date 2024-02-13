@@ -87,7 +87,9 @@ class ChatScreen extends ConsumerWidget {
         child: GestureDetector(
       onTap: () {
         // enterRoom
-        ref.read(chatProvider(room.id).notifier).enterRoom();
+        Future.delayed(const Duration(milliseconds: 15), () {
+          ref.read(chatProvider(room.id).notifier).enterRoom();
+        });
 
         // routing
         parentBuildContext.pushNamed(
@@ -203,7 +205,7 @@ class _ChatPreviewWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final chatState = ref.watch(chatProvider(roomId));
+    final chatState = ref.watch(chatProvider(roomId)).state;
     if (chatState is CursorPagination) {
       return body(
         lastChat: chatState.data.isNotEmpty ? chatState.data[0] : null,

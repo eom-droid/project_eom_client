@@ -48,14 +48,6 @@ class ChatRoomStateNotifier extends StateNotifier<CursorPaginationBase> {
 
         final chatRoomModels =
             chatRooms.map((e) => ChatRoomModel.fromJson(e)).toList();
-
-        for (var chatRoom in chatRoomModels) {
-          if (chatRoom.lastChat != null) {
-            ref
-                .read(chatProvider(chatRoom.id).notifier)
-                .setFirstChat(chatRoom.lastChat!);
-          }
-        }
         state = CursorPagination<ChatRoomModel>(
           meta: CursorPaginationMeta(
             hasMore: false,
@@ -63,6 +55,12 @@ class ChatRoomStateNotifier extends StateNotifier<CursorPaginationBase> {
           ),
           data: chatRoomModels,
         );
+
+        for (var chatRoom in chatRoomModels) {
+          ref
+              .read(chatProvider(chatRoom.id).notifier)
+              .setFirstChat(chatRoom.lastChat);
+        }
       } else {
         throw Exception('채팅방을 불러오는데 실패하였습니다.');
       }

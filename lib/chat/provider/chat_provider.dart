@@ -1,5 +1,6 @@
 import 'package:client/chat/model/chat_model.dart';
 import 'package:client/chat/model/chat_response_model.dart';
+import 'package:client/chat/provider/chat_room_provider.dart';
 import 'package:client/chat/repository/chat_repository.dart';
 import 'package:client/common/const/data.dart';
 import 'package:client/common/model/pagination_params.dart';
@@ -13,14 +14,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:client/common/model/cursor_pagination_model.dart';
 import 'package:uuid/uuid.dart';
 
-final chatProvider = StateNotifierProvider.family<ChatStateNotifier,
-    CursorPaginationBase, String>((ref, roomId) {
+final chatProvider =
+    StateNotifierProvider.family<ChatStateNotifier, ChatPagination, String>(
+        (ref, roomId) {
   final chatRepository = ref.read(chatRepositoryProvider(roomId));
-  final user = ref.read(userProvider) as UserModel;
+  final me = ref.read(userProvider) as UserModel;
 
   return ChatManageStateNotifier(
     repository: chatRepository,
-    user: user,
+    me: me,
     ref: ref,
   ).getChatNotifier(
     roomId: roomId,
@@ -31,11 +33,11 @@ class ChatManageStateNotifier
     extends StateNotifier<Map<String, ChatStateNotifier>> {
   final ChatRepository repository;
   final StateNotifierProviderRef ref;
-  final UserModel user;
+  final UserModel me;
   ChatManageStateNotifier({
     required this.repository,
     required this.ref,
-    required this.user,
+    required this.me,
   }) : super({});
 
   ChatStateNotifier getChatNotifier({
@@ -49,30 +51,71 @@ class ChatManageStateNotifier
       return state[roomId]!;
     }
 
+    // 채팅방에 대한 정보에서 해당 방에 존재하는 유저들이 마지막으로 읽은 메시지를 가져온다.
+    final chatRoomState =
+        ref.read(chatRoomProvider.notifier).getChatRoomInfo(roomId);
+    Map<String, String?> memberLastReadChatMap = {};
+
+    for (var element in chatRoomState!.members) {
+      memberLastReadChatMap[element.id] = element.lastReadChatId;
+    }
+
     state[roomId] = ChatStateNotifier(
       repository: repository,
       roomId: roomId,
       ref: ref,
-      user: user,
+      me: me,
+      memberLastReadChatMap: memberLastReadChatMap,
     );
 
     return state[roomId]!;
   }
 }
 
-class ChatStateNotifier extends StateNotifier<CursorPaginationBase> {
+class ChatPagination {
+  final CursorPaginationBase state;
+  // 한번도 읽지 않았다면 null
+  final Map<String, String?> memberLastReadChatMap;
+  final String roomId;
+
+  ChatPagination({
+    required this.state,
+    required this.memberLastReadChatMap,
+    required this.roomId,
+  });
+
+  ChatPagination copyWith({
+    CursorPaginationBase? state,
+    Map<String, String?>? memberLastReadChatMap,
+    String? roomId,
+  }) {
+    return ChatPagination(
+      state: state ?? this.state,
+      memberLastReadChatMap:
+          memberLastReadChatMap ?? this.memberLastReadChatMap,
+      roomId: roomId ?? this.roomId,
+    );
+  }
+}
+
+class ChatStateNotifier extends StateNotifier<ChatPagination> {
   final ChatRepository repository;
   final StateNotifierProviderRef ref;
   final String roomId;
   final String randomKey = const Uuid().v4();
-  final UserModel user;
+  final UserModel me;
 
   ChatStateNotifier({
     required this.repository,
     required this.roomId,
     required this.ref,
-    required this.user,
-  }) : super(CursorPaginationLoading()) {
+    required this.me,
+    required Map<String, String?> memberLastReadChatMap,
+  }) : super(ChatPagination(
+          state: CursorPaginationLoading(),
+          memberLastReadChatMap: memberLastReadChatMap,
+          roomId: roomId,
+        )) {
     init();
   }
 
@@ -85,14 +128,17 @@ class ChatStateNotifier extends StateNotifier<CursorPaginationBase> {
         .listen(_listener);
   }
 
-  setFirstChat(ChatModel chat) {
-    state = CursorPagination(
+  setFirstChat(ChatModel? chat) {
+    final pState = state.copyWith(
+        state: CursorPagination(
       meta: CursorPaginationMeta(
         hasMore: false,
         count: 0,
       ),
-      data: [chat],
-    );
+      data: chat != null ? [chat] : [],
+    ));
+
+    state = pState;
   }
 
   _listener(ChatResponseModel resp) async {
@@ -135,7 +181,11 @@ class ChatStateNotifier extends StateNotifier<CursorPaginationBase> {
       }
     } catch (error) {
       print(error);
-      state = CursorPaginationError(message: '채팅을 불러오는데 실패하였습니다.');
+      state = state.copyWith(
+        state: CursorPaginationError(
+          message: '채팅을 불러오는데 실패하였습니다.',
+        ),
+      );
     }
   }
 
@@ -159,7 +209,9 @@ class ChatStateNotifier extends StateNotifier<CursorPaginationBase> {
   }
 
   reJoinRoom() async {
-    state = CursorPaginationLoading();
+    state = state.copyWith(
+      state: CursorPaginationLoading(),
+    );
     enterRoom();
   }
 
@@ -174,6 +226,7 @@ class ChatStateNotifier extends StateNotifier<CursorPaginationBase> {
     }
 
     CursorPagination<ChatModel> pState;
+    final state = this.state.state;
     // 2. 현재 state가 CursorpaginationError 이면 throw.
     if (state is CursorPaginationError) {
       throw Exception('채팅을 불러오는데 실패하였습니다.');
@@ -207,7 +260,7 @@ class ChatStateNotifier extends StateNotifier<CursorPaginationBase> {
 
     // 4. 본인이 보낸 메시지인지 확인하기
     // 5. 본인이 보낸 메시지라면 tempMessageId를 찾아서 변경한다.
-    if (chatMessage.userId == user.id) {
+    if (chatMessage.userId == me.id) {
       final index = pState.data.indexWhere(
         (element) => element.id == chatMessage.tempMessageId,
       );
@@ -227,10 +280,22 @@ class ChatStateNotifier extends StateNotifier<CursorPaginationBase> {
         chatMessage.parseToChatModel(),
       );
     }
+
+    // 3. 읽은 메시지를 확인하여 memberLastReadChatMap을 변경한다.
+    Map<String, String?> memberLastReadChatMap =
+        this.state.memberLastReadChatMap;
+    for (var element in chatMessage.readUserIds) {
+      memberLastReadChatMap[element] = chatMessage.id;
+    }
     // 4. 추가된 데이터를 state에 추가한다.
-    state = pState.copyWith(
-      data: pState.data,
-    );
+    this.state = this.state.copyWith(
+          state: pState.copyWith(
+            data: pState.data,
+          ),
+          memberLastReadChatMap: memberLastReadChatMap,
+        );
+
+    print(this.state.memberLastReadChatMap);
   }
 
   _paginateMessageResProccess({
@@ -241,6 +306,7 @@ class ChatStateNotifier extends StateNotifier<CursorPaginationBase> {
     if (statusCode < 200 || statusCode >= 300) {
       throw Exception('채팅을 불러오는데 실패하였습니다.');
     }
+    final state = this.state.state;
 
     CursorPagination<ChatModel> pState;
     // 2. 현재 state가 CursorpaginationError 이면 throw.
@@ -255,15 +321,16 @@ class ChatStateNotifier extends StateNotifier<CursorPaginationBase> {
 
     if (state is CursorPaginationLoading ||
         state is CursorPaginationRefetching) {
-      state = resp.copyWith();
+      this.state = this.state.copyWith(state: resp.copyWith());
       return;
     }
 
     pState = state as CursorPagination<ChatModel>;
-    state = resp.copyWith(data: [
-      ...pState.data,
-      ...resp.data,
-    ]);
+    this.state = this.state.copyWith(
+            state: resp.copyWith(data: [
+          ...pState.data,
+          ...resp.data,
+        ]));
   }
 
   // 백엔드에서 비정상적인 데이터만 들어오도록 설계함
@@ -276,6 +343,7 @@ class ChatStateNotifier extends StateNotifier<CursorPaginationBase> {
         final tempMessageId = resObj['tempMessageId'];
 
         CursorPagination<ChatModel> pState;
+        final state = this.state.state;
 
         if (state is CursorPagination) {
           pState = state as CursorPagination<ChatModel>;
@@ -294,11 +362,11 @@ class ChatStateNotifier extends StateNotifier<CursorPaginationBase> {
           pState.data[tempMessageIndex] =
               (pState.data[tempMessageIndex] as ChatTempModel)
                   .parseToChatFailedModel(resObj['message'] ?? '메시지 전송 실패');
-          print(pState.data[tempMessageIndex]);
 
-          state = pState.copyWith(
-            data: pState.data,
-          );
+          this.state = this.state.copyWith(
+                  state: pState.copyWith(
+                data: pState.data,
+              ));
         }
       }
     } catch (e) {
@@ -311,15 +379,24 @@ class ChatStateNotifier extends StateNotifier<CursorPaginationBase> {
     required dynamic resObj,
   }) async {
     // accessCode check를 진행하지 않아서 401 발생하지 않음
-    // if (statusCode == 401) {
-    //   await ref.read(userProvider.notifier).getAccessTokenByRefreshToken();
-    //   enterRoom();
-    //  }
+    try {
+      if (statusCode < 200 || statusCode >= 300) {
+        throw Exception('채팅방에 입장하는데 실패하였습니다.');
+      }
 
-    if (statusCode < 200 || statusCode >= 300) {
-      state = CursorPaginationError(
-        message: '채팅방에 입장하는데 실패하였습니다.',
+      final data = resObj['data'] as Map<String, dynamic>;
+      final joinUserId = data['userId'] as String;
+      final lastChatId = data['lastChatId'] as String;
+
+      Map<String, String?> memberLastReadChatMap = state.memberLastReadChatMap;
+
+      memberLastReadChatMap[joinUserId] = lastChatId;
+
+      state = state.copyWith(
+        memberLastReadChatMap: memberLastReadChatMap,
       );
+    } catch (e) {
+      print(e);
     }
   }
   /**
@@ -398,9 +475,11 @@ class ChatStateNotifier extends StateNotifier<CursorPaginationBase> {
       if (fetchMore) {
         final pState = state as CursorPagination<ChatModel>;
 
-        state = CursorPaginationFetchingMore(
-          meta: pState.meta,
-          data: pState.data,
+        state = state.copyWith(
+          state: CursorPaginationFetchingMore(
+            meta: pState.meta,
+            data: pState.data,
+          ),
         );
         paginationParams =
             _generateParams(pState.data.lastOrNull, fetchCount, fetchMore);
@@ -412,15 +491,16 @@ class ChatStateNotifier extends StateNotifier<CursorPaginationBase> {
         if (state is CursorPagination && !forceRefetch) {
           final pState = state as CursorPagination<ChatModel>;
 
-          state = CursorPaginationRefetching(
+          state = state.copyWith(
+              state: CursorPaginationRefetching(
             meta: pState.meta,
             data: pState.data,
-          );
+          ));
         }
         // 현재 데이터가 없다면
         // 로딩 상태임을 반환함
         else {
-          state = CursorPaginationLoading();
+          state = state.copyWith(state: CursorPaginationLoading());
         }
         paginationParams = _generateParams(null, fetchCount, fetchMore);
       }
@@ -431,7 +511,9 @@ class ChatStateNotifier extends StateNotifier<CursorPaginationBase> {
       // 요청에 대한 응답은 StreamProvider를 통해 받음
     } catch (e) {
       print(e);
-      state = CursorPaginationError(message: '데이터 가져오기 실패');
+      state = state.copyWith(
+        state: CursorPaginationError(message: '데이터 가져오기 실패'),
+      );
     }
   }
 
@@ -457,6 +539,7 @@ class ChatStateNotifier extends StateNotifier<CursorPaginationBase> {
   sendMessage({
     required String content,
   }) async {
+    final state = this.state.state;
     // 1. state가 CursorPagination인지 확인 + user가 UserWithTokenModel인지 확인
     if (state is CursorPagination) {
       final accessToken =
@@ -482,21 +565,26 @@ class ChatStateNotifier extends StateNotifier<CursorPaginationBase> {
           id: tempMessageId,
           content: content,
           createdAt: now,
-          userId: user.id,
+          userId: me.id,
+          readUserIds: [],
           tempMessageId: tempMessageId,
         ),
       );
 
       // 4. 변경된 데이터를 적용한다.
-      state = pState.copyWith(
-        data: pState.data,
-      );
+      this.state = this.state.copyWith(
+            state: pState.copyWith(
+              data: pState.data,
+            ),
+          );
     }
   }
 
   resendMessage({
     required String tempMessageId,
   }) async {
+    final state = this.state.state;
+
     if (state is CursorPagination) {
       await ref.read(userProvider.notifier).getAccessTokenByRefreshToken();
 
@@ -525,9 +613,11 @@ class ChatStateNotifier extends StateNotifier<CursorPaginationBase> {
         pState.data[tempMessageIndex] =
             tempMessage.parseToChatModelTemp(tempMessageId);
 
-        state = pState.copyWith(
-          data: pState.data,
-        );
+        this.state = this.state.copyWith(
+              state: pState.copyWith(
+                data: pState.data,
+              ),
+            );
       }
     }
   }
@@ -544,8 +634,10 @@ class ChatStateNotifier extends StateNotifier<CursorPaginationBase> {
       );
       if (tempMessageIndex != -1) {
         pState.data.removeAt(tempMessageIndex);
-        state = pState.copyWith(
-          data: pState.data,
+        state = state.copyWith(
+          state: pState.copyWith(
+            data: pState.data,
+          ),
         );
       }
     }

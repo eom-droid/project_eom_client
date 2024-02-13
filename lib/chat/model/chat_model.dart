@@ -40,12 +40,14 @@ class ChatModel implements IModelWithId {
 @JsonSerializable()
 class ChatTempModel extends ChatModel {
   final String tempMessageId;
+  final List<String> readUserIds;
   ChatTempModel({
     required super.id,
     required super.userId,
     required super.content,
     required super.createdAt,
     required this.tempMessageId,
+    required this.readUserIds,
   });
   ChatModel parseToChatModel() {
     return ChatModel(
@@ -105,6 +107,7 @@ class ChatFailedModel extends ChatModel {
       userId: userId,
       content: content,
       createdAt: createdAt,
+      readUserIds: [],
       tempMessageId: tempMessageId,
     );
   }

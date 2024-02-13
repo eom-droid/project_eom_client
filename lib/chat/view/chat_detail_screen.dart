@@ -55,6 +55,7 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen>
 
   @override
   void dispose() {
+    // ref.read(chatProvider(widget.id).notifier).leaveRoom();
     WidgetsBinding.instance.removeObserver(this);
     controller.removeListener(listener);
     controller.dispose();
@@ -76,11 +77,6 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen>
     required ChatRoomModel? room,
     required UserModel me,
   }) {
-    // 초기 로딩
-    if (state is CursorPaginationLoading) {
-      return const CursorPaginationLoadingComp();
-    }
-
     // 에러 발생 시
     if (state is CursorPaginationError) {
       return CursorPaginationErrorComp(
@@ -99,19 +95,18 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen>
       );
     }
 
-    // if (user == null || user is! UserWithTokenModel) {
-    //   return const Center(
-    //     child: Text('유저 정보가 없습니다.'),
-    //   );
-    // }
-
     // CursorPagination
     // CursorPaginationFetchMore
     // CursorPaginationRefetching
 
-    final cp = state as CursorPagination<ChatModel>;
+    // 초기 로딩
+    if (state is CursorPaginationLoading ||
+        state is! CursorPagination<ChatModel>) {
+      return const CursorPaginationLoadingComp();
+    }
+
     return _body(
-      cp: cp,
+      cp: state,
       room: room,
       me: me,
     );
@@ -119,7 +114,7 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen>
 
   @override
   Widget build(BuildContext context) {
-    final chatState = ref.watch(chatProvider(widget.id));
+    final chatState = ref.watch(chatProvider(widget.id)).state;
     final room = ref.read(chatRoomProvider.notifier).getChatRoomInfo(widget.id);
     final me = ref.read(userProvider) as UserModel;
     return DefaultLayout(
