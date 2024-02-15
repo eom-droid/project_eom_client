@@ -6,8 +6,8 @@ import 'package:client/common/model/cursor_pagination_model.dart';
 import 'package:client/common/socketio/socketio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-final chatRoomProvider = StateNotifierProvider.autoDispose<
-    ChatRoomStateNotifier, CursorPaginationBase>((ref) {
+final chatRoomProvider =
+    StateNotifierProvider<ChatRoomStateNotifier, CursorPaginationBase>((ref) {
   final chatRoomRepository = ref.watch(chatRoomRepositoryProvider);
   return ChatRoomStateNotifier(
     repository: chatRoomRepository,

@@ -104,6 +104,7 @@ class ChatStateNotifier extends StateNotifier<ChatPagination> {
   final String roomId;
   final String randomKey = const Uuid().v4();
   final UserModel me;
+  bool initialized = false;
 
   ChatStateNotifier({
     required this.repository,
@@ -130,7 +131,7 @@ class ChatStateNotifier extends StateNotifier<ChatPagination> {
 
   setFirstChat(ChatModel? chat) {
     final pState = state.copyWith(
-        state: CursorPagination(
+        state: CursorPagination<ChatModel>(
       meta: CursorPaginationMeta(
         hasMore: false,
         count: 0,
@@ -199,9 +200,12 @@ class ChatStateNotifier extends StateNotifier<ChatPagination> {
 
   void enterRoom() {
     repository.enterRoom();
-    paginate(
-      forceRefetch: true,
-    );
+    if (!initialized) {
+      initialized = true;
+      paginate(
+        forceRefetch: true,
+      );
+    }
   }
 
   void leaveRoom() {
@@ -209,9 +213,7 @@ class ChatStateNotifier extends StateNotifier<ChatPagination> {
   }
 
   reJoinRoom() async {
-    state = state.copyWith(
-      state: CursorPaginationLoading(),
-    );
+    initialized = false;
     enterRoom();
   }
 

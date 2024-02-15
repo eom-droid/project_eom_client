@@ -21,6 +21,8 @@ class ChatRoomModel implements IModelWithId {
   final int max;
   // lastChat : 마지막 메시지
   final ChatModel? lastChat;
+  // lastReadChatId : 마지막으로 읽은 채팅 아이디
+  final String? lastReadChatId;
 
   ChatRoomModel({
     required this.id,
@@ -28,6 +30,7 @@ class ChatRoomModel implements IModelWithId {
     required this.members,
     required this.max,
     required this.lastChat,
+    required this.lastReadChatId,
   });
 
   factory ChatRoomModel.fromJson(Map<String, dynamic> json) =>

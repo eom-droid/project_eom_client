@@ -4,6 +4,7 @@ import 'package:client/chat/provider/chat_provider.dart';
 import 'package:client/chat/provider/chat_room_provider.dart';
 import 'package:client/common/components/cursor_pagination_error_comp.dart';
 import 'package:client/common/components/cursor_pagination_loading_comp.dart';
+import 'package:client/common/components/custom_circle_avatar.dart';
 import 'package:client/common/const/colors.dart';
 import 'package:client/common/const/setting.dart';
 import 'package:client/common/layout/default_layout.dart';
@@ -54,8 +55,16 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen>
   }
 
   @override
+  void deactivate() {
+    print("deactivate");
+    // deactivate 이후에는 ref를 read해올수 없음
+    ref.read(chatProvider(widget.id).notifier).leaveRoom();
+    // TODO: implement deactivate
+    super.deactivate();
+  }
+
+  @override
   void dispose() {
-    // ref.read(chatProvider(widget.id).notifier).leaveRoom();
     WidgetsBinding.instance.removeObserver(this);
     controller.removeListener(listener);
     controller.dispose();
@@ -73,14 +82,15 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen>
   }
 
   Widget loadBody({
-    required CursorPaginationBase state,
+    required ChatPagination state,
     required ChatRoomModel? room,
     required UserModel me,
   }) {
+    final chatState = state.state;
     // 에러 발생 시
-    if (state is CursorPaginationError) {
+    if (chatState is CursorPaginationError) {
       return CursorPaginationErrorComp(
-        state: state,
+        state: chatState,
         onRetry: () {
           ref.read(chatProvider(widget.id).notifier).paginate(
                 forceRefetch: true,
@@ -100,13 +110,13 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen>
     // CursorPaginationRefetching
 
     // 초기 로딩
-    if (state is CursorPaginationLoading ||
-        state is! CursorPagination<ChatModel>) {
+    if (chatState is CursorPaginationLoading ||
+        chatState is! CursorPagination<ChatModel>) {
       return const CursorPaginationLoadingComp();
     }
 
     return _body(
-      cp: state,
+      chatState: state,
       room: room,
       me: me,
     );
@@ -114,7 +124,7 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen>
 
   @override
   Widget build(BuildContext context) {
-    final chatState = ref.watch(chatProvider(widget.id)).state;
+    final chatState = ref.watch(chatProvider(widget.id));
     final room = ref.read(chatRoomProvider.notifier).getChatRoomInfo(widget.id);
     final me = ref.read(userProvider) as UserModel;
     return DefaultLayout(
@@ -141,10 +151,12 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen>
   }
 
   Widget _body({
-    required CursorPagination<ChatModel> cp,
+    required ChatPagination chatState,
     required ChatRoomModel room,
     required UserModel me,
   }) {
+    final cp = chatState.state as CursorPagination<ChatModel>;
+    final members = room.members;
     return SafeArea(
       bottom: true,
       child: Stack(
@@ -200,11 +212,20 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen>
                               afterCreatedAt.year != chat.createdAt.year ||
                               afterCreatedAt.hour != chat.createdAt.hour ||
                               afterCreatedAt.minute != chat.createdAt.minute);
+                  int readUserCount = chatState.memberLastReadChatMap.length;
+                  chatState.memberLastReadChatMap.forEach((key, value) {
+                    if (value != null) {
+                      if (value.compareTo(chat.id) >= 0) {
+                        readUserCount--;
+                      }
+                    }
+                  });
 
+                  // print(cp.data[index].id.compareTo(myLastReadChat));
                   return Column(
                     children: [
                       SizedBox(
-                        height: showAvatar ? 8 : 0,
+                        height: showAvatar ? 5 : 0,
                       ),
                       _chatDate(
                         createdAt: chat.createdAt,
@@ -337,30 +358,40 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen>
                                     ),
                                   ),
                                 if (chat is! ChatFailedModel)
-                                  Padding(
-                                    padding: const EdgeInsets.only(
-                                      left: 5.0,
-                                      right: 5.0,
-                                    ),
-                                    child: showChatTime
-                                        ? _chatTime(
-                                            chat.createdAt,
-                                          )
-                                        : const SizedBox(
-                                            width: 0,
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: [
+                                      if (readUserCount > 0)
+                                        Text(
+                                          readUserCount.toString(),
+                                          style: const TextStyle(
+                                            color: PRIMARY_COLOR,
+                                            fontSize: 12.0,
                                           ),
+                                        ),
+                                      showChatTime
+                                          ? _chatTime(
+                                              chat.createdAt,
+                                            )
+                                          : const SizedBox(
+                                              width: 0,
+                                            ),
+                                    ],
                                   ),
                               ],
+                            ),
+                            const SizedBox(
+                              width: 5,
                             ),
                             Flexible(
                               child: Container(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 10.0,
-                                  vertical: 7.0,
+                                  vertical: 9.0,
                                 ),
                                 decoration: BoxDecoration(
                                   color: PRIMARY_COLOR,
-                                  borderRadius: BorderRadius.circular(10.0),
+                                  borderRadius: BorderRadius.circular(12.0),
                                 ),
                                 child: Text(
                                   chat.content,
@@ -381,20 +412,9 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen>
                           children: [
                             if (showAvatar)
                               // user profile이 없는 경우는 ?로 대체
-                              const CircleAvatar(
-                                radius: 20.0,
-                                backgroundColor: Colors.grey,
-                                // backgroundImage: AssetImage(
-                                //   'assets/images/default_profile.png',
-                                // ),
-                                child: Text(
-                                  '?',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 22.0,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
+
+                              CustomCircleAvatar(
+                                url: user.profileImg,
                               ),
                             SizedBox(
                               width: showAvatar ? 10 : 50,
@@ -405,11 +425,12 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen>
                               children: [
                                 if (showAvatar)
                                   Padding(
-                                    padding: const EdgeInsets.only(bottom: 5.0),
+                                    padding: const EdgeInsets.only(bottom: 4.0),
                                     child: Text(
                                       user.nickname,
                                       style: const TextStyle(
                                         color: Colors.white,
+                                        fontSize: 14.0,
                                       ),
                                       overflow: TextOverflow.ellipsis,
                                     ),
@@ -424,12 +445,12 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen>
                                         child: Container(
                                           padding: const EdgeInsets.symmetric(
                                             horizontal: 10.0,
-                                            vertical: 7.0,
+                                            vertical: 9.0,
                                           ),
                                           decoration: BoxDecoration(
                                             color: BACKGROUND_LIGHT_BLACK,
                                             borderRadius:
-                                                BorderRadius.circular(10.0),
+                                                BorderRadius.circular(12.0),
                                           ),
                                           child: Text(
                                             chat.content,
@@ -441,17 +462,29 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen>
                                           ),
                                         ),
                                       ),
-                                      Padding(
-                                        padding: const EdgeInsets.only(
-                                          left: 5.0,
-                                        ),
-                                        child: showChatTime
-                                            ? _chatTime(
-                                                chat.createdAt,
-                                              )
-                                            : const SizedBox(
-                                                width: 0,
+                                      const SizedBox(
+                                        width: 5.0,
+                                      ),
+                                      Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          if (readUserCount > 0)
+                                            Text(
+                                              readUserCount.toString(),
+                                              style: const TextStyle(
+                                                color: PRIMARY_COLOR,
+                                                fontSize: 12.0,
                                               ),
+                                            ),
+                                          showChatTime
+                                              ? _chatTime(
+                                                  chat.createdAt,
+                                                )
+                                              : const SizedBox(
+                                                  width: 0,
+                                                ),
+                                        ],
                                       ),
                                     ],
                                   ),
@@ -507,24 +540,24 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen>
         ),
         child: Container(
           padding: const EdgeInsets.symmetric(
-            horizontal: 10.0,
-            vertical: 5.0,
+            horizontal: 12.0,
+            vertical: 6.0,
           ),
           decoration: BoxDecoration(
             color: COMMON_BLACK,
-            borderRadius: BorderRadius.circular(10.0),
+            borderRadius: BorderRadius.circular(20.0),
           ),
           child: Text(
             '${createdAt.year}년 ${createdAt.month}월 ${createdAt.day}일',
             style: const TextStyle(
               color: Colors.white,
-              fontSize: 12.0,
+              fontSize: 13.0,
             ),
           ),
         ),
       );
     } else {
-      return Container();
+      return const SizedBox();
     }
   }
 

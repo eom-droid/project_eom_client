@@ -1,3 +1,4 @@
+import 'package:client/common/components/custom_circle_avatar.dart';
 import 'package:client/common/components/custom_text_field.dart';
 import 'package:client/common/const/colors.dart';
 import 'package:client/common/model/cursor_pagination_model.dart';
@@ -110,24 +111,12 @@ class _DiaryCommentCardState extends ConsumerState<DiaryCommentCard> {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                const Padding(
-                  padding: EdgeInsets.only(
+                Padding(
+                  padding: const EdgeInsets.only(
                     top: 2.0,
                   ),
-                  child: CircleAvatar(
-                    radius: 22.0,
-                    backgroundColor: Colors.grey,
-                    // backgroundImage: AssetImage(
-                    //   'assets/images/default_profile.png',
-                    // ),
-                    child: Text(
-                      '?',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 22.0,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
+                  child: CustomCircleAvatar(
+                    url: widget.writer?.profileImg,
                   ),
                 ),
                 const SizedBox(
@@ -295,6 +284,7 @@ class _DiaryCommentCardState extends ConsumerState<DiaryCommentCard> {
           ),
           if (showReplyInput)
             replyInput(
+              userState: userState,
               controller: replyController,
               onReply: () {
                 ref.read(diaryReplyProvider(widget.id).notifier).createReply(
@@ -352,24 +342,12 @@ class _DiaryCommentCardState extends ConsumerState<DiaryCommentCard> {
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Padding(
-                            padding: EdgeInsets.only(
+                          Padding(
+                            padding: const EdgeInsets.only(
                               top: 4.5,
                             ),
-                            child: CircleAvatar(
-                              radius: 18.0,
-                              backgroundColor: Colors.grey,
-                              // backgroundImage: AssetImage(
-                              //   'assets/images/default_profile.png',
-                              // ),
-                              child: Text(
-                                '?',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 22.0,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
+                            child: CustomCircleAvatar(
+                              url: reply.writer?.profileImg,
                             ),
                           ),
                           const SizedBox(
@@ -612,6 +590,7 @@ class _DiaryCommentCardState extends ConsumerState<DiaryCommentCard> {
   Widget replyInput({
     required TextEditingController controller,
     required VoidCallback onReply,
+    required UserModel userState,
   }) {
     return Padding(
       padding: const EdgeInsets.only(
@@ -622,24 +601,12 @@ class _DiaryCommentCardState extends ConsumerState<DiaryCommentCard> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Padding(
-            padding: EdgeInsets.only(
+          Padding(
+            padding: const EdgeInsets.only(
               top: 8.0,
             ),
-            child: CircleAvatar(
-              radius: 18.0,
-              backgroundColor: Colors.grey,
-              // backgroundImage: AssetImage(
-              //   'assets/images/default_profile.png',
-              // ),
-              child: Text(
-                '?',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 22.0,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
+            child: CustomCircleAvatar(
+              url: userState.profileImg,
             ),
           ),
           const SizedBox(

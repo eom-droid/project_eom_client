@@ -1,3 +1,4 @@
+import 'package:client/common/components/custom_circle_avatar.dart';
 import 'package:client/common/components/custom_text_field.dart';
 import 'package:client/common/layout/default_scroll_base_pagination_layout.dart';
 import 'package:client/common/model/cursor_pagination_model.dart';
@@ -92,6 +93,7 @@ class _DiaryDetailScreenState extends ConsumerState<DiaryDetailScreen> {
 
             if (state is DiaryDetailModel)
               _renderCommentCountAndInput(
+                me: ref.read(userProvider) as UserModel,
                 onTapAddComment: () async {
                   if (commentLoading) return;
                   // 1. commentLoading 활성화
@@ -416,6 +418,7 @@ class _DiaryDetailScreenState extends ConsumerState<DiaryDetailScreen> {
     required TextEditingController controller,
     required VoidCallback onTapAddComment,
     required bool commentLoading,
+    required UserModel me,
   }) {
     return SliverToBoxAdapter(
       child: Padding(
@@ -441,20 +444,9 @@ class _DiaryDetailScreenState extends ConsumerState<DiaryDetailScreen> {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const CircleAvatar(
-                radius: 22.0,
-                backgroundColor: Colors.grey,
-                // backgroundImage: AssetImage(
-                //   'assets/images/default_profile.png',
-                // ),
-                child: Text(
-                  '?',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 22.0,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
+              CustomCircleAvatar(
+                url: me.profileImg,
+                size: 47,
               ),
               const SizedBox(
                 width: 18.0,

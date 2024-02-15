@@ -5,10 +5,13 @@ import 'package:client/chat/provider/chat_room_provider.dart';
 import 'package:client/chat/view/chat_detail_screen.dart';
 import 'package:client/common/components/cursor_pagination_error_comp.dart';
 import 'package:client/common/components/cursor_pagination_loading_comp.dart';
+import 'package:client/common/components/custom_circle_avatar.dart';
 import 'package:client/common/const/colors.dart';
 import 'package:client/common/layout/default_layout.dart';
 import 'package:client/common/model/cursor_pagination_model.dart';
 import 'package:client/common/utils/data_utils.dart';
+import 'package:client/user/model/user_model.dart';
+import 'package:client/user/provider/user_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -23,6 +26,7 @@ class ChatScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final roomState = ref.watch(chatRoomProvider);
+    final me = ref.read(userProvider);
 
     return DefaultLayout(
       backgroundColor: BACKGROUND_BLACK,
@@ -41,6 +45,7 @@ class ChatScreen extends ConsumerWidget {
         state: roomState,
         ref: ref,
         buildContext: context,
+        me: me as UserModel,
       ),
     );
   }
@@ -49,6 +54,7 @@ class ChatScreen extends ConsumerWidget {
     required CursorPaginationBase state,
     required WidgetRef ref,
     required BuildContext buildContext,
+    required UserModel me,
   }) {
     // 초기 로딩
     if (state is CursorPaginationLoading) {
@@ -66,6 +72,7 @@ class ChatScreen extends ConsumerWidget {
     }
 
     final cp = state as CursorPagination<ChatRoomModel>;
+
     if (cp.data.isEmpty) {
       return const Center(
         child: Text('채팅방이 없습니다.'),
@@ -75,6 +82,7 @@ class ChatScreen extends ConsumerWidget {
       room: cp.data[0],
       parentBuildContext: buildContext,
       ref: ref,
+      me: me,
     );
   }
 
@@ -82,12 +90,16 @@ class ChatScreen extends ConsumerWidget {
     required ChatRoomModel room,
     required BuildContext parentBuildContext,
     required WidgetRef ref,
+    required UserModel me,
   }) {
+    final otherUserProfileImg =
+        room.members.firstWhere((element) => element.id != me.id).profileImg;
+    final phoneWidth = MediaQuery.of(parentBuildContext).size.width;
     return Center(
         child: GestureDetector(
       onTap: () {
         // enterRoom
-        Future.delayed(const Duration(milliseconds: 15), () {
+        Future.delayed(const Duration(milliseconds: 200), () {
           ref.read(chatProvider(room.id).notifier).enterRoom();
         });
 
@@ -117,8 +129,9 @@ class ChatScreen extends ConsumerWidget {
             ),
           ],
         ),
-        width: MediaQuery.of(parentBuildContext).size.width / 1.5,
+        width: phoneWidth / 1.5,
         child: Stack(
+          alignment: Alignment.topCenter,
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(
@@ -126,13 +139,12 @@ class ChatScreen extends ConsumerWidget {
                 vertical: 30.0,
               ),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
                 mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text(
-                    '타이틀',
-                    style: TextStyle(
+                  Text(
+                    room.title,
+                    style: const TextStyle(
                       color: Colors.white,
                       fontSize: 20.0,
                       fontWeight: FontWeight.bold,
@@ -141,17 +153,10 @@ class ChatScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 10.0),
                   // profileImage를 원으로 자르기
-                  CircleAvatar(
-                    radius: MediaQuery.of(parentBuildContext).size.width / 6,
-                    backgroundColor: Colors.white,
-                    child: Padding(
-                      padding: const EdgeInsets.all(2), // Border radius
-                      child: ClipOval(
-                        child: Image.network(
-                          'https://picsum.photos/250?image=9',
-                        ),
-                      ),
-                    ),
+                  CustomCircleAvatar(
+                    url: otherUserProfileImg,
+                    size: phoneWidth / 2.8,
+                    borderRadius: phoneWidth / 8,
                   ),
                   const SizedBox(height: 30.0),
                   _ChatPreviewWidget(
@@ -160,40 +165,68 @@ class ChatScreen extends ConsumerWidget {
                 ],
               ),
             ),
-            Positioned(
-              top: 7,
-              right: 5,
-              child: Container(
-                padding: const EdgeInsets.only(
-                  top: 4,
-                  bottom: 8,
-                  left: 8,
-                  right: 8,
-                ),
-                decoration: const BoxDecoration(
-                  color: Colors.red,
-                  borderRadius: BorderRadius.all(
-                    Radius.circular(14.0),
-                  ),
-                ),
-                constraints: const BoxConstraints(
-                  minWidth: 14,
-                  minHeight: 14,
-                ),
-                child: const Text(
-                  '10+',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 12.0,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
+            _NewChatNotifier(
+              roomId: room.id,
+              myId: me.id,
+            )
           ],
         ),
       ),
     ));
+  }
+}
+
+class _NewChatNotifier extends ConsumerWidget {
+  final String roomId;
+  final String myId;
+
+  const _NewChatNotifier({
+    required this.roomId,
+    required this.myId,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final chatProvidr = ref.watch(chatProvider(roomId));
+    final chatState = chatProvidr.state;
+
+    if (chatState is CursorPagination<ChatModel> &&
+        chatState.data.isNotEmpty &&
+        chatProvidr.memberLastReadChatMap[myId] != null &&
+        chatProvidr.memberLastReadChatMap[myId] != chatState.data[0].id) {
+      return Positioned(
+        top: 7,
+        right: 5,
+        child: Container(
+          padding: const EdgeInsets.only(
+            top: 4,
+            bottom: 8,
+            left: 8,
+            right: 8,
+          ),
+          decoration: const BoxDecoration(
+            color: Colors.red,
+            borderRadius: BorderRadius.all(
+              Radius.circular(14.0),
+            ),
+          ),
+          constraints: const BoxConstraints(
+            minWidth: 14,
+            minHeight: 14,
+          ),
+          child: const Text(
+            'New',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 12.0,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+      );
+    } else {
+      return const SizedBox();
+    }
   }
 }
 
@@ -206,13 +239,14 @@ class _ChatPreviewWidget extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final chatState = ref.watch(chatProvider(roomId)).state;
-    if (chatState is CursorPagination) {
-      return body(
-        lastChat: chatState.data.isNotEmpty ? chatState.data[0] : null,
-      );
-    } else {
-      return body();
-    }
+
+    return body(
+      lastChat: chatState is CursorPagination
+          ? chatState.data.isNotEmpty
+              ? chatState.data[0]
+              : null
+          : null,
+    );
   }
 
   body({
@@ -226,6 +260,7 @@ class _ChatPreviewWidget extends ConsumerWidget {
             color: INPUT_BG_COLOR,
             fontSize: 14.0,
           ),
+          maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
         const SizedBox(height: 6.0),

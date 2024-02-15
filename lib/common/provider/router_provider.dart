@@ -31,6 +31,21 @@ final routerProvider = ChangeNotifierProvider<RouterProvider>((ref) {
   return RouterProvider(ref: ref);
 });
 
+CustomTransitionPage buildPageWithDefaultTransition<T>({
+  required BuildContext context,
+  required GoRouterState state,
+  required Widget child,
+}) {
+  return CustomTransitionPage<T>(
+    key: state.pageKey,
+    child: child,
+    transitionDuration: const Duration(milliseconds: 200),
+    reverseTransitionDuration: const Duration(milliseconds: 200),
+    transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+        FadeTransition(opacity: animation, child: child),
+  );
+}
+
 class RouterProvider extends ChangeNotifier {
   final Ref ref;
 
@@ -46,67 +61,130 @@ class RouterProvider extends ChangeNotifier {
         GoRoute(
           path: '/',
           name: RootTab.routeName,
-          builder: (_, __) => const RootTab(),
+          // builder: (_, __) => const RootTab(),
+          pageBuilder: (context, state) => buildPageWithDefaultTransition<void>(
+            context: context,
+            state: state,
+            child: const RootTab(),
+          ),
           routes: [
             GoRoute(
               path: 'diary',
               name: DiaryScreen.routeName,
-              builder: (_, state) => DiaryScreen(),
+              // builder: (_, state) => DiaryScreen(),
+              pageBuilder: (context, state) =>
+                  buildPageWithDefaultTransition<void>(
+                context: context,
+                state: state,
+                child: DiaryScreen(),
+              ),
             ),
             GoRoute(
               path: 'diary/:rid',
               name: DiaryDetailScreen.routeName,
-              builder: (_, state) => DiaryDetailScreen(
-                id: state.pathParameters['rid']!,
+              // builder: (_, state) => DiaryDetailScreen(
+              //   id: state.pathParameters['rid']!,
+              // ),
+              pageBuilder: (context, state) =>
+                  buildPageWithDefaultTransition<void>(
+                context: context,
+                state: state,
+                child: DiaryDetailScreen(
+                  id: state.pathParameters['rid']!,
+                ),
               ),
             ),
             GoRoute(
               path: 'music',
               name: MusicScreen.routeName,
-              builder: (_, state) => MusicScreen(),
+              // builder: (_, state) => MusicScreen(),
+              pageBuilder: (context, state) =>
+                  buildPageWithDefaultTransition<void>(
+                context: context,
+                state: state,
+                child: MusicScreen(),
+              ),
             ),
             GoRoute(
               path: 'chat',
               name: ChatScreen.routeName,
-              builder: (_, state) => const ChatScreen(),
+              // builder: (_, state) => const ChatScreen(),
+              pageBuilder: (context, state) =>
+                  buildPageWithDefaultTransition<void>(
+                context: context,
+                state: state,
+                child: const ChatScreen(),
+              ),
             ),
             GoRoute(
               path: 'chat/:rid',
               name: ChatDetailScreen.routeName,
-              builder: (_, state) => ChatDetailScreen(
-                id: state.pathParameters['rid']!,
+              // builder: (_, state) => ChatDetailScreen(
+              //   id: state.pathParameters['rid']!,
+              // ),
+              pageBuilder: (context, state) =>
+                  buildPageWithDefaultTransition<void>(
+                context: context,
+                state: state,
+                child: ChatDetailScreen(
+                  id: state.pathParameters['rid']!,
+                ),
               ),
             ),
             GoRoute(
               path: "login",
               name: LoginScreen.routerName,
-              builder: (context, state) => const LoginScreen(),
+              // builder: (context, state) => const LoginScreen(),
+              pageBuilder: (context, state) =>
+                  buildPageWithDefaultTransition<void>(
+                context: context,
+                state: state,
+                child: const LoginScreen(),
+              ),
             ),
             GoRoute(
               path: "join",
               name: JoinScreen.routeName,
-              builder: (context, state) => const JoinScreen(),
+              // builder: (context, state) => const JoinScreen(),
+              pageBuilder: (context, state) =>
+                  buildPageWithDefaultTransition<void>(
+                context: context,
+                state: state,
+                child: const JoinScreen(),
+              ),
             ),
             GoRoute(
               path: "resetPassword",
               name: ResetPasswordScreen.routeName,
-              builder: (context, state) => const ResetPasswordScreen(),
+              // builder: (context, state) => const ResetPasswordScreen(),
+              pageBuilder: (context, state) =>
+                  buildPageWithDefaultTransition<void>(
+                context: context,
+                state: state,
+                child: const ResetPasswordScreen(),
+              ),
             ),
           ],
         ),
         GoRoute(
           path: "/splash",
           name: SplashScreen.routeName,
-          builder: (context, state) => const SplashScreen(),
+          // builder: (context, state) => const SplashScreen(),
+          pageBuilder: (context, state) => buildPageWithDefaultTransition<void>(
+            context: context,
+            state: state,
+            child: const SplashScreen(),
+          ),
         ),
       ];
 
   String? redirectLogic(BuildContext _, GoRouterState state) {
     final UserModelBase? user = ref.read(userProvider);
-    final loginRoute = state.location == '/login';
-    final joinRoute = state.location == '/join';
-    final resetPasswordRoute = state.location == '/resetPassword';
-    final splashRoute = state.location == '/splash';
+
+    final loginRoute = state.matchedLocation == '/login';
+    final joinRoute = state.matchedLocation == '/join';
+    final resetPasswordRoute = state.matchedLocation == '/resetPassword';
+    final splashRoute = state.matchedLocation == '/splash';
     if (user is UserModelError) {
       print(user.message);
     }
