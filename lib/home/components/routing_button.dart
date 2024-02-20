@@ -23,8 +23,8 @@ class RoutingButton extends StatelessWidget {
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
           child: Container(
-            width: 75,
-            height: 115,
+            width: 70,
+            height: 100,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(5.0),
               border: Border.all(

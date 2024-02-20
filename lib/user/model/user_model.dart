@@ -51,6 +51,26 @@ class UserModel extends UserModelBase {
     required this.role,
   });
 
+  copyWith({
+    String? id,
+    String? email,
+    String? nickname,
+    String? profileImg,
+    String? snsId,
+    String? provider,
+    RoleType? role,
+  }) {
+    return UserModel(
+      id: id ?? this.id,
+      email: email ?? this.email,
+      nickname: nickname ?? this.nickname,
+      profileImg: profileImg ?? this.profileImg,
+      snsId: snsId ?? this.snsId,
+      provider: provider ?? this.provider,
+      role: role ?? this.role,
+    );
+  }
+
   factory UserModel.fromJson(Map<String, dynamic> json) =>
       _$UserModelFromJson(json);
 

@@ -25,6 +25,14 @@ abstract class UserRepository {
   Future<UserModel?> getMe({
     @Header('authorization') required String accessTokenWithBearer,
   });
+
+  @PATCH("/me/nickname")
+  @Headers({
+    'accessToken': 'true',
+  })
+  Future<void> updateNickname({
+    @Body() required Map<String, dynamic> body,
+  });
 }
 
 

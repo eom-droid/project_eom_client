@@ -69,6 +69,18 @@ class UserStateNotifier extends StateNotifier<UserModelBase?> {
     }
   }
 
+  Future<void> updateNickname(String nickname) async {
+    // state = UserModelLoading();
+    await userRepository.updateNickname(body: {
+      "nickname": nickname,
+    });
+    final pState = state as UserModel;
+
+    state = pState.copyWith(
+      nickname: nickname,
+    );
+  }
+
   Future<bool> emailLogin({
     required String email,
     required String password,

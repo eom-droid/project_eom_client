@@ -1,6 +1,7 @@
 import 'package:client/auth/view/login_screen.dart';
 import 'package:client/chat/view/chat_screen.dart';
 import 'package:client/common/components/default_moving_background.dart';
+import 'package:client/settings/view/settings_screen.dart';
 import 'package:client/user/model/user_model.dart';
 import 'package:client/user/provider/user_provider.dart';
 import 'package:flutter/material.dart';
@@ -229,6 +230,9 @@ class _FrontImagesRender extends ConsumerWidget {
                     onChatTap: () {
                       context.goNamed(ChatScreen.routeName);
                     },
+                    onSettingsTap: () {
+                      context.goNamed(SettingsScreen.routeName);
+                    },
                   )
                 : ElevatedButton(
                     onPressed: () {
@@ -247,6 +251,7 @@ class _FrontImagesRender extends ConsumerWidget {
     required VoidCallback onDiaryTap,
     required VoidCallback onPlayListTap,
     required VoidCallback onChatTap,
+    required VoidCallback onSettingsTap,
   }) {
     final double deviceWidth = MediaQuery.of(context).size.width;
     final double deviceHeight = MediaQuery.of(context).size.height;
@@ -277,7 +282,7 @@ class _FrontImagesRender extends ConsumerWidget {
                   onDiaryTap: onDiaryTap,
                   icon: SvgPicture.asset(
                     "asset/imgs/icons/diary.svg",
-                    width: 38.0,
+                    width: 32.0,
                   ),
                   routeName: 'diary',
                 ),
@@ -285,7 +290,7 @@ class _FrontImagesRender extends ConsumerWidget {
                   onDiaryTap: onPlayListTap,
                   icon: SvgPicture.asset(
                     "asset/imgs/icons/playlist.svg",
-                    width: 50.0,
+                    width: 40.0,
                   ),
                   routeName: 'Play\nList',
                 ),
@@ -293,9 +298,17 @@ class _FrontImagesRender extends ConsumerWidget {
                   onDiaryTap: onChatTap,
                   icon: SvgPicture.asset(
                     "asset/imgs/icons/chat.svg",
-                    width: 50.0,
+                    width: 40.0,
                   ),
                   routeName: 'DM',
+                ),
+                RoutingButton(
+                  onDiaryTap: onSettingsTap,
+                  icon: SvgPicture.asset(
+                    "asset/imgs/icons/settings.svg",
+                    width: 40.0,
+                  ),
+                  routeName: 'SET',
                 ),
               ],
             ),

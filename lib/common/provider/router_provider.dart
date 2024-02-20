@@ -4,9 +4,11 @@ import 'package:client/auth/view/reset_password_screen.dart';
 import 'package:client/chat/view/chat_detail_screen.dart';
 import 'package:client/chat/view/chat_screen.dart';
 import 'package:client/common/view/splash_screen.dart';
+import 'package:client/settings/view/profile_modify.dart';
+import 'package:client/settings/view/settings_screen.dart';
 import 'package:client/user/model/user_model.dart';
 import 'package:client/user/provider/user_provider.dart';
-import 'package:flutter/widgets.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:client/common/view/root_tab.dart';
@@ -30,6 +32,25 @@ final goRouterProvider = Provider<GoRouter>((ref) {
 final routerProvider = ChangeNotifierProvider<RouterProvider>((ref) {
   return RouterProvider(ref: ref);
 });
+
+class FadePage<T> extends CupertinoPage<T> {
+  const FadePage({
+    required super.child,
+  });
+
+  @override
+  Route<T> createRoute(BuildContext context) {
+    return PageRouteBuilder(
+      pageBuilder: (context, animation, secondaryAnimation) => child,
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        return FadeTransition(
+          opacity: animation,
+          child: child,
+        );
+      },
+    );
+  }
+}
 
 CustomTransitionPage buildPageWithDefaultTransition<T>({
   required BuildContext context,
@@ -108,7 +129,6 @@ class RouterProvider extends ChangeNotifier {
             GoRoute(
               path: 'chat',
               name: ChatScreen.routeName,
-              // builder: (_, state) => const ChatScreen(),
               pageBuilder: (context, state) =>
                   buildPageWithDefaultTransition<void>(
                 context: context,
@@ -164,6 +184,29 @@ class RouterProvider extends ChangeNotifier {
                 child: const ResetPasswordScreen(),
               ),
             ),
+            GoRoute(
+                path: "settings",
+                name: SettingsScreen.routeName,
+                pageBuilder: (context, state) =>
+                    buildPageWithDefaultTransition<void>(
+                      context: context,
+                      state: state,
+                      child: const SettingsScreen(),
+                    ),
+                routes: [
+                  GoRoute(
+                    path: "profileModify/:nickname",
+                    name: ProfileModify.routeName,
+                    pageBuilder: (context, state) =>
+                        buildPageWithDefaultTransition<void>(
+                      context: context,
+                      state: state,
+                      child: ProfileModify(
+                        nickname: state.pathParameters['nickname']!,
+                      ),
+                    ),
+                  ),
+                ])
           ],
         ),
         GoRoute(
