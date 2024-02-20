@@ -13,7 +13,8 @@ class SettingsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final me = ref.watch(userProvider) as UserModel;
+    final me = ref.watch(userProvider);
+
     return DefaultLayout(
       backgroundColor: BACKGROUND_BLACK,
       appBar: AppBar(
@@ -28,15 +29,39 @@ class SettingsScreen extends ConsumerWidget {
         elevation: 0,
         backgroundColor: BACKGROUND_BLACK,
       ),
-      child: Column(
-        children: [
-          const SizedBox(height: 50),
-          _profilePart(
-            nickname: me.nickname,
-            context: context,
-          ),
-        ],
-      ),
+      child: me == null
+          ? const Center(
+              child: CircularProgressIndicator(),
+            )
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SizedBox(height: 50),
+                _profilePart(
+                  nickname: (me as UserModel).nickname,
+                  context: context,
+                ),
+                const SizedBox(height: 200),
+                InkWell(
+                  child: const Padding(
+                    padding: EdgeInsets.symmetric(
+                      vertical: 10,
+                    ),
+                    child: Text(
+                      "로그아웃",
+                      style: TextStyle(
+                        color: Colors.red,
+                        fontSize: 14.0,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  onTap: () {
+                    ref.read(userProvider.notifier).logout();
+                  },
+                )
+              ],
+            ),
     );
   }
 
@@ -45,7 +70,7 @@ class SettingsScreen extends ConsumerWidget {
     required BuildContext context,
   }) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
           nickname,
@@ -77,7 +102,7 @@ class SettingsScreen extends ConsumerWidget {
               },
             );
           },
-        )
+        ),
       ],
     );
   }

@@ -163,7 +163,7 @@ class UserStateNotifier extends StateNotifier<UserModelBase?> {
   }
 
   logout() async {
-    // await secureStorage.deleteAll();
+    await secureStorage.deleteAll();
     state = null;
   }
 }
