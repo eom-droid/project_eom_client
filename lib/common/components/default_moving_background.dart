@@ -1,3 +1,4 @@
+import 'package:client/common/components/custom_app_bar.dart';
 import 'package:client/common/const/colors.dart';
 import 'package:client/common/const/data.dart';
 import 'package:flutter/material.dart';
@@ -7,7 +8,7 @@ class DefaultMovingBackground extends StatelessWidget {
   final List<Widget> children;
   final double opacity;
   final Color filterColor;
-  final bool? showAppBar;
+  final bool showAppBar;
   const DefaultMovingBackground({
     super.key,
     required this.children,
@@ -22,8 +23,8 @@ class DefaultMovingBackground extends StatelessWidget {
       onWillPop: () async => false,
       child: Scaffold(
         extendBodyBehindAppBar: true,
-        appBar: showAppBar!
-            ? renderAppBar(
+        appBar: showAppBar
+            ? CustomAppBar(
                 close: () {
                   context.pop();
                 },

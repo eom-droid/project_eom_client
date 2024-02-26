@@ -1,9 +1,6 @@
-import 'package:client/auth/view/join_screen.dart';
-import 'package:client/auth/view/reset_password_screen.dart';
-import 'package:client/common/components/custom_main_button.dart';
-import 'package:client/common/components/custom_text_form_field.dart';
-import 'package:client/common/components/default_moving_background.dart';
+import 'package:client/common/components/custom_app_bar.dart';
 import 'package:client/common/const/colors.dart';
+import 'package:client/common/layout/default_layout.dart';
 import 'package:client/common/utils/data_utils.dart';
 import 'package:client/common/view/root_tab.dart';
 import 'package:client/user/provider/user_provider.dart';
@@ -12,6 +9,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 
 typedef FutureBoolCallback = Future<bool> Function();
 
@@ -25,63 +23,90 @@ class LoginScreen extends ConsumerStatefulWidget {
 }
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
-  String _email = "";
-
-  String _password = "";
-
   bool isLoading = false;
+  WebViewController? _webViewController;
+
+  @override
+  void initState() {
+    _webViewController = WebViewController()
+      ..loadRequest(Uri.parse('http://localhost:5173'))
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..setBackgroundColor(const Color(0xFF101010))
+      ..addJavaScriptChannel(
+        "",
+        onMessageReceived: (message) {
+          print(message.message);
+        },
+      );
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return DefaultMovingBackground(
-        opacity: 0.2,
-        filterColor: Colors.black,
-        children: [
-          SingleChildScrollView(
-            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              height: MediaQuery.of(context).size.height,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  _emailLoginPart(
-                    joinPressed: () {
-                      context.pushNamed(JoinScreen.routeName);
-                    },
-                    passwordFindPressed: () {
-                      context.pushNamed(ResetPasswordScreen.routeName);
-                      //추후
-                    },
-                    loginPressed: isLoading
-                        ? null
-                        : () async {
-                            setState(() {
-                              isLoading = true;
-                            });
-                            await emailLogin(
-                              email: _email,
-                              password: _password,
-                            );
-                            setState(() {
-                              isLoading = false;
-                            });
-                          },
-                  ),
-                  const Divider(
-                    color: INPUT_BG_COLOR,
-                    thickness: 1,
-                  ),
-                  const SizedBox(
-                    height: 16.0,
-                  ),
-                  _socialLoginPart(),
-                ],
-              ),
-            ),
-          ),
-        ]);
+    return DefaultLayout(
+      backgroundColor: BACKGROUND_BLACK,
+      isFullScreen: true,
+      appBar: CustomAppBar(
+        close: () async {
+          // 만약 뒤로 더 갈 수 없다면
+          if (await (_webViewController!.canGoBack()) == false) {
+            context.pop();
+          }
+          _webViewController!.goBack();
+        },
+      ),
+      child: WebViewWidget(controller: _webViewController!),
+    );
+    // return DefaultMovingBackground(
+    //     opacity: 0.2,
+    //     filterColor: Colors.black,
+    //     children: [
+
+    //       SingleChildScrollView(
+    //         keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+    //         child: Container(
+    //           padding: const EdgeInsets.symmetric(horizontal: 16.0),
+    //           height: MediaQuery.of(context).size.height,
+    //           child: Column(
+    //             crossAxisAlignment: CrossAxisAlignment.stretch,
+    //             mainAxisAlignment: MainAxisAlignment.center,
+    //             children: [
+    //               _emailLoginPart(
+    //                 joinPressed: () {
+    //                   context.pushNamed(JoinScreen.routeName);
+    //                 },
+    //                 passwordFindPressed: () {
+    //                   context.pushNamed(ResetPasswordScreen.routeName);
+    //                   //추후
+    //                 },
+    //                 loginPressed: isLoading
+    //                     ? null
+    //                     : () async {
+    //                         setState(() {
+    //                           isLoading = true;
+    //                         });
+    //                         await emailLogin(
+    //                           email: _email,
+    //                           password: _password,
+    //                         );
+    //                         setState(() {
+    //                           isLoading = false;
+    //                         });
+    //                       },
+    //               ),
+    //               const Divider(
+    //                 color: INPUT_BG_COLOR,
+    //                 thickness: 1,
+    //               ),
+    //               const SizedBox(
+    //                 height: 16.0,
+    //               ),
+    //               _socialLoginPart(),
+    //             ],
+    //           ),
+    //         ),
+    //       ),
+    //     ]);
   }
 
   Widget _socialLoginPart() {
@@ -153,79 +178,79 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     );
   }
 
-  Widget _emailLoginPart({
-    required VoidCallback joinPressed,
-    required VoidCallback passwordFindPressed,
-    required VoidCallback? loginPressed,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        CustomTextFormField(
-          onChanged: (value) {
-            _email = value;
-          },
-          labelText: "이메일",
-        ),
-        const SizedBox(height: 16.0),
-        CustomTextFormField(
-          obscureText: true,
-          labelText: "패스워드",
-          onChanged: (value) {
-            _password = value;
-          },
-        ),
-        const SizedBox(height: 32),
-        CustomMainButton(
-          onPressed: loginPressed,
-          child: isLoading
-              ? const SizedBox(
-                  width: 23,
-                  height: 23,
-                  child: CircularProgressIndicator(
-                    color: Colors.white,
-                  ),
-                )
-              : const Text(
-                  "로그인",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16.0,
-                  ),
-                ),
-        ),
-        const SizedBox(height: 16),
-        Row(
-          children: [
-            Expanded(
-              child: TextButton(
-                onPressed: joinPressed,
-                child: const Text(
-                  '이메일 회원가입',
-                  style: TextStyle(
-                    color: INPUT_BG_COLOR,
-                    fontSize: 16.0,
-                  ),
-                ),
-              ),
-            ),
-            Expanded(
-              child: TextButton(
-                onPressed: passwordFindPressed,
-                child: const Text(
-                  '비밀번호 까묵',
-                  style: TextStyle(
-                    color: INPUT_BG_COLOR,
-                    fontSize: 16.0,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
+  // Widget _emailLoginPart({
+  //   required VoidCallback joinPressed,
+  //   required VoidCallback passwordFindPressed,
+  //   required VoidCallback? loginPressed,
+  // }) {
+  //   return Column(
+  //     crossAxisAlignment: CrossAxisAlignment.stretch,
+  //     children: [
+  //       CustomTextFormField(
+  //         onChanged: (value) {
+  //           _email = value;
+  //         },
+  //         labelText: "이메일",
+  //       ),
+  //       const SizedBox(height: 16.0),
+  //       CustomTextFormField(
+  //         obscureText: true,
+  //         labelText: "패스워드",
+  //         onChanged: (value) {
+  //           _password = value;
+  //         },
+  //       ),
+  //       const SizedBox(height: 32),
+  //       CustomMainButton(
+  //         onPressed: loginPressed,
+  //         child: isLoading
+  //             ? const SizedBox(
+  //                 width: 23,
+  //                 height: 23,
+  //                 child: CircularProgressIndicator(
+  //                   color: Colors.white,
+  //                 ),
+  //               )
+  //             : const Text(
+  //                 "로그인",
+  //                 style: TextStyle(
+  //                   color: Colors.white,
+  //                   fontSize: 16.0,
+  //                 ),
+  //               ),
+  //       ),
+  //       const SizedBox(height: 16),
+  //       Row(
+  //         children: [
+  //           Expanded(
+  //             child: TextButton(
+  //               onPressed: joinPressed,
+  //               child: const Text(
+  //                 '이메일 회원가입',
+  //                 style: TextStyle(
+  //                   color: INPUT_BG_COLOR,
+  //                   fontSize: 16.0,
+  //                 ),
+  //               ),
+  //             ),
+  //           ),
+  //           Expanded(
+  //             child: TextButton(
+  //               onPressed: passwordFindPressed,
+  //               child: const Text(
+  //                 '비밀번호 까묵',
+  //                 style: TextStyle(
+  //                   color: INPUT_BG_COLOR,
+  //                   fontSize: 16.0,
+  //                 ),
+  //               ),
+  //             ),
+  //           ),
+  //         ],
+  //       ),
+  //     ],
+  //   );
+  // }
 
   showSnackBar({
     required String content,

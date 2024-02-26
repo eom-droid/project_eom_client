@@ -208,12 +208,6 @@ class _FrontImagesRender extends ConsumerWidget {
               width: 194.0 * aspectWidth,
             ),
           ),
-          ElevatedButton(
-            onPressed: () {
-              ref.read(userProvider.notifier).logout();
-            },
-            child: const Text("로그아웃"),
-          ),
 
           Positioned(
             bottom: 0,
