@@ -224,6 +224,9 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen>
                   // print(cp.data[index].id.compareTo(myLastReadChat));
                   return Column(
                     children: [
+                      const SizedBox(
+                        height: 7.0,
+                      ),
                       SizedBox(
                         height: showAvatar ? 5 : 0,
                       ),
@@ -493,9 +496,6 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen>
                             ),
                           ],
                         ),
-                      const SizedBox(
-                        height: 5.0,
-                      )
                     ],
                   );
                 },

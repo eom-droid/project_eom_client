@@ -162,6 +162,32 @@ class UserStateNotifier extends StateNotifier<UserModelBase?> {
     }
   }
 
+  loginWithTokens({
+    required String accessToken,
+    required String refreshToken,
+  }) async {
+    try {
+      final user = await userRepository.getMe(
+        accessTokenWithBearer: "Bearer $accessToken",
+      );
+
+      if (user == null) {
+        throw Exception("유저 정보가 없습니다.");
+      }
+
+      // secureStorage write
+      await Future.wait([
+        secureStorage.write(key: ACCESS_TOKEN_KEY, value: accessToken),
+        secureStorage.write(key: REFRESH_TOKEN_KEY, value: refreshToken)
+      ]);
+
+      state = user;
+    } catch (e) {
+      state = UserModelError(message: "로그인 실패");
+      return;
+    }
+  }
+
   logout() async {
     await secureStorage.deleteAll();
     state = null;

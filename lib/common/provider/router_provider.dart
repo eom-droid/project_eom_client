@@ -4,8 +4,10 @@ import 'package:client/auth/view/reset_password_screen.dart';
 import 'package:client/chat/view/chat_detail_screen.dart';
 import 'package:client/chat/view/chat_screen.dart';
 import 'package:client/common/view/splash_screen.dart';
-import 'package:client/settings/view/profile_modify.dart';
+import 'package:client/settings/view/privacy_policy_screen.dart';
+import 'package:client/settings/view/profile_modify_screen.dart';
 import 'package:client/settings/view/settings_screen.dart';
+import 'package:client/settings/view/terms_of_use_screen.dart';
 import 'package:client/user/model/user_model.dart';
 import 'package:client/user/provider/user_provider.dart';
 import 'package:flutter/cupertino.dart';
@@ -194,6 +196,26 @@ class RouterProvider extends ChangeNotifier {
                       child: const SettingsScreen(),
                     ),
                 routes: [
+                  GoRoute(
+                    path: "privacyPolicy",
+                    name: PrivacyPolicyScreen.routeName,
+                    pageBuilder: (context, state) =>
+                        buildPageWithDefaultTransition<void>(
+                      context: context,
+                      state: state,
+                      child: PrivacyPolicyScreen(),
+                    ),
+                  ),
+                  GoRoute(
+                    path: "termsOfUse",
+                    name: TermsOfUseScreen.routeName,
+                    pageBuilder: (context, state) =>
+                        buildPageWithDefaultTransition<void>(
+                      context: context,
+                      state: state,
+                      child: TermsOfUseScreen(),
+                    ),
+                  ),
                   GoRoute(
                     path: "profileModify/:nickname",
                     name: ProfileModify.routeName,
