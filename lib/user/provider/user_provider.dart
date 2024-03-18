@@ -3,6 +3,8 @@ import 'package:client/common/const/data.dart';
 import 'package:client/common/provider/secure_storage.dart';
 import 'package:client/user/model/user_model.dart';
 import 'package:client/user/respository/user_repository.dart';
+import 'package:dio/dio.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
@@ -69,50 +71,52 @@ class UserStateNotifier extends StateNotifier<UserModelBase?> {
     }
   }
 
-  Future<void> updateNickname(String nickname) async {
-    // state = UserModelLoading();
-    await userRepository.updateNickname(body: {
-      "nickname": nickname,
-    });
+  Future<void> updateProfile(
+      Map<String, dynamic> profile, MultipartFile? profileImg) async {
+    final result = await userRepository.updateProfile(
+      profile: profile,
+      file: profileImg == null ? [] : [profileImg],
+    );
     final pState = state as UserModel;
-
+    print(result.profileImg);
     state = pState.copyWith(
-      nickname: nickname,
+      nickname: result.nickname,
+      profileImg: result.profileImg,
     );
   }
 
-  Future<bool> emailLogin({
-    required String email,
-    required String password,
-  }) async {
-    try {
-      final token = await authRepository.emailLogin(
-        email: email,
-        password: password,
-      );
-      if (token == null) {
-        throw Exception("토큰이 없습니다.");
-      }
-      final user = await userRepository.getMe(
-        accessTokenWithBearer: "Bearer ${token.accessToken}",
-      );
-      if (user == null) {
-        throw Exception("유저 정보가 없습니다.");
-      }
+  // Future<bool> emailLogin({
+  //   required String email,
+  //   required String password,
+  // }) async {
+  //   try {
+  //     final token = await authRepository.emailLogin(
+  //       email: email,
+  //       password: password,
+  //     );
+  //     if (token == null) {
+  //       throw Exception("토큰이 없습니다.");
+  //     }
+  //     final user = await userRepository.getMe(
+  //       accessTokenWithBearer: "Bearer ${token.accessToken}",
+  //     );
+  //     if (user == null) {
+  //       throw Exception("유저 정보가 없습니다.");
+  //     }
 
-      // secureStorage write
-      await Future.wait([
-        secureStorage.write(key: ACCESS_TOKEN_KEY, value: token.accessToken),
-        secureStorage.write(key: REFRESH_TOKEN_KEY, value: token.refreshToken)
-      ]);
+  //     // secureStorage write
+  //     await Future.wait([
+  //       secureStorage.write(key: ACCESS_TOKEN_KEY, value: token.accessToken),
+  //       secureStorage.write(key: REFRESH_TOKEN_KEY, value: token.refreshToken)
+  //     ]);
 
-      state = user;
-    } catch (e) {
-      state = UserModelError(message: "로그인 실패");
-      return false;
-    }
-    return true;
-  }
+  //     state = user;
+  //   } catch (e) {
+  //     state = UserModelError(message: "로그인 실패");
+  //     return false;
+  //   }
+  //   return true;
+  // }
 
   Future<String> getAccessTokenByRefreshToken({
     String? refreshToken,
@@ -134,33 +138,33 @@ class UserStateNotifier extends StateNotifier<UserModelBase?> {
     return token.accessToken;
   }
 
-  kakaoJoin(String kakaoToken) async {
-    try {
-      final token = await authRepository.kakaoJoin(kakaoToken);
-      if (token == null) {
-        throw Exception("토큰이 없습니다.");
-      }
+  // kakaoJoin(String kakaoToken) async {
+  //   try {
+  //     final token = await authRepository.kakaoJoin(kakaoToken);
+  //     if (token == null) {
+  //       throw Exception("토큰이 없습니다.");
+  //     }
 
-      final user = await userRepository.getMe(
-        accessTokenWithBearer: "Bearer ${token.accessToken}",
-      );
+  //     final user = await userRepository.getMe(
+  //       accessTokenWithBearer: "Bearer ${token.accessToken}",
+  //     );
 
-      if (user == null) {
-        throw Exception("유저 정보가 없습니다.");
-      }
+  //     if (user == null) {
+  //       throw Exception("유저 정보가 없습니다.");
+  //     }
 
-      // secureStorage write
-      await Future.wait([
-        secureStorage.write(key: ACCESS_TOKEN_KEY, value: token.accessToken),
-        secureStorage.write(key: REFRESH_TOKEN_KEY, value: token.refreshToken)
-      ]);
+  //     // secureStorage write
+  //     await Future.wait([
+  //       secureStorage.write(key: ACCESS_TOKEN_KEY, value: token.accessToken),
+  //       secureStorage.write(key: REFRESH_TOKEN_KEY, value: token.refreshToken)
+  //     ]);
 
-      state = user;
-    } catch (e) {
-      state = UserModelError(message: "로그인 실패");
-      return;
-    }
-  }
+  //     state = user;
+  //   } catch (e) {
+  //     state = UserModelError(message: "로그인 실패");
+  //     return;
+  //   }
+  // }
 
   loginWithTokens({
     required String accessToken,
@@ -189,6 +193,12 @@ class UserStateNotifier extends StateNotifier<UserModelBase?> {
   }
 
   logout() async {
+    await secureStorage.deleteAll();
+    state = null;
+  }
+
+  revokeAccount() async {
+    await userRepository.deleteUser();
     await secureStorage.deleteAll();
     state = null;
   }

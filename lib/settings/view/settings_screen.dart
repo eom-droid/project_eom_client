@@ -1,5 +1,9 @@
+import 'package:client/common/components/custom_circle_avatar.dart';
 import 'package:client/common/const/colors.dart';
+import 'package:client/common/const/data.dart';
 import 'package:client/common/layout/default_layout.dart';
+import 'package:client/settings/view/apple_account_revoke_screen.dart';
+import 'package:client/settings/view/google_account_revoke_screen.dart';
 import 'package:client/settings/view/privacy_policy_screen.dart';
 import 'package:client/settings/view/profile_modify_screen.dart';
 import 'package:client/settings/view/terms_of_use_screen.dart';
@@ -40,7 +44,7 @@ class SettingsScreen extends ConsumerWidget {
               children: [
                 const SizedBox(height: 50),
                 _profilePart(
-                  nickname: (me as UserModel).nickname,
+                  me: me as UserModel,
                   context: context,
                 ),
                 const SizedBox(height: 50),
@@ -125,7 +129,81 @@ class SettingsScreen extends ConsumerWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     InkWell(
-                      onTap: () {},
+                      onTap: () {
+                        showDialog(
+                          context: context,
+                          builder: (context) {
+                            return AlertDialog(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10.0),
+                              ),
+                              backgroundColor: BACKGROUND_BLACK,
+                              content: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Text(
+                                    '정말로 탈퇴하시겠습니까?',
+                                    style: TextStyle(
+                                      color: Colors.red,
+                                      fontSize: 18.0,
+                                    ),
+                                  ),
+                                  const SizedBox(
+                                    height: 12,
+                                  ),
+                                  if (me.provider != null &&
+                                      me.provider != kakao)
+                                    Text(
+                                      "* ${me.provider == 'google' ? '구글' : '애플'} 계정으로 가입하신경우에는 탈퇴를 위한 인증 1회가 필요합니다.",
+                                      style: const TextStyle(
+                                        color: GRAY_TEXT_COLOR,
+                                      ),
+                                    ),
+                                ],
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.pop(context);
+                                    // 자체 로그인과 카카오 로그인은 바로 탈퇴
+                                    if (me.provider == null ||
+                                        me.provider == kakao) {
+                                      ref
+                                          .read(userProvider.notifier)
+                                          .revokeAccount();
+                                      // 구글과 애플은 추가 인증이 필요
+                                    } else if (me.provider == google) {
+                                      context.pushNamed(
+                                        GoogleAccountRevokeScreen.routeName,
+                                      );
+                                    } else if (me.provider == apple) {
+                                      context.pushNamed(
+                                        AppleAccountRevokeScreen.routeName,
+                                      );
+                                    }
+                                  },
+                                  child: const Text(
+                                    '탈퇴',
+                                    style: TextStyle(
+                                      color: Colors.red,
+                                    ),
+                                  ),
+                                ),
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.pop(context);
+                                  },
+                                  child: const Text(
+                                    '취소',
+                                    style: TextStyle(),
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                      },
                       child: const Text(
                         "엄태호(Eom Tae Ho) 탈퇴",
                         style: TextStyle(
@@ -143,14 +221,23 @@ class SettingsScreen extends ConsumerWidget {
   }
 
   _profilePart({
-    required String nickname,
+    required UserModel me,
     required BuildContext context,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        Row(
+          children: [
+            CustomCircleAvatar(
+              url: me.profileImg,
+              size: 100,
+            ),
+          ],
+        ),
+        const SizedBox(height: 20),
         Text(
-          nickname,
+          me.nickname,
           style: const TextStyle(
             color: Colors.white,
             fontSize: 20.0,
@@ -174,9 +261,6 @@ class SettingsScreen extends ConsumerWidget {
           onTap: () {
             context.pushNamed(
               ProfileModify.routeName,
-              pathParameters: {
-                'nickname': nickname,
-              },
             );
           },
         ),

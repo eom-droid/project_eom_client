@@ -156,7 +156,7 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen>
     required UserModel me,
   }) {
     final cp = chatState.state as CursorPagination<ChatModel>;
-    final members = room.members;
+    // final members = room.members;
     return SafeArea(
       bottom: true,
       child: Stack(

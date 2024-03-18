@@ -6,6 +6,7 @@ class CustomTextField extends StatelessWidget {
   final TextEditingController controller;
   final double fontSize;
   final bool underline;
+  final int? maxLength;
   final void Function(String)? onChanged;
   const CustomTextField({
     super.key,
@@ -14,11 +15,13 @@ class CustomTextField extends StatelessWidget {
     required this.controller,
     this.underline = true,
     this.onChanged,
+    this.maxLength,
   });
 
   @override
   Widget build(BuildContext context) {
     return TextField(
+        maxLength: maxLength,
         controller: controller,
         onChanged: onChanged,
         style: TextStyle(

@@ -1,9 +1,9 @@
-import 'package:client/auth/view/join_screen.dart';
 import 'package:client/auth/view/login_screen.dart';
-import 'package:client/auth/view/reset_password_screen.dart';
 import 'package:client/chat/view/chat_detail_screen.dart';
 import 'package:client/chat/view/chat_screen.dart';
 import 'package:client/common/view/splash_screen.dart';
+import 'package:client/settings/view/apple_account_revoke_screen.dart';
+import 'package:client/settings/view/google_account_revoke_screen.dart';
 import 'package:client/settings/view/privacy_policy_screen.dart';
 import 'package:client/settings/view/profile_modify_screen.dart';
 import 'package:client/settings/view/settings_screen.dart';
@@ -164,28 +164,28 @@ class RouterProvider extends ChangeNotifier {
                 child: const LoginScreen(),
               ),
             ),
-            GoRoute(
-              path: "join",
-              name: JoinScreen.routeName,
-              // builder: (context, state) => const JoinScreen(),
-              pageBuilder: (context, state) =>
-                  buildPageWithDefaultTransition<void>(
-                context: context,
-                state: state,
-                child: const JoinScreen(),
-              ),
-            ),
-            GoRoute(
-              path: "resetPassword",
-              name: ResetPasswordScreen.routeName,
-              // builder: (context, state) => const ResetPasswordScreen(),
-              pageBuilder: (context, state) =>
-                  buildPageWithDefaultTransition<void>(
-                context: context,
-                state: state,
-                child: const ResetPasswordScreen(),
-              ),
-            ),
+            // GoRoute(
+            //   path: "join",
+            //   name: JoinScreen.routeName,
+            //   // builder: (context, state) => const JoinScreen(),
+            //   pageBuilder: (context, state) =>
+            //       buildPageWithDefaultTransition<void>(
+            //     context: context,
+            //     state: state,
+            //     child: const JoinScreen(),
+            //   ),
+            // ),
+            // GoRoute(
+            //   path: "resetPassword",
+            //   name: ResetPasswordScreen.routeName,
+            //   // builder: (context, state) => const ResetPasswordScreen(),
+            //   pageBuilder: (context, state) =>
+            //       buildPageWithDefaultTransition<void>(
+            //     context: context,
+            //     state: state,
+            //     child: const ResetPasswordScreen(),
+            //   ),
+            // ),
             GoRoute(
                 path: "settings",
                 name: SettingsScreen.routeName,
@@ -217,15 +217,33 @@ class RouterProvider extends ChangeNotifier {
                     ),
                   ),
                   GoRoute(
-                    path: "profileModify/:nickname",
+                    path: "profileModify",
                     name: ProfileModify.routeName,
                     pageBuilder: (context, state) =>
                         buildPageWithDefaultTransition<void>(
                       context: context,
                       state: state,
-                      child: ProfileModify(
-                        nickname: state.pathParameters['nickname']!,
-                      ),
+                      child: ProfileModify(),
+                    ),
+                  ),
+                  GoRoute(
+                    path: "appleAccountRevoke",
+                    name: AppleAccountRevokeScreen.routeName,
+                    pageBuilder: (context, state) =>
+                        buildPageWithDefaultTransition<void>(
+                      context: context,
+                      state: state,
+                      child: AppleAccountRevokeScreen(),
+                    ),
+                  ),
+                  GoRoute(
+                    path: "googleAccountRevoke",
+                    name: GoogleAccountRevokeScreen.routeName,
+                    pageBuilder: (context, state) =>
+                        buildPageWithDefaultTransition<void>(
+                      context: context,
+                      state: state,
+                      child: GoogleAccountRevokeScreen(),
                     ),
                   ),
                 ])
@@ -234,7 +252,6 @@ class RouterProvider extends ChangeNotifier {
         GoRoute(
           path: "/splash",
           name: SplashScreen.routeName,
-          // builder: (context, state) => const SplashScreen(),
           pageBuilder: (context, state) => buildPageWithDefaultTransition<void>(
             context: context,
             state: state,
@@ -247,8 +264,6 @@ class RouterProvider extends ChangeNotifier {
     final UserModelBase? user = ref.read(userProvider);
 
     final loginRoute = state.matchedLocation == '/login';
-    final joinRoute = state.matchedLocation == '/join';
-    final resetPasswordRoute = state.matchedLocation == '/resetPassword';
     final splashRoute = state.matchedLocation == '/splash';
     if (user is UserModelError) {
       print(user.message);
@@ -261,7 +276,7 @@ class RouterProvider extends ChangeNotifier {
     // UserModelError
     // 무조건 login페이지로 이동
     if (user == null || user is UserModelError) {
-      return loginRoute || joinRoute || resetPasswordRoute ? null : '/login';
+      return loginRoute ? null : '/login';
     }
 
     // user가 null이 아님
@@ -271,9 +286,7 @@ class RouterProvider extends ChangeNotifier {
     // 로그인 중이거나 현재 위치가 SplashScreen이면
     // 홈으로 이동
     if (user is UserModel) {
-      return loginRoute || joinRoute || resetPasswordRoute || splashRoute
-          ? '/'
-          : null;
+      return loginRoute || splashRoute ? '/' : null;
     }
 
     return null;
