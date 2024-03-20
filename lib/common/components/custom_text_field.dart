@@ -31,6 +31,9 @@ class CustomTextField extends StatelessWidget {
         ),
         decoration: underline
             ? const InputDecoration(
+                counterStyle: TextStyle(
+                  color: Colors.white,
+                ),
                 isDense: true,
                 enabledBorder: UnderlineInputBorder(
                   borderSide: BorderSide(

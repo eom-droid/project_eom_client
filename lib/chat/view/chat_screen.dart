@@ -188,7 +188,7 @@ class _NewChatNotifier extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final chatProvidr = ref.watch(chatProvider(roomId));
-    final chatState = chatProvidr.state;
+    final chatState = chatProvidr.currentState;
 
     if (chatState is CursorPagination<ChatModel> &&
         chatState.data.isNotEmpty &&
@@ -238,7 +238,7 @@ class _ChatPreviewWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final chatState = ref.watch(chatProvider(roomId)).state;
+    final chatState = ref.watch(chatProvider(roomId)).currentState;
 
     return body(
       lastChat: chatState is CursorPagination

@@ -78,7 +78,7 @@ class UserStateNotifier extends StateNotifier<UserModelBase?> {
       file: profileImg == null ? [] : [profileImg],
     );
     final pState = state as UserModel;
-    print(result.profileImg);
+
     state = pState.copyWith(
       nickname: result.nickname,
       profileImg: result.profileImg,

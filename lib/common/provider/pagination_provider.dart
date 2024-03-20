@@ -76,7 +76,6 @@ class PaginationNotifier<T extends IModelWithId,
     final fetchCount = info.fetchCount;
     final fetchMore = info.fetchMore;
     final forceRefetch = info.forceRefetch;
-
     try {
       // 5가지 상태
       // 1. CursorPagination - 정상적인 데이터 존재 상태

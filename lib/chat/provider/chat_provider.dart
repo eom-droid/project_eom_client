@@ -73,13 +73,13 @@ class ChatManageStateNotifier
 }
 
 class ChatPagination {
-  final CursorPaginationBase state;
+  final CursorPaginationBase currentState;
   // 한번도 읽지 않았다면 null
   final Map<String, String?> memberLastReadChatMap;
   final String roomId;
 
   ChatPagination({
-    required this.state,
+    required this.currentState,
     required this.memberLastReadChatMap,
     required this.roomId,
   });
@@ -90,7 +90,7 @@ class ChatPagination {
     String? roomId,
   }) {
     return ChatPagination(
-      state: state ?? this.state,
+      currentState: state ?? currentState,
       memberLastReadChatMap:
           memberLastReadChatMap ?? this.memberLastReadChatMap,
       roomId: roomId ?? this.roomId,
@@ -113,7 +113,7 @@ class ChatStateNotifier extends StateNotifier<ChatPagination> {
     required this.me,
     required Map<String, String?> memberLastReadChatMap,
   }) : super(ChatPagination(
-          state: CursorPaginationLoading(),
+          currentState: CursorPaginationLoading(),
           memberLastReadChatMap: memberLastReadChatMap,
           roomId: roomId,
         )) {
@@ -228,7 +228,7 @@ class ChatStateNotifier extends StateNotifier<ChatPagination> {
     }
 
     CursorPagination<ChatModel> pState;
-    final state = this.state.state;
+    final state = this.state.currentState;
     // 2. 현재 state가 CursorpaginationError 이면 throw.
     if (state is CursorPaginationError) {
       throw Exception('채팅을 불러오는데 실패하였습니다.');
@@ -308,7 +308,7 @@ class ChatStateNotifier extends StateNotifier<ChatPagination> {
     if (statusCode < 200 || statusCode >= 300) {
       throw Exception('채팅을 불러오는데 실패하였습니다.');
     }
-    final state = this.state.state;
+    final state = this.state.currentState;
 
     CursorPagination<ChatModel> pState;
     // 2. 현재 state가 CursorpaginationError 이면 throw.
@@ -326,7 +326,6 @@ class ChatStateNotifier extends StateNotifier<ChatPagination> {
       this.state = this.state.copyWith(state: resp.copyWith());
       return;
     }
-
     pState = state as CursorPagination<ChatModel>;
     this.state = this.state.copyWith(
             state: resp.copyWith(data: [
@@ -345,7 +344,7 @@ class ChatStateNotifier extends StateNotifier<ChatPagination> {
         final tempMessageId = resObj['tempMessageId'];
 
         CursorPagination<ChatModel> pState;
-        final state = this.state.state;
+        final state = this.state.currentState;
 
         if (state is CursorPagination) {
           pState = state as CursorPagination<ChatModel>;
@@ -450,8 +449,8 @@ class ChatStateNotifier extends StateNotifier<ChatPagination> {
 
       // 1번 반환 상황
       // 현재 값이 있는 상태이며(CusroPagination) 강제 refetch가 아닌 경우
-      if (state is CursorPagination && !forceRefetch) {
-        final pState = state as CursorPagination;
+      if (state.currentState is CursorPagination && !forceRefetch) {
+        final pState = state.currentState as CursorPagination;
 
         // 데이터가 더이상 없는 경우
         if (!pState.meta.hasMore) {
@@ -475,7 +474,7 @@ class ChatStateNotifier extends StateNotifier<ChatPagination> {
       // fetchMore 상황
       // 데이터를 추가로 더 가져오기
       if (fetchMore) {
-        final pState = state as CursorPagination<ChatModel>;
+        final pState = state.currentState as CursorPagination<ChatModel>;
 
         state = state.copyWith(
           state: CursorPaginationFetchingMore(
@@ -506,7 +505,6 @@ class ChatStateNotifier extends StateNotifier<ChatPagination> {
         }
         paginationParams = _generateParams(null, fetchCount, fetchMore);
       }
-
       repository.paginate(
         paginationParams: paginationParams,
       );
@@ -541,7 +539,7 @@ class ChatStateNotifier extends StateNotifier<ChatPagination> {
   sendMessage({
     required String content,
   }) async {
-    final state = this.state.state;
+    final state = this.state.currentState;
     // 1. state가 CursorPagination인지 확인 + user가 UserWithTokenModel인지 확인
     if (state is CursorPagination) {
       final accessToken =
@@ -585,7 +583,7 @@ class ChatStateNotifier extends StateNotifier<ChatPagination> {
   resendMessage({
     required String tempMessageId,
   }) async {
-    final state = this.state.state;
+    final state = this.state.currentState;
 
     if (state is CursorPagination) {
       await ref.read(userProvider.notifier).getAccessTokenByRefreshToken();

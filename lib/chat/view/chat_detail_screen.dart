@@ -86,7 +86,7 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen>
     required ChatRoomModel? room,
     required UserModel me,
   }) {
-    final chatState = state.state;
+    final chatState = state.currentState;
     // 에러 발생 시
     if (chatState is CursorPaginationError) {
       return CursorPaginationErrorComp(
@@ -155,7 +155,7 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen>
     required ChatRoomModel room,
     required UserModel me,
   }) {
-    final cp = chatState.state as CursorPagination<ChatModel>;
+    final cp = chatState.currentState as CursorPagination<ChatModel>;
     // final members = room.members;
     return SafeArea(
       bottom: true,

@@ -10,8 +10,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
-typedef FutureBoolCallback = Future<bool> Function();
-
 class LoginScreen extends ConsumerStatefulWidget {
   static String get routerName => "login";
 

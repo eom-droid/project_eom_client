@@ -38,8 +38,8 @@ class ProfileModify extends ConsumerWidget {
         ),
         actions: [
           TextButton(
-            onPressed: () {
-              onPressdSave(
+            onPressed: () async {
+              await onPressdSave(
                 context: context,
                 ref: ref,
               );
@@ -132,6 +132,7 @@ class ProfileModify extends ConsumerWidget {
         context.pop();
       });
     } catch (error) {
+      print(error);
       FullLoadingScreen(context).stopLoading();
     }
   }

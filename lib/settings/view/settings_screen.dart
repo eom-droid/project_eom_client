@@ -70,7 +70,6 @@ class SettingsScreen extends ConsumerWidget {
                       child: const Padding(
                         padding: EdgeInsets.symmetric(
                           vertical: 12,
-                          horizontal: 8,
                         ),
                         child: Text(
                           "이용 약관",
@@ -91,7 +90,6 @@ class SettingsScreen extends ConsumerWidget {
                       child: const Padding(
                         padding: EdgeInsets.symmetric(
                           vertical: 12,
-                          horizontal: 8,
                         ),
                         child: Text(
                           "개인정보 처리 방침",

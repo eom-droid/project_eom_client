@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 class CustomCircleAvatar extends StatelessWidget {
@@ -23,16 +22,24 @@ class CustomCircleAvatar extends StatelessWidget {
         width: size,
         height: size,
         child: url != null
-            ? CachedNetworkImage(
-                fit: BoxFit.cover,
-                imageUrl: url!,
-                errorWidget: (context, url, error) => questionMark(
+            ? Image.network(url!, fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                return questionMark(
                   size,
-                ),
-                errorListener: (value) {
-                  print('errorListener: $value');
-                },
-              )
+                );
+              })
+            // 나중에 손봐야될듯 캐시를 사용하니까 프로필을 변경할때 문제가 생김
+            // ? CachedNetworkImage(
+            //     fit: BoxFit.cover,
+            //     imageUrl: url!,
+            //     cacheKey: "???",
+            //     errorWidget: (context, url, error) => questionMark(
+            //       size,
+            //     ),
+            //     errorListener: (value) {
+            //       print('errorListener: $value');
+            //     },
+            //   )
             : questionMark(
                 size,
               ),
