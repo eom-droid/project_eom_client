@@ -6,6 +6,7 @@ import 'package:client/common/components/full_loading_screen.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:client/common/style/button/custom_outlined_button_style.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class CustomImgInput extends StatefulWidget {
   final String imgPath;
@@ -148,8 +149,30 @@ class _CustomImgInputState extends State<CustomImgInput> {
       }
     } catch (e) {
       // 1. not supported image file(ex : heic)
-      if (e is PlatformException) {
-        widget.imageError("지원하지 않는 이미지 파일입니다.");
+      if (e is PlatformException && e.code == 'photo_access_denied') {
+        // 기본 toast 보여주기
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('갤러리 접근 권한을 허용해주세요.'),
+                TextButton(
+                  onPressed: () async {
+                    var status = await Permission.photos.status;
+                    if (status.isDenied) {
+                      openAppSettings();
+                    }
+                  },
+                  child: const Text(
+                    '권한 설정',
+                    style: TextStyle(color: PRIMARY_COLOR),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
       } else {
         widget.imageError("예기치 못한 오류가 발생했습니다.");
       }

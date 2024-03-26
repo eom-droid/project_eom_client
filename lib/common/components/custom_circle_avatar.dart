@@ -22,12 +22,15 @@ class CustomCircleAvatar extends StatelessWidget {
         width: size,
         height: size,
         child: url != null
-            ? Image.network(url!, fit: BoxFit.cover,
+            ? Image.network(
+                url!,
+                fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) {
-                return questionMark(
-                  size,
-                );
-              })
+                  return questionMark(
+                    size,
+                  );
+                },
+              )
             // 나중에 손봐야될듯 캐시를 사용하니까 프로필을 변경할때 문제가 생김
             // ? CachedNetworkImage(
             //     fit: BoxFit.cover,

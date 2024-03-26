@@ -21,18 +21,20 @@ class CustomVideoPlayerState extends State<CustomVideoPlayer> {
 
   @override
   void initState() {
+    print("custom_video_player : initState called");
     super.initState();
     initializeController();
   }
 
   @override
   void dispose() {
+    print("custom_video_player : dispose called");
     widget.videoController.removeListener(updateSlider);
     super.dispose();
   }
 
   initializeController() {
-    updateSlider();
+    // updateSlider();
     if (!widget.videoController.value.isInitialized) {
       widget.videoController.initialize().then((value) => setState(() {}));
     }
@@ -41,6 +43,7 @@ class CustomVideoPlayerState extends State<CustomVideoPlayer> {
   }
 
   updateSlider() {
+    print("custom_video_player : updateSlider called");
     final currentPosition = widget.videoController.value.position;
     setState(() {
       this.currentPosition = currentPosition;
@@ -54,11 +57,9 @@ class CustomVideoPlayerState extends State<CustomVideoPlayer> {
         width: MediaQuery.of(context).size.width,
         height: MediaQuery.of(context).size.width,
         child: const Center(
-          child: LinearProgressIndicator(
-            color: PRIMARY_COLOR,
-            backgroundColor: INPUT_BG_COLOR,
-          ),
-        ),
+            child: CircularProgressIndicator(
+          color: PRIMARY_COLOR,
+        )),
       );
     }
     return AspectRatio(

@@ -27,7 +27,7 @@ class DiaryScreen extends ConsumerWidget {
           cp: cp,
           ref: ref,
           context: context,
-          controller: controller,
+          // controller: controller,
         );
       },
       sliverAppBar: _renderAppBar(context),
@@ -71,7 +71,6 @@ class DiaryScreen extends ConsumerWidget {
     required CursorPagination cp,
     required WidgetRef ref,
     required BuildContext context,
-    required ScrollController controller,
   }) {
     final diaryList = cp.data;
     if (vidControllers == null) {

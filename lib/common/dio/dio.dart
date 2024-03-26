@@ -86,14 +86,15 @@ class CustomInterceptor extends Interceptor {
     }
 
     final isStatus401 = err.response?.statusCode == 401;
-    final isPathRefresh = err.requestOptions.path == '/auth/token';
+    final isPathRefresh =
+        err.requestOptions.path == '/api/v1/auth/access-token';
 
     if (isStatus401 && !isPathRefresh) {
       final dio = Dio();
 
       try {
         final resp = await dio.post(
-          'http://$ip/auth/token',
+          'http://$ip/api/v1/auth/access-token',
           options: Options(
             headers: {
               'authorization': 'Bearer $refreshToken',

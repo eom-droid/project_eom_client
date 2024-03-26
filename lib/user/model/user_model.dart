@@ -39,7 +39,7 @@ class UserModel extends UserModelBase {
     defaultValue: RoleType.user,
     fromJson: DataUtils.numberToRoleType,
   )
-  final RoleType? role;
+  final RoleType role;
 
   UserModel({
     required this.id,
@@ -51,23 +51,38 @@ class UserModel extends UserModelBase {
     required this.role,
   });
 
-  copyWith({
-    String? id,
-    String? email,
+  // copyWith({
+  //   String? id,
+  //   String? email,
+  //   String? nickname,
+  //   String? profileImg,
+  //   String? snsId,
+  //   String? provider,
+  //   RoleType? role,
+  // }) {
+  //   return UserModel(
+  //     id: id ?? this.id,
+  //     email: email ?? this.email,
+  //     nickname: nickname ?? this.nickname,
+  //     profileImg: profileImg ?? this.profileImg,
+  //     snsId: snsId ?? this.snsId,
+  //     provider: provider ?? this.provider,
+  //     role: role ?? this.role,
+  //   );
+  // }
+
+  changeProfile({
     String? nickname,
     String? profileImg,
-    String? snsId,
-    String? provider,
-    RoleType? role,
   }) {
     return UserModel(
-      id: id ?? this.id,
-      email: email ?? this.email,
+      id: id,
+      email: email,
       nickname: nickname ?? this.nickname,
-      profileImg: profileImg ?? this.profileImg,
-      snsId: snsId ?? this.snsId,
-      provider: provider ?? this.provider,
-      role: role ?? this.role,
+      profileImg: profileImg,
+      snsId: snsId,
+      provider: provider,
+      role: role,
     );
   }
 

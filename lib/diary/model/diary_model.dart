@@ -69,6 +69,7 @@ class DiaryModel implements IModelWithId {
     DateTime? createdAt,
     int? likeCount,
     bool? isLike,
+    int? commentCount,
   }) {
     return DiaryModel(
       id: id ?? this.id,

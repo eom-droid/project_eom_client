@@ -39,6 +39,7 @@ class _DiaryDetailScreenState extends ConsumerState<DiaryDetailScreen> {
   Map<String, VideoPlayerController> vidControllers = {};
   TextEditingController commentTextController = TextEditingController();
   bool commentLoading = false;
+  ScrollController scrollController = ScrollController();
 
   @override
   void initState() {
@@ -75,6 +76,7 @@ class _DiaryDetailScreenState extends ConsumerState<DiaryDetailScreen> {
         child: CustomScrollView(
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           physics: const BouncingScrollPhysics(),
+          controller: scrollController,
           slivers: [
             _renderThumbnail(model: state),
             _renderBasicInfo(model: state),
@@ -94,6 +96,7 @@ class _DiaryDetailScreenState extends ConsumerState<DiaryDetailScreen> {
             if (state is DiaryDetailModel)
               _renderCommentCountAndInput(
                 me: ref.read(userProvider) as UserModel,
+                commentCount: state.commentCount,
                 onTapAddComment: () async {
                   if (commentLoading) return;
                   // 1. commentLoading 활성화
@@ -128,6 +131,7 @@ class _DiaryDetailScreenState extends ConsumerState<DiaryDetailScreen> {
             if (state is DiaryDetailModel)
               _RenderComment(
                 id: state.id,
+                scrollController: scrollController,
               ),
           ],
         ),
@@ -419,6 +423,7 @@ class _DiaryDetailScreenState extends ConsumerState<DiaryDetailScreen> {
     required VoidCallback onTapAddComment,
     required bool commentLoading,
     required UserModel me,
+    required int commentCount,
   }) {
     return SliverToBoxAdapter(
       child: Padding(
@@ -427,7 +432,7 @@ class _DiaryDetailScreenState extends ConsumerState<DiaryDetailScreen> {
           Row(
             children: [
               Text(
-                "댓글 ${DataUtils.number2Unit.format(1)}개",
+                "댓글 ${DataUtils.number2Unit.format(commentCount)}개",
                 style: const TextStyle(
                   color: BODY_TEXT_COLOR,
                   fontSize: 16.0,
@@ -498,18 +503,22 @@ class _DiaryDetailScreenState extends ConsumerState<DiaryDetailScreen> {
 
 class _RenderComment extends ConsumerWidget {
   final String id;
+  final ScrollController scrollController;
   const _RenderComment({
     required this.id,
+    required this.scrollController,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final user = ref.watch(userProvider) as UserModel;
+    final user = ref.read(userProvider) as UserModel;
     return SliverToBoxAdapter(
       child: DefaultScrollBasePaginationLayout<DiaryCommentModel>(
         provider: diaryCommentProvider(id),
+        controller: scrollController,
         body: (CursorPagination cp, ScrollController controller) {
           return _renderCommentList(
+            scrollController: controller,
             cp: cp as CursorPagination<DiaryCommentModel>,
             onTapLike: (String commentId) {
               ref.read(diaryCommentProvider(id).notifier).toggleLike(
@@ -553,6 +562,7 @@ class _RenderComment extends ConsumerWidget {
   }
 
   Widget _renderCommentList({
+    required ScrollController scrollController,
     required CursorPagination<DiaryCommentModel> cp,
     required Function(String commentId) onTapLike,
     required Function(String commentId) onDeleteComment,

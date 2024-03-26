@@ -40,9 +40,21 @@ abstract class UserRepository {
     @Part(name: "file") required List<MultipartFile> file,
   });
 
-  @DELETE("/me")
+  @DELETE("/me/email")
   @Headers({
     'accessToken': 'true',
   })
-  Future<void> deleteUser();
+  Future<void> deleteEmailUser();
+
+  @DELETE("/me/kakao")
+  @Headers({
+    'accessToken': 'true',
+  })
+  Future<void> deleteKakaoUser();
+
+  @POST("/logout")
+  @Headers({
+    'accessToken': 'true',
+  })
+  Future<void> logout();
 }

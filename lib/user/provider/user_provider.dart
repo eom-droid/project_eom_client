@@ -77,9 +77,10 @@ class UserStateNotifier extends StateNotifier<UserModelBase?> {
       profile: profile,
       file: profileImg == null ? [] : [profileImg],
     );
+
     final pState = state as UserModel;
 
-    state = pState.copyWith(
+    state = pState.changeProfile(
       nickname: result.nickname,
       profileImg: result.profileImg,
     );
@@ -193,12 +194,23 @@ class UserStateNotifier extends StateNotifier<UserModelBase?> {
   }
 
   logout() async {
+    await userRepository.logout();
     await secureStorage.deleteAll();
+
     state = null;
   }
 
   revokeAccount() async {
-    await userRepository.deleteUser();
+    if (state == null) {
+      return;
+    }
+    final pState = state as UserModel;
+    if (pState.provider == "kakao") {
+      await userRepository.deleteKakaoUser();
+    } else {
+      await userRepository.deleteEmailUser();
+    }
+
     await secureStorage.deleteAll();
     state = null;
   }

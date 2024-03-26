@@ -20,6 +20,9 @@ class SettingsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final me = ref.watch(userProvider);
+    if (me != null) {
+      print((me as UserModel).profileImg);
+    }
 
     return DefaultLayout(
       backgroundColor: BACKGROUND_BLACK,
@@ -39,181 +42,189 @@ class SettingsScreen extends ConsumerWidget {
           ? const Center(
               child: CircularProgressIndicator(),
             )
-          : Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const SizedBox(height: 50),
-                _profilePart(
-                  me: me as UserModel,
-                  context: context,
+          : SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.only(
+                  bottom: 50,
                 ),
-                const SizedBox(height: 50),
-                Column(
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const Text(
-                      "서비스 안내",
-                      style: TextStyle(
-                        color: GRAY_TEXT_COLOR,
-                        fontSize: 14.0,
-                      ),
+                    const SizedBox(height: 50),
+                    _profilePart(
+                      me: me as UserModel,
+                      context: context,
                     ),
-                    const SizedBox(
-                      height: 10,
-                    ),
-                    InkWell(
-                      onTap: () {
-                        context.pushNamed(
-                          TermsOfUseScreen.routeName,
-                        );
-                      },
-                      child: const Padding(
-                        padding: EdgeInsets.symmetric(
-                          vertical: 12,
-                        ),
-                        child: Text(
-                          "이용 약관",
+                    const SizedBox(height: 50),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        const Text(
+                          "서비스 안내",
                           style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 18.0,
-                            fontWeight: FontWeight.w600,
+                            color: GRAY_TEXT_COLOR,
+                            fontSize: 14.0,
                           ),
                         ),
-                      ),
-                    ),
-                    InkWell(
-                      onTap: () {
-                        context.pushNamed(
-                          PrivacyPolicyScreen.routeName,
-                        );
-                      },
-                      child: const Padding(
-                        padding: EdgeInsets.symmetric(
-                          vertical: 12,
+                        const SizedBox(
+                          height: 10,
                         ),
-                        child: Text(
-                          "개인정보 처리 방침",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 18.0,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 150),
-                InkWell(
-                  child: const Padding(
-                    padding: EdgeInsets.symmetric(
-                      vertical: 10,
-                    ),
-                    child: Text(
-                      "로그아웃",
-                      style: TextStyle(
-                        color: Colors.red,
-                        fontSize: 18.0,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                  onTap: () {
-                    ref.read(userProvider.notifier).logout();
-                  },
-                ),
-                const SizedBox(height: 100),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    InkWell(
-                      onTap: () {
-                        showDialog(
-                          context: context,
-                          builder: (context) {
-                            return AlertDialog(
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10.0),
-                              ),
-                              backgroundColor: BACKGROUND_BLACK,
-                              content: Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const Text(
-                                    '정말로 탈퇴하시겠습니까?',
-                                    style: TextStyle(
-                                      color: Colors.red,
-                                      fontSize: 18.0,
-                                    ),
-                                  ),
-                                  const SizedBox(
-                                    height: 12,
-                                  ),
-                                  if (me.provider != null &&
-                                      me.provider != kakao)
-                                    Text(
-                                      "* ${me.provider == 'google' ? '구글' : '애플'} 계정으로 가입하신경우에는 탈퇴를 위한 인증 1회가 필요합니다.",
-                                      style: const TextStyle(
-                                        color: GRAY_TEXT_COLOR,
-                                      ),
-                                    ),
-                                ],
-                              ),
-                              actions: [
-                                TextButton(
-                                  onPressed: () {
-                                    Navigator.pop(context);
-                                    // 자체 로그인과 카카오 로그인은 바로 탈퇴
-                                    if (me.provider == null ||
-                                        me.provider == kakao) {
-                                      ref
-                                          .read(userProvider.notifier)
-                                          .revokeAccount();
-                                      // 구글과 애플은 추가 인증이 필요
-                                    } else if (me.provider == google) {
-                                      context.pushNamed(
-                                        GoogleAccountRevokeScreen.routeName,
-                                      );
-                                    } else if (me.provider == apple) {
-                                      context.pushNamed(
-                                        AppleAccountRevokeScreen.routeName,
-                                      );
-                                    }
-                                  },
-                                  child: const Text(
-                                    '탈퇴',
-                                    style: TextStyle(
-                                      color: Colors.red,
-                                    ),
-                                  ),
-                                ),
-                                TextButton(
-                                  onPressed: () {
-                                    Navigator.pop(context);
-                                  },
-                                  child: const Text(
-                                    '취소',
-                                    style: TextStyle(),
-                                  ),
-                                ),
-                              ],
+                        InkWell(
+                          onTap: () {
+                            context.pushNamed(
+                              TermsOfUseScreen.routeName,
                             );
                           },
-                        );
-                      },
-                      child: const Text(
-                        "엄태호(Eom Tae Ho) 탈퇴",
-                        style: TextStyle(
-                          decoration: TextDecoration.underline,
-                          color: BODY_TEXT_COLOR,
-                          fontSize: 14.0,
+                          child: const Padding(
+                            padding: EdgeInsets.symmetric(
+                              vertical: 12,
+                            ),
+                            child: Text(
+                              "이용 약관",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 18.0,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
+                        InkWell(
+                          onTap: () {
+                            context.pushNamed(
+                              PrivacyPolicyScreen.routeName,
+                            );
+                          },
+                          child: const Padding(
+                            padding: EdgeInsets.symmetric(
+                              vertical: 12,
+                            ),
+                            child: Text(
+                              "개인정보 처리 방침",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 18.0,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 150),
+                    InkWell(
+                      child: const Padding(
+                        padding: EdgeInsets.symmetric(
+                          vertical: 10,
+                        ),
+                        child: Text(
+                          "로그아웃",
+                          style: TextStyle(
+                            color: Colors.red,
+                            fontSize: 18.0,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
-                    )
+                      onTap: () {
+                        ref.read(userProvider.notifier).logout();
+                      },
+                    ),
+                    const SizedBox(height: 100),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        InkWell(
+                          onTap: () {
+                            showDialog(
+                              context: context,
+                              builder: (context) {
+                                return AlertDialog(
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10.0),
+                                  ),
+                                  backgroundColor: BACKGROUND_BLACK,
+                                  content: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.stretch,
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Text(
+                                        '정말로 탈퇴하시겠습니까?',
+                                        style: TextStyle(
+                                          color: Colors.red,
+                                          fontSize: 18.0,
+                                        ),
+                                      ),
+                                      const SizedBox(
+                                        height: 12,
+                                      ),
+                                      if (me.provider != null &&
+                                          me.provider != kakao)
+                                        Text(
+                                          "* ${me.provider == 'google' ? '구글' : '애플'} 계정으로 가입하신경우에는 탈퇴를 위한 인증 1회가 필요합니다.",
+                                          style: const TextStyle(
+                                            color: GRAY_TEXT_COLOR,
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.pop(context);
+                                        // 자체 로그인과 카카오 로그인은 바로 탈퇴
+                                        if (me.provider == null ||
+                                            me.provider == kakao) {
+                                          ref
+                                              .read(userProvider.notifier)
+                                              .revokeAccount();
+                                          // 구글과 애플은 추가 인증이 필요
+                                        } else if (me.provider == google) {
+                                          context.pushNamed(
+                                            GoogleAccountRevokeScreen.routeName,
+                                          );
+                                        } else if (me.provider == apple) {
+                                          context.pushNamed(
+                                            AppleAccountRevokeScreen.routeName,
+                                          );
+                                        }
+                                      },
+                                      child: const Text(
+                                        '탈퇴',
+                                        style: TextStyle(
+                                          color: Colors.red,
+                                        ),
+                                      ),
+                                    ),
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.pop(context);
+                                      },
+                                      child: const Text(
+                                        '취소',
+                                        style: TextStyle(),
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                          },
+                          child: const Text(
+                            "엄태호(Eom Tae Ho) 탈퇴",
+                            style: TextStyle(
+                              decoration: TextDecoration.underline,
+                              color: BODY_TEXT_COLOR,
+                              fontSize: 14.0,
+                            ),
+                          ),
+                        )
+                      ],
+                    ),
                   ],
                 ),
-              ],
+              ),
             ),
     );
   }

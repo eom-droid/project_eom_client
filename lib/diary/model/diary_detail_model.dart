@@ -29,6 +29,8 @@ class DiaryDetailModel extends DiaryModel {
 
   final List<DiaryCommentModel>? comments;
 
+  final int commentCount;
+
   DiaryDetailModel({
     required super.id,
     required super.title,
@@ -45,6 +47,7 @@ class DiaryDetailModel extends DiaryModel {
     required super.likeCount,
     required super.isLike,
     this.comments,
+    required this.commentCount,
   });
 
   @override
@@ -64,6 +67,7 @@ class DiaryDetailModel extends DiaryModel {
     int? likeCount,
     bool? isLike,
     List<DiaryCommentModel>? comments,
+    int? commentCount,
   }) {
     return DiaryDetailModel(
       id: id ?? this.id,
@@ -81,6 +85,7 @@ class DiaryDetailModel extends DiaryModel {
       likeCount: likeCount ?? this.likeCount,
       isLike: isLike ?? this.isLike,
       comments: comments ?? this.comments,
+      commentCount: commentCount ?? this.commentCount,
     );
   }
 
