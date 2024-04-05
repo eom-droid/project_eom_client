@@ -16,10 +16,10 @@ final diaryCommentRepositoryProvider =
     Provider.family<DiaryCommentRepository, String>((ref, diaryId) {
   final dio = ref.read(dioProvider);
 
-  String ip = dotenv.env['IP']!;
+  final String baseUrl = dotenv.env['REST_API_BASE_URL']!;
 
   return DiaryCommentRepository(dio,
-      baseUrl: 'http://$ip/api/v1/diaries/$diaryId/comment');
+      baseUrl: '$baseUrl/api/v1/diaries/$diaryId/comment');
 });
 
 @RestApi()

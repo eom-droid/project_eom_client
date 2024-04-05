@@ -4,6 +4,8 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 Future main() async {
+  // HttpOverrides.global =
+  //     NoCheckCertificateHttpOverrides(); // 생성된 HttpOverrides 객체 등록
   await dotenv.load(fileName: ".env");
   runApp(
     const ProviderScope(child: _App()),
@@ -27,3 +29,12 @@ class _App extends ConsumerWidget {
     );
   }
 }
+
+// class NoCheckCertificateHttpOverrides extends HttpOverrides {
+//   @override
+//   HttpClient createHttpClient(SecurityContext? context) {
+//     return super.createHttpClient(context)
+//       ..badCertificateCallback =
+//           (X509Certificate cert, String host, int port) => true;
+//   }
+// }

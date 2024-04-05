@@ -13,9 +13,9 @@ part 'user_repository.g.dart';
 final userRepositoryProvider = Provider<UserRepository>((ref) {
   final dio = ref.read(dioProvider);
 
-  String ip = dotenv.env['IP']!;
+  final String baseUrl = dotenv.env['REST_API_BASE_URL']!;
 
-  return UserRepository(dio, baseUrl: 'http://$ip/api/v1/user');
+  return UserRepository(dio, baseUrl: '$baseUrl/api/v1/user');
 });
 
 @RestApi()

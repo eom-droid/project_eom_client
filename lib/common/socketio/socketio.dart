@@ -4,6 +4,7 @@ import 'package:client/chat/provider/chat_room_provider.dart';
 import 'package:client/common/const/data.dart';
 import 'package:client/common/provider/secure_storage.dart';
 import 'package:client/user/provider/user_provider.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 
@@ -43,8 +44,10 @@ class SocketIO {
       socket!.dispose();
       socket = null;
     }
+    String baseUrl = dotenv.env['CHAT_SERVER_IP']!;
+
     socket = IO.io(
-      'http://localhost:3002/chat',
+      '$baseUrl/chat',
       IO.OptionBuilder().disableAutoConnect().build(),
     );
     String accessToken = "";
@@ -62,7 +65,7 @@ class SocketIO {
       'path': '/project-eom/chat-server',
       'transports': ['websocket'],
       'autoConnect': false,
-      'extraHeaders': {'authorization': 'Bearer $accessToken'}
+      'extraHeaders': {'authorization': 'Bearer $accessToken'},
     };
 
     // 연결 실패시의 이벤트 핸들러
@@ -75,7 +78,11 @@ class SocketIO {
     }
 
     // 연결 시작
-    socket!.connect();
+    try {
+      socket!.connect();
+    } catch (e) {
+      print(e);
+    }
   }
 
   Future<bool> socketConnected() async {

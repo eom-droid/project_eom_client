@@ -17,9 +17,9 @@ part 'diary_repository.g.dart';
 final diaryRepositoryProvider = Provider<DiaryRepository>((ref) {
   final dio = ref.read(dioProvider);
 
-  String ip = dotenv.env['IP']!;
+  final String baseUrl = dotenv.env['REST_API_BASE_URL']!;
 
-  return DiaryRepository(dio, baseUrl: 'http://$ip/api/v1/diaries');
+  return DiaryRepository(dio, baseUrl: '$baseUrl/api/v1/diaries');
 });
 
 @RestApi()

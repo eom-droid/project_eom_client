@@ -84,179 +84,80 @@ class RouterProvider extends ChangeNotifier {
         GoRoute(
           path: '/',
           name: RootTab.routeName,
-          // builder: (_, __) => const RootTab(),
-          pageBuilder: (context, state) => buildPageWithDefaultTransition<void>(
-            context: context,
-            state: state,
-            child: const RootTab(),
-          ),
+          builder: (_, __) => const RootTab(),
           routes: [
             GoRoute(
               path: 'diary',
               name: DiaryScreen.routeName,
-              // builder: (_, state) => DiaryScreen(),
-              pageBuilder: (context, state) =>
-                  buildPageWithDefaultTransition<void>(
-                context: context,
-                state: state,
-                child: DiaryScreen(),
-              ),
+              builder: (_, state) => DiaryScreen(),
             ),
             GoRoute(
               path: 'diary/:rid',
               name: DiaryDetailScreen.routeName,
-              // builder: (_, state) => DiaryDetailScreen(
-              //   id: state.pathParameters['rid']!,
-              // ),
-              pageBuilder: (context, state) =>
-                  buildPageWithDefaultTransition<void>(
-                context: context,
-                state: state,
-                child: DiaryDetailScreen(
-                  id: state.pathParameters['rid']!,
-                ),
+              builder: (_, state) => DiaryDetailScreen(
+                id: state.pathParameters['rid']!,
               ),
             ),
             GoRoute(
               path: 'music',
               name: MusicScreen.routeName,
-              // builder: (_, state) => MusicScreen(),
-              pageBuilder: (context, state) =>
-                  buildPageWithDefaultTransition<void>(
-                context: context,
-                state: state,
-                child: MusicScreen(),
-              ),
+              builder: (_, state) => MusicScreen(),
             ),
             GoRoute(
               path: 'chat',
               name: ChatScreen.routeName,
-              pageBuilder: (context, state) =>
-                  buildPageWithDefaultTransition<void>(
-                context: context,
-                state: state,
-                child: const ChatScreen(),
-              ),
+              builder: (context, state) => const ChatScreen(),
             ),
             GoRoute(
               path: 'chat/:rid',
               name: ChatDetailScreen.routeName,
-              // builder: (_, state) => ChatDetailScreen(
-              //   id: state.pathParameters['rid']!,
-              // ),
-              pageBuilder: (context, state) =>
-                  buildPageWithDefaultTransition<void>(
-                context: context,
-                state: state,
-                child: ChatDetailScreen(
-                  id: state.pathParameters['rid']!,
-                ),
+              builder: (_, state) => ChatDetailScreen(
+                id: state.pathParameters['rid']!,
               ),
             ),
             GoRoute(
               path: "login",
               name: LoginScreen.routerName,
-              // builder: (context, state) => const LoginScreen(),
-              pageBuilder: (context, state) =>
-                  buildPageWithDefaultTransition<void>(
-                context: context,
-                state: state,
-                child: const LoginScreen(),
-              ),
+              builder: (context, state) => const LoginScreen(),
             ),
-            // GoRoute(
-            //   path: "join",
-            //   name: JoinScreen.routeName,
-            //   // builder: (context, state) => const JoinScreen(),
-            //   pageBuilder: (context, state) =>
-            //       buildPageWithDefaultTransition<void>(
-            //     context: context,
-            //     state: state,
-            //     child: const JoinScreen(),
-            //   ),
-            // ),
-            // GoRoute(
-            //   path: "resetPassword",
-            //   name: ResetPasswordScreen.routeName,
-            //   // builder: (context, state) => const ResetPasswordScreen(),
-            //   pageBuilder: (context, state) =>
-            //       buildPageWithDefaultTransition<void>(
-            //     context: context,
-            //     state: state,
-            //     child: const ResetPasswordScreen(),
-            //   ),
-            // ),
             GoRoute(
-                path: "settings",
-                name: SettingsScreen.routeName,
-                pageBuilder: (context, state) =>
-                    buildPageWithDefaultTransition<void>(
-                      context: context,
-                      state: state,
-                      child: const SettingsScreen(),
-                    ),
-                routes: [
-                  GoRoute(
-                    path: "privacyPolicy",
-                    name: PrivacyPolicyScreen.routeName,
-                    pageBuilder: (context, state) =>
-                        buildPageWithDefaultTransition<void>(
-                      context: context,
-                      state: state,
-                      child: PrivacyPolicyScreen(),
-                    ),
-                  ),
-                  GoRoute(
-                    path: "termsOfUse",
-                    name: TermsOfUseScreen.routeName,
-                    pageBuilder: (context, state) =>
-                        buildPageWithDefaultTransition<void>(
-                      context: context,
-                      state: state,
-                      child: TermsOfUseScreen(),
-                    ),
-                  ),
-                  GoRoute(
-                    path: "profileModify",
-                    name: ProfileModify.routeName,
-                    pageBuilder: (context, state) =>
-                        buildPageWithDefaultTransition<void>(
-                      context: context,
-                      state: state,
-                      child: ProfileModify(),
-                    ),
-                  ),
-                  GoRoute(
-                    path: "appleAccountRevoke",
-                    name: AppleAccountRevokeScreen.routeName,
-                    pageBuilder: (context, state) =>
-                        buildPageWithDefaultTransition<void>(
-                      context: context,
-                      state: state,
-                      child: AppleAccountRevokeScreen(),
-                    ),
-                  ),
-                  GoRoute(
-                    path: "googleAccountRevoke",
-                    name: GoogleAccountRevokeScreen.routeName,
-                    pageBuilder: (context, state) =>
-                        buildPageWithDefaultTransition<void>(
-                      context: context,
-                      state: state,
-                      child: GoogleAccountRevokeScreen(),
-                    ),
-                  ),
-                ])
+              path: "settings",
+              name: SettingsScreen.routeName,
+              builder: (context, state) => const SettingsScreen(),
+              routes: [
+                GoRoute(
+                  path: "privacyPolicy",
+                  name: PrivacyPolicyScreen.routeName,
+                  builder: (context, state) => PrivacyPolicyScreen(),
+                ),
+                GoRoute(
+                  path: "termsOfUse",
+                  name: TermsOfUseScreen.routeName,
+                  builder: (context, state) => TermsOfUseScreen(),
+                ),
+                GoRoute(
+                  path: "profileModify",
+                  name: ProfileModify.routeName,
+                  builder: (context, state) => ProfileModify(),
+                ),
+                GoRoute(
+                  path: "appleAccountRevoke",
+                  name: AppleAccountRevokeScreen.routeName,
+                  builder: (context, state) => AppleAccountRevokeScreen(),
+                ),
+                GoRoute(
+                  path: "googleAccountRevoke",
+                  name: GoogleAccountRevokeScreen.routeName,
+                  builder: (context, state) => GoogleAccountRevokeScreen(),
+                )
+              ],
+            )
           ],
         ),
         GoRoute(
           path: "/splash",
           name: SplashScreen.routeName,
-          pageBuilder: (context, state) => buildPageWithDefaultTransition<void>(
-            context: context,
-            state: state,
-            child: const SplashScreen(),
-          ),
+          builder: (_, __) => const SplashScreen(),
         ),
       ];
 

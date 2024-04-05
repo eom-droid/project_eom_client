@@ -67,6 +67,7 @@ class MusicScreen extends ConsumerWidget {
     required WidgetRef ref,
   }) {
     final musicList = cp.data as List<MusicModel>;
+    print(cp);
     return MediaQuery.removePadding(
       context: context,
       removeTop: true,

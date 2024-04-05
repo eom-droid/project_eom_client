@@ -16,13 +16,13 @@ final diaryReplyRepositoryProvider =
     Provider.family<DiaryReplyRepository, String>((ref, commentId) {
   final dio = ref.read(dioProvider);
 
-  String ip = dotenv.env['IP']!;
+  final String baseUrl = dotenv.env['REST_API_BASE_URL']!;
 
   return DiaryReplyRepository(
     dio,
     // diary의 id는 중요하지 않음 -> comment의 id가 중요함
     // 따라서 diaryId는 필요하지 않음
-    baseUrl: 'http://$ip/api/v1/diaries/temp/comment/$commentId/reply',
+    baseUrl: '$baseUrl/api/v1/diaries/temp/comment/$commentId/reply',
   );
 });
 

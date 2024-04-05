@@ -223,9 +223,12 @@ class MusicCard extends StatelessWidget {
 
   Future<void> launchSpotify(String spotifyId) async {
     if (await canLaunchUrlString('spotify:track:$spotifyId')) {
+      print("?????????????");
       await launchUrlString('spotify:track:$spotifyId',
           mode: LaunchMode.externalApplication);
     } else {
+      print("!!!!!!!!!!!!!");
+
       final String spotifyContent = "https://open.spotify.com/track/$spotifyId";
       if (await canLaunchUrlString(spotifyContent)) {
         await launchUrlString(spotifyContent);
@@ -233,6 +236,12 @@ class MusicCard extends StatelessWidget {
         throw 'Could not launch https://www.youtube.com/channel/UCwXdFgeE9KYzlDdR7TG9cMw';
       }
     }
+    // final url = 'https://open.spotify.com/track/$spotifyId';
+
+    // if (await canLaunchUrlString(url)) {
+    //   // await launchUrlString(url, mode: LaunchMode.externalApplication);
+    //   await launchUrlString(url, mode: LaunchMode.externalApplication);
+    // }
   }
 
   Future<void> launchYoutubeMusic(String youtubeMusicId) async {

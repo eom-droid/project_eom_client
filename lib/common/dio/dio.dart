@@ -20,7 +20,7 @@ final dioProvider = Provider<Dio>((ref) {
 class CustomInterceptor extends Interceptor {
   final FlutterSecureStorage storage;
   final Ref ref;
-  final String ip = dotenv.env['IP']!;
+  final String baseUrl = dotenv.env['REST_API_BASE_URL']!;
 
   CustomInterceptor({
     required this.ref,
@@ -74,7 +74,8 @@ class CustomInterceptor extends Interceptor {
     // 401에러가 났을때(status code)
     // 토큰을 재발급 받는 시도를하고 토큰이 재발급되면
     // 다시 새로운 토큰으로 요청을한다.
-    print('[ERROR] [${err.requestOptions.method}] ${err.requestOptions.uri}');
+    print(
+        '[ERROR] [${err.requestOptions.method}] [${err.response?.statusCode}] ${err.requestOptions.uri}');
 
     final refreshToken = await storage.read(key: REFRESH_TOKEN_KEY);
 
@@ -94,7 +95,7 @@ class CustomInterceptor extends Interceptor {
 
       try {
         final resp = await dio.post(
-          'http://$ip/api/v1/auth/access-token',
+          '$baseUrl/api/v1/auth/access-token',
           options: Options(
             headers: {
               'authorization': 'Bearer $refreshToken',
@@ -125,7 +126,8 @@ class CustomInterceptor extends Interceptor {
         // userMeProvider -> dioProvider -> userMeProvider -> dioProvider
         // 해결방법은 userMeProvider를 접근하여 Logout을 하는 형태가 아닌
         // 그것보다 상위에 있는 authProvider에서 logout을 하는 형태로 변경한다.
-        ref.read(userProvider.notifier).logout();
+        ref.read(userProvider.notifier).logoutWithoutRequest();
+
         return handler.reject(e);
       }
     }

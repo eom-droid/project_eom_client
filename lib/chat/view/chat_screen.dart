@@ -142,9 +142,9 @@ class ChatScreen extends ConsumerWidget {
                 mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(
-                    room.title,
-                    style: const TextStyle(
+                  const Text(
+                    "주인장",
+                    style: TextStyle(
                       color: Colors.white,
                       fontSize: 20.0,
                       fontWeight: FontWeight.bold,

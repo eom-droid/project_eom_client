@@ -192,6 +192,7 @@ class ChatStateNotifier extends StateNotifier<ChatPagination> {
 
   @override
   dispose() {
+    print("dispose");
     leaveRoom();
     repository.chatResponse.close();
     repository.socketOffAll();
@@ -386,16 +387,19 @@ class ChatStateNotifier extends StateNotifier<ChatPagination> {
       }
 
       final data = resObj['data'] as Map<String, dynamic>;
-      final joinUserId = data['userId'] as String;
-      final lastChatId = data['lastChatId'] as String;
+      if (data['lastChatId'] != null) {
+        final joinUserId = data['userId'] as String;
+        final lastChatId = data['lastChatId'] as String;
 
-      Map<String, String?> memberLastReadChatMap = state.memberLastReadChatMap;
+        Map<String, String?> memberLastReadChatMap =
+            state.memberLastReadChatMap;
 
-      memberLastReadChatMap[joinUserId] = lastChatId;
+        memberLastReadChatMap[joinUserId] = lastChatId;
 
-      state = state.copyWith(
-        memberLastReadChatMap: memberLastReadChatMap,
-      );
+        state = state.copyWith(
+          memberLastReadChatMap: memberLastReadChatMap,
+        );
+      }
     } catch (e) {
       print(e);
     }

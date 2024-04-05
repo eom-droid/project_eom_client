@@ -32,6 +32,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       ..addJavaScriptChannel(
         "toApp",
         onMessageReceived: (JavaScriptMessage msg) {
+          print(msg.message);
           try {
             Map valueMap = jsonDecode(msg.message);
             final String accessToken = valueMap['accessToken'];
