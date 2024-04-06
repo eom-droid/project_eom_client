@@ -98,11 +98,6 @@ class ChatScreen extends ConsumerWidget {
     return Center(
         child: GestureDetector(
       onTap: () {
-        // enterRoom
-        Future.delayed(const Duration(milliseconds: 200), () {
-          ref.read(chatProvider(room.id).notifier).enterRoom();
-        });
-
         // routing
         parentBuildContext.pushNamed(
           ChatDetailScreen.routeName,

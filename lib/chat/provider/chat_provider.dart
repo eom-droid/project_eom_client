@@ -190,10 +190,15 @@ class ChatStateNotifier extends StateNotifier<ChatPagination> {
     }
   }
 
+  void leaveRoom() {
+    repository.leaveRoom();
+    repository.chatResponse.close();
+    repository.socketOffAll();
+  }
+
   @override
   dispose() {
-    print("dispose");
-    leaveRoom();
+    repository.leaveRoom();
     repository.chatResponse.close();
     repository.socketOffAll();
     super.dispose();
@@ -207,10 +212,6 @@ class ChatStateNotifier extends StateNotifier<ChatPagination> {
         forceRefetch: true,
       );
     }
-  }
-
-  void leaveRoom() {
-    repository.leaveRoom();
   }
 
   reJoinRoom() async {

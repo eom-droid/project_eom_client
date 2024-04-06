@@ -44,6 +44,7 @@ class DiaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    print("diaryCard :$isLike");
     final String postDate =
         '${createdAt.year}년 ${createdAt.month}월 ${createdAt.day}일';
 

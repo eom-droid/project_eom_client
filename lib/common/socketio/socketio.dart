@@ -73,6 +73,8 @@ class SocketIO {
       ref.read(chatRoomProvider.notifier).setError("SocketIO 연결 실패");
       // TODO : 에러 처리
     });
+
+    socket!.onReconnect((data) => {});
     if (reconnectListener != null) {
       reconnectListener();
     }

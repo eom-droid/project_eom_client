@@ -171,6 +171,7 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen>
                 vertical: 8.0,
               ),
               child: ListView.builder(
+                physics: const BouncingScrollPhysics(),
                 reverse: true,
                 controller: controller,
                 itemCount: cp.data.length,
