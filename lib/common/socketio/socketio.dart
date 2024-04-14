@@ -1,96 +1,102 @@
 import 'dart:async';
 
-import 'package:client/chat/provider/chat_room_provider.dart';
-import 'package:client/common/const/data.dart';
-import 'package:client/common/provider/secure_storage.dart';
-import 'package:client/user/provider/user_provider.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 // user가 로그인을 진행하지 않았다면 socketio통신을 진행할 수 없음
 // 그리고 만약 진행했더라도 token이 만료되었다면 socketio통신을 진행할 수 없음
-final socketIOProvider = Provider<SocketIO>((ref) {
-  // 조금 위험한 코드이기는 함.....
+// final socketIOProvider = Provider<SocketIO>((ref) {
+//   // 조금 위험한 코드이기는 함.....
 
-  final result = SocketIO(
-    ref: ref,
-  );
+//   final result = SocketIO(
+//     ref: ref,
+//   );
 
-  return result;
-});
+//   return result;
+// });
 
 // TODO : 401 auth 에러에 대한 처리 필요함
 // 문제점 : 첫 socket의 init을 위해서는 secureStorage의 accessToken 값이 필요함
 // 가져오는데 비동기로 진행할 수가 없음.....
 // 근데 contructor라서 이거 가능할지가 모르겠네.......
 class SocketIO {
-  IO.Socket? socket;
-
-  final ProviderRef ref;
+  late IO.Socket socket;
+  String accessToken;
+  Function(dynamic) onError;
+  final String url;
+  final String path;
 
   SocketIO({
-    required this.ref,
-  }) : super() {
-    socketInit();
-  }
+    required this.accessToken,
+    required this.onError,
+    required this.url,
+    required this.path,
+  });
 
-  socketInit({
-    bool getNewAccessToken = false,
-    Function? reconnectListener,
+  Future<void> socketInit({
+    bool reInit = false,
   }) async {
-    // 만약 socket이 이미 연결되어있었다면, 연결을 끊고 다시 연결한다.
-    if (socket != null) {
-      socket!.dispose();
-      socket = null;
+    if (reInit) {
+      socket.dispose();
     }
-    String baseUrl = dotenv.env['CHAT_SERVER_IP']!;
-
+    // 이거 중요한 Completer가 void로 설정되어있지 않으면 작동이 안됨..........
+    final Completer<void> completer = Completer();
     socket = IO.io(
-      '$baseUrl/chat',
+      url,
       IO.OptionBuilder().disableAutoConnect().build(),
     );
-    String accessToken = "";
-    if (getNewAccessToken) {
-      // 만약 accessToken이 만료되었을경우
-      accessToken =
-          await ref.read(userProvider.notifier).getAccessTokenByRefreshToken();
-    } else {
-      // 만약 accessToken이 만료되지 않았을 경우
-      final storage = ref.read(secureStorageProvider);
-      accessToken = (await storage.read(key: ACCESS_TOKEN_KEY))!;
-    }
-
-    socket!.io.options = {
-      'path': '/project-eom/chat-server',
+    socket.io.options = {
+      'path': path,
       'transports': ['websocket'],
       'autoConnect': false,
       'extraHeaders': {'authorization': 'Bearer $accessToken'},
     };
 
-    // 연결 실패시의 이벤트 핸들러
-    socket!.onError((error) {
-      ref.read(chatRoomProvider.notifier).setError("SocketIO 연결 실패");
-      // TODO : 에러 처리
+    socket.onError(onError);
+    socket.connect();
+    socket.onConnect((data) {
+      print(socket.connected);
+      completer.complete();
     });
-
-    socket!.onReconnect((data) => {});
-    if (reconnectListener != null) {
-      reconnectListener();
-    }
-
-    // 연결 시작
-    try {
-      socket!.connect();
-    } catch (e) {
-      print(e);
-    }
+    return completer.future;
   }
 
-  Future<bool> socketConnected() async {
+  // Future<void> reInit(String accessToken) {
+  //   final Completer completer = Completer();
+  //   socket.dispose();
+  //   socket = IO.io(
+  //     url,
+  //     IO.OptionBuilder().disableAutoConnect().build(),
+  //   );
+  //   socket.io.options = {
+  //     'path': path,
+  //     'transports': ['websocket'],
+  //     'autoConnect': false,
+  //     'extraHeaders': {'authorization': 'Bearer $accessToken'},
+  //   };
+
+  //   socket.onError(onError);
+  //   socket.connect();
+  //   socket.onConnect((data) {
+  //     return completer.complete();
+  //   });
+  //   return completer.future;
+  // }
+
+  // Socket이 연결되고 바로 보내는 메시지가 있으면
+  // 만약 connect가 되고 메시지를 받고 socket.on을 진행하면 해당 메시지 휘발됨
+  // connect({dynamic Function(dynamic)? onConnectCallback}) {
+  //   socket.connect();
+  //   if (onConnectCallback != null) {
+  //     socket.onConnect(onConnectCallback);
+  //   }
+
+  //   // socket.cont
+  // }
+
+  Future<bool> _socketConnected() async {
     // 연결되지 않은 상태에서 요청을 보내려고 할 때, 100ms 간격으로 20번 재시도
     for (var i = 0; i < 20; i++) {
-      if (socket != null && socket!.connected) {
+      if (socket.connected) {
         return true;
       }
       await Future.delayed(const Duration(milliseconds: 100));
@@ -99,39 +105,38 @@ class SocketIO {
   }
 
   on(String eventName, Function(dynamic) callback) {
-    if (socket == null) {
-      throw Exception('SocketIO 연결이 되어있지 않습니다.');
-    }
-
     print('[SocketIO] Event Listen: $eventName');
-    socket!.on(eventName, callback);
+    socket.on(eventName, callback);
   }
 
   off(String eventName, Function(dynamic) callback) {
-    if (socket == null) {
-      throw Exception('SocketIO 연결이 되어있지 않습니다.');
-    }
     print('[SocketIO] Event Off: $eventName');
-    socket!.off(eventName, callback);
+    socket.off(eventName, callback);
   }
 
   Future<void> emit(String eventName, dynamic data) async {
-    if (socket == null || !socket!.connected) {
-      final result = await socketConnected();
+    if (!socket.connected) {
+      final result = await _socketConnected();
       if (!result) throw Exception('SocketIO 연결 실패');
     }
+    // await Future.delayed(const Duration(milliseconds: 1000));
     print('[SocketIO] Event Emitted: $eventName, Data: $data');
-    socket!.emit(eventName, data);
+    socket.emit(eventName, data);
+    return;
+  }
+
+  Future<void> emitWithAck(
+    String eventName,
+    dynamic data,
+    Function? ack,
+  ) async {
+    if (!socket.connected) {
+      final result = await _socketConnected();
+      if (!result) throw Exception('SocketIO 연결 실패');
+    }
+    // await Future.delayed(const Duration(milliseconds: 1000));
+    print('[SocketIO] Event Emitted: $eventName, Data: $data');
+    socket.emitWithAck(eventName, data, ack: ack);
     return;
   }
 }
-
-// class WebSocketInterceptor {
-//   void onRequest(String eventName, List<dynamic> args) {
-//     print('[SocketIO] Event Requested: $eventName, Args: $args');
-//   }
-
-//   void onResponse(String eventName, List<dynamic> args) {
-//     print('[SocketIO] Event Received: $eventName, Args: $args');
-//   }
-// }

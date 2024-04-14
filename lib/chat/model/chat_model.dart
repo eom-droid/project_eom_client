@@ -1,6 +1,7 @@
+import 'package:client/chat/model/chat_member.dart';
+import 'package:client/chat/model/chat_message_model.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:client/common/model/model_with_id.dart';
-import 'package:client/common/utils/data_utils.dart';
 
 part 'chat_model.g.dart';
 
@@ -10,26 +11,38 @@ class ChatModel implements IModelWithId {
   @override
   @JsonKey(name: '_id')
   final String id;
-  // userId : 유저 아이디
-  final String userId;
-  // content : 내용
-  final String content;
-  // createdAt : 생성시간
-  @JsonKey(
-    defaultValue: null,
-    fromJson: DataUtils.toLocalTimeZone,
-  )
-  final DateTime createdAt;
+  // title : 제목
+  final String title;
+  // members : 채팅방 멤버
+  final List<ChatMember> members;
+  // max : 최대 인원
+  final int max;
+  // lastMessage : 마지막 채팅
+  final ChatMessageModel lastMessage;
 
   ChatModel({
     required this.id,
-    required this.userId,
-    required this.content,
-    required this.createdAt,
+    required this.title,
+    required this.members,
+    required this.max,
+    required this.lastMessage,
   });
 
-  factory ChatModel.fromObject(Object? o) =>
-      ChatModel.fromJson(o as Map<String, dynamic>);
+  ChatModel copyWith({
+    String? id,
+    String? title,
+    List<ChatMember>? members,
+    int? max,
+    ChatMessageModel? lastMessage,
+  }) {
+    return ChatModel(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      members: members ?? this.members,
+      max: max ?? this.max,
+      lastMessage: lastMessage ?? this.lastMessage,
+    );
+  }
 
   factory ChatModel.fromJson(Map<String, dynamic> json) =>
       _$ChatModelFromJson(json);
@@ -38,86 +51,33 @@ class ChatModel implements IModelWithId {
 }
 
 @JsonSerializable()
-class ChatTempModel extends ChatModel {
-  final String tempMessageId;
-  final List<String> readUserIds;
-  ChatTempModel({
+class ChatDetailModel extends ChatModel {
+  // hasMoreMessage : 더 많은 메시지가 있는지 여부
+  // 원래는 cursorPagination으로 진행해야되지만 CusorPagination이라는 객체를 fromJosn으로 직렬화가 불가능함
+
+  @JsonKey(
+    defaultValue: true,
+  )
+  final bool hasMoreMessage;
+  // message : 채팅방 메시지
+  @JsonKey(
+    defaultValue: [],
+  )
+  final List<ChatMessageModel> messages;
+
+  ChatDetailModel({
     required super.id,
-    required super.userId,
-    required super.content,
-    required super.createdAt,
-    required this.tempMessageId,
-    required this.readUserIds,
-  });
-  ChatModel parseToChatModel() {
-    return ChatModel(
-      id: id,
-      userId: userId,
-      content: content,
-      createdAt: createdAt,
-    );
-  }
-
-  ChatModel parseToChatFailedModel(String error) {
-    return ChatFailedModel(
-      id: id,
-      userId: userId,
-      content: content,
-      createdAt: createdAt,
-      tempMessageId: tempMessageId,
-      error: error,
-    );
-  }
-
-  factory ChatTempModel.fromObject(Object? o) =>
-      ChatTempModel.fromJson(o as Map<String, dynamic>);
-
-  factory ChatTempModel.fromJson(Map<String, dynamic> json) =>
-      _$ChatTempModelFromJson(json);
-
-  @override
-  Map<String, dynamic> toJson() => _$ChatTempModelToJson(this);
-}
-
-@JsonSerializable()
-class ChatFailedModel extends ChatModel {
-  final String error;
-  final String tempMessageId;
-  ChatFailedModel({
-    required super.id,
-    required super.userId,
-    required super.content,
-    required super.createdAt,
-    required this.tempMessageId,
-    required this.error,
+    required super.title,
+    required super.members,
+    required super.max,
+    required super.lastMessage,
+    this.hasMoreMessage = false,
+    required this.messages,
   });
 
-  ChatModel parseToChatModel() {
-    return ChatModel(
-      id: id,
-      userId: userId,
-      content: content,
-      createdAt: createdAt,
-    );
-  }
-
-  ChatModel parseToChatModelTemp(String tempMessageId) {
-    return ChatTempModel(
-      id: id,
-      userId: userId,
-      content: content,
-      createdAt: createdAt,
-      readUserIds: [],
-      tempMessageId: tempMessageId,
-    );
-  }
-
-  factory ChatFailedModel.fromObject(Object? o) =>
-      ChatFailedModel.fromJson(o as Map<String, dynamic>);
-
-  factory ChatFailedModel.fromJson(Map<String, dynamic> json) =>
-      _$ChatFailedModelFromJson(json);
+  factory ChatDetailModel.fromJson(Map<String, dynamic> json) =>
+      _$ChatDetailModelFromJson(json);
 
   @override
-  Map<String, dynamic> toJson() => _$ChatFailedModelToJson(this);
+  Map<String, dynamic> toJson() => _$ChatDetailModelToJson(this);
 }

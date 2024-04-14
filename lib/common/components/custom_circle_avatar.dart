@@ -14,7 +14,6 @@ class CustomCircleAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print(url);
     return ClipRRect(
       borderRadius: borderRadius == null
           ? BorderRadius.circular(size / 2.5)
