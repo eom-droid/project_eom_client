@@ -18,7 +18,7 @@ class ChatModel implements IModelWithId {
   // max : 최대 인원
   final int max;
   // lastMessage : 마지막 채팅
-  final ChatMessageModel lastMessage;
+  final ChatMessageModel? lastMessage;
 
   ChatModel({
     required this.id,
@@ -41,6 +41,21 @@ class ChatModel implements IModelWithId {
       members: members ?? this.members,
       max: max ?? this.max,
       lastMessage: lastMessage ?? this.lastMessage,
+    );
+  }
+
+  ChatDetailModel toDetailModel({
+    bool hasMoreMessage = false,
+    List<ChatMessageModel> messages = const [],
+  }) {
+    return ChatDetailModel(
+      id: id,
+      title: title,
+      members: members,
+      max: max,
+      lastMessage: lastMessage,
+      hasMoreMessage: hasMoreMessage,
+      messages: messages,
     );
   }
 
@@ -74,6 +89,27 @@ class ChatDetailModel extends ChatModel {
     this.hasMoreMessage = false,
     required this.messages,
   });
+
+  @override
+  ChatDetailModel copyWith({
+    String? id,
+    String? title,
+    List<ChatMember>? members,
+    int? max,
+    ChatMessageModel? lastMessage,
+    bool? hasMoreMessage,
+    List<ChatMessageModel>? messages,
+  }) {
+    return ChatDetailModel(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      members: members ?? this.members,
+      max: max ?? this.max,
+      lastMessage: lastMessage ?? this.lastMessage,
+      hasMoreMessage: hasMoreMessage ?? this.hasMoreMessage,
+      messages: messages ?? this.messages,
+    );
+  }
 
   factory ChatDetailModel.fromJson(Map<String, dynamic> json) =>
       _$ChatDetailModelFromJson(json);

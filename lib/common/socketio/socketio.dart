@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:client/chat/const/chat_default.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 // user가 로그인을 진행하지 않았다면 socketio통신을 진행할 수 없음
@@ -53,45 +54,13 @@ class SocketIO {
 
     socket.onError(onError);
     socket.connect();
-    socket.onConnect((data) {
-      print(socket.connected);
+
+    socket.on(SocketEvent.connected.value, (data) {
       completer.complete();
+      socket.off(SocketEvent.connected.value);
     });
     return completer.future;
   }
-
-  // Future<void> reInit(String accessToken) {
-  //   final Completer completer = Completer();
-  //   socket.dispose();
-  //   socket = IO.io(
-  //     url,
-  //     IO.OptionBuilder().disableAutoConnect().build(),
-  //   );
-  //   socket.io.options = {
-  //     'path': path,
-  //     'transports': ['websocket'],
-  //     'autoConnect': false,
-  //     'extraHeaders': {'authorization': 'Bearer $accessToken'},
-  //   };
-
-  //   socket.onError(onError);
-  //   socket.connect();
-  //   socket.onConnect((data) {
-  //     return completer.complete();
-  //   });
-  //   return completer.future;
-  // }
-
-  // Socket이 연결되고 바로 보내는 메시지가 있으면
-  // 만약 connect가 되고 메시지를 받고 socket.on을 진행하면 해당 메시지 휘발됨
-  // connect({dynamic Function(dynamic)? onConnectCallback}) {
-  //   socket.connect();
-  //   if (onConnectCallback != null) {
-  //     socket.onConnect(onConnectCallback);
-  //   }
-
-  //   // socket.cont
-  // }
 
   Future<bool> _socketConnected() async {
     // 연결되지 않은 상태에서 요청을 보내려고 할 때, 100ms 간격으로 20번 재시도
@@ -104,29 +73,29 @@ class SocketIO {
     return false;
   }
 
-  on(String eventName, Function(dynamic) callback) {
+  on(SocketEvent eventName, Function(dynamic) callback) {
     print('[SocketIO] Event Listen: $eventName');
-    socket.on(eventName, callback);
+    socket.on(eventName.value, callback);
   }
 
-  off(String eventName, Function(dynamic) callback) {
+  off(SocketEvent eventName, Function(dynamic) callback) {
     print('[SocketIO] Event Off: $eventName');
-    socket.off(eventName, callback);
+    socket.off(eventName.value, callback);
   }
 
-  Future<void> emit(String eventName, dynamic data) async {
+  Future<void> emit(SocketEvent eventName, dynamic data) async {
     if (!socket.connected) {
       final result = await _socketConnected();
       if (!result) throw Exception('SocketIO 연결 실패');
     }
     // await Future.delayed(const Duration(milliseconds: 1000));
     print('[SocketIO] Event Emitted: $eventName, Data: $data');
-    socket.emit(eventName, data);
+    socket.emit(eventName.value, data);
     return;
   }
 
   Future<void> emitWithAck(
-    String eventName,
+    SocketEvent eventName,
     dynamic data,
     Function? ack,
   ) async {
@@ -136,7 +105,7 @@ class SocketIO {
     }
     // await Future.delayed(const Duration(milliseconds: 1000));
     print('[SocketIO] Event Emitted: $eventName, Data: $data');
-    socket.emitWithAck(eventName, data, ack: ack);
+    socket.emitWithAck(eventName.value, data, ack: ack);
     return;
   }
 }

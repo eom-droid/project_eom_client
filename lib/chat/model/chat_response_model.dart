@@ -1,16 +1,10 @@
-enum ChatResponseState {
-  getChatRoomsRes,
-  getMessageRes,
-  paginateMessageRes,
-  enterRoomRes,
-  sendMessageRes,
-}
+import 'package:client/chat/const/chat_default.dart';
 
 class ChatResponseModel {
-  final ChatResponseState state;
+  final SocketEvent event;
   final dynamic data;
   ChatResponseModel({
-    required this.state,
+    required this.event,
     required this.data,
   });
 }

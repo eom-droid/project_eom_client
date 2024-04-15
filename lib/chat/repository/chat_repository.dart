@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:client/chat/const/chat_default.dart';
 import 'package:client/chat/model/chat_message_model.dart';
 import 'package:client/chat/model/chat_model.dart';
 import 'package:client/chat/model/chat_response_model.dart';
@@ -9,6 +10,7 @@ import 'package:client/common/model/cursor_pagination_model.dart';
 import 'package:client/common/model/pagination_params.dart';
 import 'package:client/common/provider/secure_storage.dart';
 import 'package:client/common/socketio/socketio.dart';
+import 'package:client/user/provider/user_provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -26,25 +28,42 @@ class ChatRepository {
     required this.ref,
   });
 
-  init({
+  Future<bool> init({
     bool reInit = false,
   }) async {
+    String? accessToken;
+    try {
+      if (reInit) {
+        accessToken = await ref
+            .read(userProvider.notifier)
+            .getAccessTokenByRefreshToken();
+      } else {
+        throw Exception("reInit is false");
+      }
+    } catch (e) {
+      accessToken =
+          (await ref.read(secureStorageProvider).read(key: ACCESS_TOKEN_KEY));
+    }
+
+    if (accessToken == null) {
+      return false;
+    }
+
     socket = SocketIO(
-      accessToken:
-          (await ref.read(secureStorageProvider).read(key: ACCESS_TOKEN_KEY))!,
+      accessToken: accessToken,
       onError: ref.read(chatProvider.notifier).onSocketError,
       url: "${dotenv.env['CHAT_SERVER_IP']!}/chat",
       path: '/project-eom/chat-server',
     );
     await socket.socketInit(reInit: reInit);
-    // socketOnAll();
+    socketOnAll();
+    return true;
   }
 
   Future<List<ChatModel>?> getChatRoom() async {
     final Completer<List<ChatModel>?> completer = Completer();
 
-    socket.emitWithAck("getChatRoom", {}, (resp) {
-      print(resp);
+    socket.emitWithAck(SocketEvent.getChatRoom, {}, (resp) {
       final status = resp['status'];
       if (status >= 200 && status < 300) {
         final List<ChatModel> chatRooms = [];
@@ -66,7 +85,7 @@ class ChatRepository {
     final Completer<CursorPagination<ChatMessageModel>?> completer =
         Completer();
 
-    socket.emitWithAck("getMessages", {
+    socket.emitWithAck(SocketEvent.getMessages, {
       "roomId": roomId,
       "paginationParams": paginationParams.toJson(),
     }, (resp) {
@@ -92,112 +111,108 @@ class ChatRepository {
     required String accessToken,
     dynamic Function(dynamic)? onConnectCallback,
   }) {
-    socketOffAll();
+    // socketOffAll();
     // socket.reInit(accessToken);
-    socketOnAll();
+    // socketOnAll();
     // socket.connect(onConnectCallback: onConnectCallback);
   }
 
-  test() {
-    // socket.emitWithAck("test", "1111", a);
+  void socketOnAll() {
+    socket.on(SocketEvent.newMessage, _newMessage);
+    socket.on(SocketEvent.enterRoomOtherUser, _enterRoomOtherUser);
   }
 
   void socketOffAll() {
-    socket.off("getChatRoomsRes", _getChatRoomsRes);
-    socket.off("getMessageRes", _getMessageResListener);
-    socket.off("paginateMessageRes", _paginateMessageResListener);
-    socket.off("enterRoomRes", _enterRoomResListener);
-    socket.off("sendMessageRes", _sendMessageRes);
+    socket.off(SocketEvent.newMessage, _newMessage);
+    socket.off(SocketEvent.enterRoomOtherUser, _enterRoomOtherUser);
   }
 
-  void socketOnAll() {
-    socket.on('getChatRoomsRes', _getChatRoomsRes);
-    socket.on('getMessageRes', _getMessageResListener);
-    socket.on('paginateMessageRes', _paginateMessageResListener);
-    socket.on('enterRoomRes', _enterRoomResListener);
-    socket.on('sendMessageRes', _sendMessageRes);
+  _newMessage(dynamic data) {
+    print("[SocketIO] newMessage");
+    chatResponseStream.sink.add(
+      ChatResponseModel(
+        event: SocketEvent.newMessage,
+        data: data,
+      ),
+    );
   }
 
-  void enterRoom(String roomId) {
-    socket.emit("enterRoomReq", {
+  _enterRoomOtherUser(dynamic data) {
+    print("[SocketIO] enterRoomOtherUser");
+    chatResponseStream.sink.add(
+      ChatResponseModel(
+        event: SocketEvent.enterRoomOtherUser,
+        data: data,
+      ),
+    );
+  }
+
+  Future<String?> enterRoom(String roomId) {
+    final Completer<String?> completer = Completer();
+
+    socket.emitWithAck(SocketEvent.enterRoom, {
       "roomId": roomId,
+    }, (resp) {
+      final status = resp['status'];
+
+      if (status >= 200 && status < 300) {
+        final data = resp['data'];
+        completer.complete(data["lastChatId"]);
+      } else {
+        completer.complete(null);
+      }
     });
+    return completer.future;
   }
 
-  void leaveRoom(String roomId) {
-    socket.emit("leaveRoomReq", {
-      "roomId": roomId,
-    });
-  }
-
-  void sendMessage({
+  // 실패 시 처리만 진행하면됨
+  // 성공 시의 처리는 위 newMessage에서 진행함
+  Future<String?> postMessage({
     required String roomId,
     required String content,
     required String tempMessageId,
     required String accessToken,
-    required String createdAt,
   }) {
-    socket.emit("sendMessageReq", {
-      "accessToken": "Bearer $accessToken",
+    final Completer<String?> completer = Completer();
+
+    socket.emitWithAck(SocketEvent.postMessage, {
       "roomId": roomId,
       "content": content,
-      "id": tempMessageId,
-      "createdAt": createdAt,
       "tempMessageId": tempMessageId,
+      "accessToken": accessToken
+    }, (resp) {
+      final status = resp['status'];
+
+      if (status >= 200 && status < 300) {
+        final error = resp['message'] ?? "";
+        completer.complete(error);
+      } else {
+        completer.complete(null);
+      }
+    });
+    return completer.future;
+  }
+
+  void leaveRoom(String roomId) {
+    socket.emit(SocketEvent.leaveRoom, {
+      "roomId": roomId,
     });
   }
 
-  void _getMessageResListener(dynamic data) {
-    print("[SocketIO] getMessageRes");
-    chatResponseStream.sink.add(
-      ChatResponseModel(
-        state: ChatResponseState.getMessageRes,
-        data: data,
-      ),
-    );
-  }
-
-  // join 시에도 이 경로를 통해 들어옴
-
-  void _paginateMessageResListener(dynamic data) {
-    print("[SocketIO] paginateMessageRes");
-    chatResponseStream.sink.add(
-      ChatResponseModel(
-        state: ChatResponseState.paginateMessageRes,
-        data: data,
-      ),
-    );
-  }
-
-  // 여기는 사실상 에러처리함
-  void _enterRoomResListener(dynamic data) {
-    print("[SocketIO] enterRoomRes");
-    chatResponseStream.sink.add(
-      ChatResponseModel(
-        state: ChatResponseState.enterRoomRes,
-        data: data,
-      ),
-    );
-  }
-
-  // 여기는 사실상 에러처리함
-  void _sendMessageRes(dynamic data) async {
-    print("[SocketIO] sendMessageRes");
-    chatResponseStream.sink.add(
-      ChatResponseModel(
-        state: ChatResponseState.sendMessageRes,
-        data: data,
-      ),
-    );
-  }
-
-  void _getChatRoomsRes(dynamic data) {
-    print("[SocketIO] getChatRoomsRes");
-    chatResponseStream.sink.add(
-      ChatResponseModel(
-        state: ChatResponseState.getChatRoomsRes,
-        data: data,
-      ),
-    );
-  }
+  // void sendMessage({
+  //   required String roomId,
+  //   required String content,
+  //   required String tempMessageId,
+  //   required String accessToken,
+  //   required String createdAt,
+  // }) {
+  //   socket.emit("sendMessageReq", {
+  //     "accessToken": "Bearer $accessToken",
+  //     "roomId": roomId,
+  //     "content": content,
+  //     "id": tempMessageId,
+  //     "createdAt": createdAt,
+  //     "tempMessageId": tempMessageId,
+  //   });
+  // }
 }
