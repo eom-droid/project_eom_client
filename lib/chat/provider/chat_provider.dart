@@ -3,6 +3,7 @@ import 'package:client/chat/model/chat_message_model.dart';
 import 'package:client/chat/model/chat_model.dart';
 import 'package:client/chat/model/chat_response_model.dart';
 import 'package:client/chat/repository/chat_repository.dart';
+import 'package:client/chat/view/chat_detail_screen.dart';
 import 'package:client/common/const/data.dart';
 
 import 'package:client/common/model/cursor_pagination_model.dart';
@@ -40,14 +41,6 @@ final chatProvider =
   );
 });
 
-// final chatRoomStreamProvider = StreamProvider<ChatResponseModel>((ref) {
-//   final chatRoomRepository = ref.read(chatRoomRepositoryProvider);
-//   return chatRoomRepository.chatRoomResponse.stream;
-// });
-
-// 일단 임시로 Cursorpagination 을 사용하자
-// 그리고 Cursorpagina
-
 class ChatStateNotifier extends StateNotifier<CursorPaginationBase> {
   final ChatRepository repository;
   final UserModel me;
@@ -72,8 +65,26 @@ class ChatStateNotifier extends StateNotifier<CursorPaginationBase> {
     init(reInit: true);
   }
 
+  leaveRoom(String roomId) {
+    repository.leaveRoom(roomId);
+  }
+
   // 백그라운드에서 포그라운드로 돌아올때
-  reJoin() {}
+  reJoinRoom({
+    required String roomId,
+    required String route,
+  }) {
+    if (repository.socket.socket.connected) {
+      // 1-2. socket의 연결이 되어있을때는 enterRoom만 진행한다. && route가 ChatDetailScreen일때만 진행
+      if (route == ChatDetailScreen.routeName) {
+        enterRoom(roomId);
+      }
+    } else {
+      state = CursorPaginationLoading();
+      // 1-1. socket의 연결이 해제 되어있을때는 전체적인 방을 다시 불러온다.
+      init(reInit: true);
+    }
+  }
 
   Future<void> init({
     bool reInit = false,
@@ -292,11 +303,18 @@ class ChatStateNotifier extends StateNotifier<CursorPaginationBase> {
     final selectedRoomIndex =
         pState.data.indexWhere((element) => element.id == roomId);
 
+    // 파라미터로 준 roomID에 해당되는 방이 없는 경우
     if (selectedRoomIndex == -1) {
       return;
     }
+    // 추가적으로 더 있는 경우
+    if (pState.data[selectedRoomIndex] is ChatDetailModel &&
+        (pState.data[selectedRoomIndex] as ChatDetailModel).hasMoreMessage ==
+            false) {
+      return;
+    }
 
-    const paginationParams = PaginationParams();
+    PaginationParams paginationParams = const PaginationParams();
     // 이미 한번 가져온 이력이 있는거임
     if (pState.data[selectedRoomIndex] is ChatDetailModel && !forceRefetch) {
       final messages =
@@ -305,23 +323,27 @@ class ChatStateNotifier extends StateNotifier<CursorPaginationBase> {
       if (messages.isNotEmpty ||
           messages.last is! ChatMessageTempModel ||
           messages.last is! ChatMessageFailedModel) {
-        paginationParams.copyWith(
+        paginationParams = paginationParams.copyWith(
           after: messages.last.id,
         );
       }
     }
+
     final resp = await repository.paginateMessage(
       roomId: roomId,
       paginationParams: paginationParams,
     );
 
     if (resp == null) {
+      print('resp is null');
       state = CursorPaginationError(
         message: '채팅을 불러오는데 실패하였습니다.',
       );
       return;
     }
+
     if (pState.data[selectedRoomIndex] is! ChatDetailModel || forceRefetch) {
+      print('forceRefetch');
       state = pState.copyWith(
         data: pState.data.map(
           (e) {
@@ -336,6 +358,7 @@ class ChatStateNotifier extends StateNotifier<CursorPaginationBase> {
         ).toList(),
       );
     } else {
+      print('not forceRefetch');
       state = pState.copyWith(
         data: pState.data.map(
           (e) {
@@ -371,16 +394,18 @@ class ChatStateNotifier extends StateNotifier<CursorPaginationBase> {
       await paginateMessage(roomId: roomId);
     }
 
-    pState.data[currentRoomIndex].members.map(
-      (user) {
-        if (user.id == me.id) {
-          return user.copyWith(
-            lastReadChatId: lastChatId,
-          );
-        }
-        return user;
-      },
-    ).toList();
+    pState.data[currentRoomIndex] = pState.data[currentRoomIndex].copyWith(
+      members: pState.data[currentRoomIndex].members.map(
+        (user) {
+          if (user.id == me.id) {
+            return user.copyWith(
+              lastReadChatId: lastChatId,
+            );
+          }
+          return user;
+        },
+      ).toList(),
+    );
 
     state = pState.copyWith(
       data: pState.data,
@@ -400,6 +425,7 @@ class ChatStateNotifier extends StateNotifier<CursorPaginationBase> {
       // 2. uuidv4를 이용하여 임시 아이디를 생성한다.
       final tempMessageId = const Uuid().v4();
       final now = DateTime.now();
+      print(accessToken);
 
       // 2. 서버에 요청을 보낸다.
       repository
@@ -443,6 +469,7 @@ class ChatStateNotifier extends StateNotifier<CursorPaginationBase> {
           );
         }
       });
+
       // 3. 서버에 요청을 보낸 후, 서버에서 받은 데이터를 state에 추가한다.
       (pState.data[pState.data.indexWhere((element) => element.id == roomId)]
               as ChatDetailModel)
@@ -465,23 +492,4 @@ class ChatStateNotifier extends StateNotifier<CursorPaginationBase> {
       );
     }
   }
-
-  // void reJoinRoom(String roomId) async {
-  //   // 1. socket의 연결이 해제되어 있을때
-  //   // 전체적인 방을 다시 불러온다.
-  //   // if (repository.socket.socket.connected) {
-  //   state = CursorPaginationLoading();
-  //   await reconnect(
-  //       // onConnectCallback: (_) async {
-  //       //   await Future.delayed(const Duration(milliseconds: 500), () {});
-
-  //       //   enterRoom(roomId);
-
-  //       // },
-  //       );
-  //   enterRoom(roomId);
-  //   // } else {
-  //   //   enterRoom(roomId);
-  //   // }
-  // }
 }

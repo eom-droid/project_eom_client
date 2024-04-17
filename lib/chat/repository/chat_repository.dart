@@ -98,6 +98,7 @@ class ChatRepository {
           final temp = _ as Map<String, dynamic>;
           return ChatMessageModel.fromJson(temp);
         });
+        print("end paginateMessage from chat_repository.dart");
 
         completer.complete(result);
       } else {
@@ -179,7 +180,7 @@ class ChatRepository {
       "roomId": roomId,
       "content": content,
       "tempMessageId": tempMessageId,
-      "accessToken": accessToken
+      "accessToken": "Bearer $accessToken"
     }, (resp) {
       final status = resp['status'];
 
@@ -198,21 +199,4 @@ class ChatRepository {
       "roomId": roomId,
     });
   }
-
-  // void sendMessage({
-  //   required String roomId,
-  //   required String content,
-  //   required String tempMessageId,
-  //   required String accessToken,
-  //   required String createdAt,
-  // }) {
-  //   socket.emit("sendMessageReq", {
-  //     "accessToken": "Bearer $accessToken",
-  //     "roomId": roomId,
-  //     "content": content,
-  //     "id": tempMessageId,
-  //     "createdAt": createdAt,
-  //     "tempMessageId": tempMessageId,
-  //   });
-  // }
 }

@@ -45,17 +45,16 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen>
         controller.position.maxScrollExtent <= GAP_WHEN_PAGINATE) return;
     if (controller.offset >
         controller.position.maxScrollExtent - GAP_WHEN_PAGINATE) {
-      // ref.read(chatProvider.notifier).paginateMessage(
-      //       roomId: widget.id,
-      //     );
+      ref.read(chatProvider.notifier).paginateMessage(
+            roomId: widget.id,
+          );
     }
   }
 
   @override
   void deactivate() {
-    print("deactivate");
     // deactivate 이후에는 ref를 read해올수 없음
-    // ref.read(chatProvider.notifier).leaveRoom(widget.id);
+    ref.read(chatProvider.notifier).leaveRoom(widget.id);
     // TODO: implement deactivate
     super.deactivate();
   }
@@ -70,11 +69,14 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    // if (state == AppLifecycleState.resumed) {
-    //   ref.read(chatProvider.notifier).reJoinRoom(widget.id);
-    // } else if (state == AppLifecycleState.paused) {
-    //   ref.read(chatProvider.notifier).leaveRoom(widget.id);
-    // }
+    if (state == AppLifecycleState.resumed) {
+      ref.read(chatProvider.notifier).reJoinRoom(
+            roomId: widget.id,
+            route: ChatDetailScreen.routeName,
+          );
+    } else if (state == AppLifecycleState.paused) {
+      ref.read(chatProvider.notifier).leaveRoom(widget.id);
+    }
   }
 
   @override
@@ -180,15 +182,15 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen>
                                   chatMessage.createdAt.minute);
                   int readUserCount = chat.members.length;
 
-                  for (var element in chat.members) {
-                    if (element.lastReadChatId != null) {
-                      if (element.lastReadChatId!.compareTo(chat.id) >= 0) {
+                  for (var member in chat.members) {
+                    if (member.lastReadChatId != null) {
+                      if (member.lastReadChatId!.compareTo(chatMessage.id) >=
+                          0) {
                         readUserCount--;
                       }
                     }
                   }
 
-                  // print(cp.data[index].id.compareTo(myLastReadChat));
                   return Column(
                     children: [
                       const SizedBox(
@@ -529,9 +531,9 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen>
   }
 
   onSendMessage(String content) {
-    // ref
-    //     .read(chatProvider.notifier)
-    //     .sendMessage(content: content, roomId: widget.id);
+    ref
+        .read(chatProvider.notifier)
+        .postMessage(content: content, roomId: widget.id);
   }
 }
 

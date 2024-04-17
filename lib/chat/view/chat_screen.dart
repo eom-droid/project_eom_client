@@ -1,4 +1,3 @@
-import 'package:client/chat/model/chat_member.dart';
 import 'package:client/chat/model/chat_message_model.dart';
 import 'package:client/chat/model/chat_model.dart';
 import 'package:client/chat/provider/chat_provider.dart';
@@ -12,11 +11,12 @@ import 'package:client/common/model/cursor_pagination_model.dart';
 import 'package:client/common/utils/data_utils.dart';
 import 'package:client/user/model/user_model.dart';
 import 'package:client/user/provider/user_provider.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-class ChatScreen extends ConsumerWidget {
+class ChatScreen extends ConsumerStatefulWidget {
   static String get routeName => 'chat';
 
   const ChatScreen({
@@ -24,7 +24,40 @@ class ChatScreen extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ChatScreen> createState() => _ChatScreenState();
+}
+
+class _ChatScreenState extends ConsumerState<ChatScreen>
+    with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    // ref.read(chatProvider.notifier).reconnect();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+
+    // TODO: implement dispose
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    print(state);
+
+    if (state == AppLifecycleState.resumed) {
+      ref.read(chatProvider.notifier).reJoinRoom(
+            roomId: "",
+            route: ChatScreen.routeName,
+          );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final chatState = ref.watch(chatProvider);
     final me = ref.read(userProvider);
 
@@ -43,7 +76,6 @@ class ChatScreen extends ConsumerWidget {
       ),
       child: loadBody(
         state: chatState,
-        ref: ref,
         buildContext: context,
         me: me as UserModel,
       ),
@@ -52,7 +84,6 @@ class ChatScreen extends ConsumerWidget {
 
   Widget loadBody({
     required CursorPaginationBase state,
-    required WidgetRef ref,
     required BuildContext buildContext,
     required UserModel me,
   }) {
@@ -81,7 +112,6 @@ class ChatScreen extends ConsumerWidget {
     return _body(
       chat: cp.data[0],
       parentBuildContext: buildContext,
-      ref: ref,
       me: me,
     );
   }
@@ -89,7 +119,6 @@ class ChatScreen extends ConsumerWidget {
   _body({
     required ChatModel chat,
     required BuildContext parentBuildContext,
-    required WidgetRef ref,
     required UserModel me,
   }) {
     final otherUserProfileImg =
@@ -98,12 +127,6 @@ class ChatScreen extends ConsumerWidget {
     return Center(
         child: GestureDetector(
       onTap: () async {
-        ref.read(chatProvider.notifier).enterRoom(chat.id);
-
-        // 2초 후 채팅방으로 이동
-        // await Future.delayed(const Duration(seconds: 2), () {});
-
-        // routing
         parentBuildContext.pushNamed(
           ChatDetailScreen.routeName,
           pathParameters: {
@@ -160,15 +183,14 @@ class ChatScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 30.0),
                   _ChatPreviewWidget(
-                    lastChat: chat.lastMessage,
+                    chat: chat,
                   ),
                 ],
               ),
             ),
             _NewChatNotifier(
-              roomId: chat.id,
               myId: me.id,
-              members: chat.members,
+              chat: chat,
             )
           ],
         ),
@@ -177,25 +199,38 @@ class ChatScreen extends ConsumerWidget {
   }
 }
 
-class _NewChatNotifier extends ConsumerWidget {
-  final String roomId;
+class _NewChatNotifier extends StatelessWidget {
   final String myId;
-  final List<ChatMember> members;
+  final ChatModel chat;
 
   const _NewChatNotifier({
-    required this.roomId,
     required this.myId,
-    required this.members,
+    required this.chat,
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final chatProvidr = ref.watch(chatProvider);
-    final meInMembers = members.firstWhere((element) => element.id == myId);
+  Widget build(BuildContext context) {
+    ChatMessageModel? lastMessage;
+    final me = chat.members.firstWhereOrNull((element) => element.id == myId);
 
-    if (chatProvidr is CursorPagination<ChatMessageModel> &&
-        chatProvidr.data.isNotEmpty &&
-        meInMembers.lastReadChatId != chatProvidr.data[0].id) {
+    if (chat is ChatDetailModel) {
+      final pChat = chat as ChatDetailModel;
+      if (pChat.messages.isEmpty) {
+        lastMessage = null;
+      } else {
+        lastMessage = pChat.messages
+            .where((element) =>
+                element is! ChatMessageFailedModel ||
+                element is! ChatMessageTempModel)
+            .firstOrNull;
+      }
+    } else {
+      lastMessage = chat.lastMessage;
+    }
+
+    if (me != null &&
+        lastMessage != null &&
+        lastMessage.id != me.lastReadChatId) {
       return Positioned(
         top: 7,
         right: 5,
@@ -232,18 +267,33 @@ class _NewChatNotifier extends ConsumerWidget {
   }
 }
 
-class _ChatPreviewWidget extends ConsumerWidget {
-  final ChatMessageModel? lastChat;
+class _ChatPreviewWidget extends StatelessWidget {
+  final ChatModel chat;
   const _ChatPreviewWidget({
-    required this.lastChat,
+    required this.chat,
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
+    ChatMessageModel? lastChat;
+    if (chat is ChatDetailModel) {
+      final pChat = chat as ChatDetailModel;
+      if (pChat.messages.isEmpty) {
+        lastChat = null;
+      } else {
+        lastChat = pChat.messages
+            .where((element) =>
+                element is! ChatMessageFailedModel ||
+                element is! ChatMessageTempModel)
+            .firstOrNull;
+      }
+    } else {
+      lastChat = chat.lastMessage;
+    }
     return Column(
       children: [
         Text(
-          lastChat != null ? lastChat!.content : '첫 메시지를 남겨봐요!',
+          lastChat != null ? lastChat.content : '첫 메시지를 남겨봐요!',
           style: const TextStyle(
             color: INPUT_BG_COLOR,
             fontSize: 14.0,
@@ -254,7 +304,7 @@ class _ChatPreviewWidget extends ConsumerWidget {
         const SizedBox(height: 6.0),
         Text(
           lastChat != null
-              ? DataUtils.timeAgoSinceDate2(lastChat!.createdAt)
+              ? DataUtils.timeAgoSinceDate2(lastChat.createdAt)
               : '',
           style: const TextStyle(
             color: BODY_TEXT_COLOR,
