@@ -46,8 +46,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    print(state);
-
     if (state == AppLifecycleState.resumed) {
       ref.read(chatProvider.notifier).reJoinRoom(
             roomId: "",

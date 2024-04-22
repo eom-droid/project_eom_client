@@ -21,7 +21,7 @@ final chatRepositoryProvider = Provider<ChatRepository>((ref) {
 });
 
 class ChatRepository {
-  late final SocketIO socket;
+  final SocketIO socket = SocketIO();
   final Ref ref;
   final chatResponseStream = StreamController<ChatResponseModel>();
   ChatRepository({
@@ -49,13 +49,13 @@ class ChatRepository {
       return false;
     }
 
-    socket = SocketIO(
+    await socket.socketInit(
+      reInit: reInit,
       accessToken: accessToken,
       onError: ref.read(chatProvider.notifier).onSocketError,
       url: "${dotenv.env['CHAT_SERVER_IP']!}/chat",
       path: '/project-eom/chat-server',
     );
-    await socket.socketInit(reInit: reInit);
     socketOnAll();
     return true;
   }

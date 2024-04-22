@@ -94,7 +94,7 @@ class CustomInterceptor extends Interceptor {
       final dio = Dio();
 
       try {
-        final resp = await dio.post(
+        final resp = await dio.get(
           '$baseUrl/api/v1/auth/access-token',
           options: Options(
             headers: {

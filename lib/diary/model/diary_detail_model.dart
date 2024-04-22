@@ -27,7 +27,7 @@ class DiaryDetailModel extends DiaryModel {
   )
   final List<DiaryContentType> contentOrder;
 
-  final List<DiaryCommentModel>? comments;
+  // final List<DiaryCommentModel>? comments;
 
   final int commentCount;
 
@@ -46,7 +46,7 @@ class DiaryDetailModel extends DiaryModel {
     required super.createdAt,
     required super.likeCount,
     required super.isLike,
-    this.comments,
+    // this.comments,
     required this.commentCount,
   });
 
@@ -84,7 +84,7 @@ class DiaryDetailModel extends DiaryModel {
       createdAt: createdAt ?? this.createdAt,
       likeCount: likeCount ?? this.likeCount,
       isLike: isLike ?? this.isLike,
-      comments: comments ?? this.comments,
+      // comments: comments ?? this.comments,
       commentCount: commentCount ?? this.commentCount,
     );
   }

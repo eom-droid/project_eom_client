@@ -21,21 +21,17 @@ import 'package:socket_io_client/socket_io_client.dart' as IO;
 // 근데 contructor라서 이거 가능할지가 모르겠네.......
 class SocketIO {
   late IO.Socket socket;
-  String accessToken;
-  Function(dynamic) onError;
-  final String url;
-  final String path;
 
-  SocketIO({
-    required this.accessToken,
-    required this.onError,
-    required this.url,
-    required this.path,
-  });
+  SocketIO();
 
   Future<void> socketInit({
     bool reInit = false,
+    required String url,
+    required String path,
+    required String accessToken,
+    required Function(dynamic) onError,
   }) async {
+    print("url: $url, path: $path, accessToken: $accessToken");
     if (reInit) {
       socket.dispose();
     }
@@ -45,6 +41,7 @@ class SocketIO {
       url,
       IO.OptionBuilder().disableAutoConnect().build(),
     );
+
     socket.io.options = {
       'path': path,
       'transports': ['websocket'],
@@ -52,7 +49,7 @@ class SocketIO {
       'extraHeaders': {'authorization': 'Bearer $accessToken'},
     };
 
-    socket.onError(onError);
+    socket.onError((a) => {print(a)});
     socket.connect();
 
     socket.on(SocketEvent.connected.value, (data) {

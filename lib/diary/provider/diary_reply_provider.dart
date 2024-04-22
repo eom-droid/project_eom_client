@@ -1,5 +1,6 @@
 import 'package:client/diary/model/diary_reply_model.dart';
 import 'package:client/diary/model/diary_content_model.dart';
+import 'package:client/diary/provider/diary_comment_provider.dart';
 import 'package:client/diary/repository/diary_reply_repository.dart';
 import 'package:client/user/model/user_model.dart';
 import 'package:client/user/provider/user_provider.dart';
@@ -21,6 +22,7 @@ final diaryReplyProvider = StateNotifierProvider.family<DiaryReplyStateNotifier,
   return DiaryReplyManageStateNotifier(
     repository: diaryRepository,
     user: user!,
+    ref: ref,
   ).getReplyNotifier(commentId: commentId);
 });
 
@@ -28,9 +30,11 @@ class DiaryReplyManageStateNotifier
     extends StateNotifier<Map<String, DiaryReplyStateNotifier>> {
   final DiaryReplyRepository repository;
   final UserModelBase? user;
+  final Ref ref;
   DiaryReplyManageStateNotifier({
     required this.repository,
     required this.user,
+    required this.ref,
   }) : super({});
 
   DiaryReplyStateNotifier getReplyNotifier({
@@ -48,6 +52,7 @@ class DiaryReplyManageStateNotifier
       repository: repository,
       user: user,
       paginateAutoExecute: false,
+      ref: ref,
     );
 
     return state[commentId]!;
@@ -57,14 +62,17 @@ class DiaryReplyManageStateNotifier
 class DiaryReplyStateNotifier
     extends PaginationNotifier<DiaryReplyModel, DiaryReplyRepository> {
   final UserModelBase? user;
+  final Ref ref;
   DiaryReplyStateNotifier({
     required super.repository,
     required this.user,
     required super.paginateAutoExecute,
+    required this.ref,
   });
 
   // state에 추가하여 관리해야됨
-  createReply({
+  Future<void> createReply({
+    required String diaryId,
     required String commentId,
     required String content,
   }) async {
@@ -81,6 +89,10 @@ class DiaryReplyStateNotifier
           content: content,
         ),
       );
+      ref
+          .read(diaryCommentProvider(diaryId).notifier)
+          .addCommentReplyCount(commentId: commentId);
+
       // 3. 서버에 요청을 보낸 후, 서버에서 받은 데이터를 state에 추가한다.
       pState.data.insert(
         0,
@@ -104,6 +116,7 @@ class DiaryReplyStateNotifier
         data: pState.data,
       );
     }
+    return;
   }
 
   void toggleLike({
@@ -149,6 +162,8 @@ class DiaryReplyStateNotifier
 
   Future<void> deleteReply({
     required String replyId,
+    required String commentId,
+    required String diaryId,
   }) async {
     if (state is CursorPagination) {
       var pState = state as CursorPagination<DiaryReplyModel>;
@@ -165,6 +180,9 @@ class DiaryReplyStateNotifier
 
       // 3. 선택된 comment가 있다면 해당 데이터를 변경한다.
       pState.data.removeAt(selecteComment);
+      ref
+          .read(diaryCommentProvider(diaryId).notifier)
+          .subCommentReplyCount(commentId: commentId);
 
       // 4. 변경된 데이터를 적용한다.
       state = pState.copyWith(

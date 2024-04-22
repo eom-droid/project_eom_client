@@ -511,7 +511,7 @@ class _RenderComment extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final user = ref.read(userProvider) as UserModel;
+    final user = ref.watch(userProvider) as UserModel;
     return SliverToBoxAdapter(
       child: DefaultScrollBasePaginationLayout<DiaryCommentModel>(
         provider: diaryCommentProvider(id),
@@ -588,6 +588,7 @@ class _RenderComment extends ConsumerWidget {
           final writer = cp.data[index].writer;
           return DiaryCommentCard.fromModel(
             model: cp.data[index],
+            diaryId: id,
             onLike: () {
               onTapLike(cp.data[index].id);
             },

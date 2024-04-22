@@ -12,7 +12,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class DiaryCommentCard extends ConsumerStatefulWidget {
-  final String id;
+  final String commentId;
+  final String diaryId;
   final UserModel? writer;
   final String content;
   final DateTime createdAt;
@@ -26,11 +27,12 @@ class DiaryCommentCard extends ConsumerStatefulWidget {
 
   const DiaryCommentCard({
     super.key,
+    required this.diaryId,
     required this.content,
     required this.createdAt,
     required this.likeCount,
     required this.isLike,
-    required this.id,
+    required this.commentId,
     this.writer,
     required this.onLike,
     required this.isCommentMine,
@@ -41,13 +43,15 @@ class DiaryCommentCard extends ConsumerStatefulWidget {
 
   factory DiaryCommentCard.fromModel({
     required DiaryCommentModel model,
+    required String diaryId,
     required VoidCallback onLike,
     required VoidCallback onDelete,
     required Function(String) onUpdate,
     required bool isCommentMine,
   }) {
     return DiaryCommentCard(
-      id: model.id,
+      diaryId: diaryId,
+      commentId: model.id,
       content: model.content,
       createdAt: model.createdAt,
       likeCount: model.likeCount,
@@ -83,7 +87,8 @@ class _DiaryCommentCardState extends ConsumerState<DiaryCommentCard> {
 
   @override
   Widget build(BuildContext context) {
-    final replyState = ref.watch(diaryReplyProvider(widget.id));
+    final replyState = ref.watch(diaryReplyProvider(widget.commentId));
+
     final userState = ref.watch(userProvider) as UserModel;
     return Padding(
       padding: const EdgeInsets.symmetric(
@@ -287,13 +292,17 @@ class _DiaryCommentCardState extends ConsumerState<DiaryCommentCard> {
               userState: userState,
               controller: replyController,
               onReply: () {
-                ref.read(diaryReplyProvider(widget.id).notifier).createReply(
+                ref
+                    .read(diaryReplyProvider(widget.commentId).notifier)
+                    .createReply(
                       content: replyController.text,
-                      commentId: widget.id,
+                      commentId: widget.commentId,
+                      diaryId: widget.diaryId,
                     );
                 replyController.text = "";
                 setState(() {
                   showReplyInput = false;
+                  showReply = true;
                 });
               },
             ),
@@ -326,10 +335,12 @@ class _DiaryCommentCardState extends ConsumerState<DiaryCommentCard> {
                               },
                               onDelete: () {
                                 ref
-                                    .read(
-                                        diaryReplyProvider(widget.id).notifier)
+                                    .read(diaryReplyProvider(widget.commentId)
+                                        .notifier)
                                     .deleteReply(
                                       replyId: reply.id,
+                                      commentId: widget.commentId,
+                                      diaryId: widget.diaryId,
                                     );
                               },
                             );
@@ -425,7 +436,7 @@ class _DiaryCommentCardState extends ConsumerState<DiaryCommentCard> {
                                             onTap: () {
                                               ref
                                                   .read(diaryReplyProvider(
-                                                          widget.id)
+                                                          widget.commentId)
                                                       .notifier)
                                                   .patchReply(
                                                     content:
@@ -466,7 +477,8 @@ class _DiaryCommentCardState extends ConsumerState<DiaryCommentCard> {
                             behavior: HitTestBehavior.opaque,
                             onTap: () {
                               ref
-                                  .read(diaryReplyProvider(widget.id).notifier)
+                                  .read(diaryReplyProvider(widget.commentId)
+                                      .notifier)
                                   .toggleLike(
                                     replyId: reply.id,
                                   );
@@ -513,76 +525,88 @@ class _DiaryCommentCardState extends ConsumerState<DiaryCommentCard> {
                 itemCount: (replyState).data.length,
               ),
             ),
-          if (widget.replyCount > 0 && replyState is CursorPagination)
-            Padding(
-              padding: const EdgeInsets.only(
-                left: 56.0,
-              ),
-              child: GestureDetector(
-                onTap: () {
-                  // 전제 : 답글이 12개 있는 상태
-                  // 0. 로딩중
-                  // 굳이 구현이 필요없음
-
-                  // 1. 처음 답글을 가져올때
-                  // 2. 답글을 2개 더 가져올때
-
-                  if (replyState.data.isEmpty) {
-                    setState(() {
-                      showReply = !showReply;
-                    });
-                  }
-                  ref.read(diaryReplyProvider(widget.id).notifier).paginate(
-                        bounceMilSec: 100,
-                        fetchMore: replyState.meta.hasMore,
-                      );
-                  // 3. 답글을 모두 가져온 상태에서 버튼을 누르면 -> 숨기기 버튼을 누른것과 같음
-                  // 4. 답글을 모두 가져온 상태 + 숨김 상태에서 버튼을 누르면 -> x개 보기
-                  // 위 페이징을 진행한 이유는 paginate에서 자체적으로 hasMore를 체크하기 때문에
-                  if (!replyState.meta.hasMore) {
-                    setState(() {
-                      showReply = !showReply;
-                    });
-                  }
-                  return;
-                },
-                child: Padding(
-                  padding: const EdgeInsets.only(
-                    top: 16.0,
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 36,
-                        height: 0.5,
-                        decoration: const BoxDecoration(
-                          color: GRAY_TEXT_COLOR,
-                        ),
-                      ),
-                      const SizedBox(
-                        width: 8.0,
-                      ),
-                      Text(
-                        // replyState is CursorPagination
-                        //? replyState.meta.hasMore || !showReply
-                        replyState.meta.hasMore || !showReply
-                            ? showReply || replyState.data.isEmpty
-                                ? "답글 ${DataUtils.number2Unit.format((widget.replyCount - replyState.data.length).abs())}개 보기"
-                                : "답글 ${DataUtils.number2Unit.format(replyState.data.length)}개 보기"
-                            : "답글 숨기기",
-                        // : "읽어들이는중...",
-                        style: const TextStyle(
-                          fontSize: 13.0,
-                          fontWeight: FontWeight.w400,
-                          color: GRAY_TEXT_COLOR,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+          if (replyState is CursorPagination && widget.replyCount > 0)
+            replyShowButton(
+              replyState: replyState as CursorPagination<DiaryReplyModel>,
             ),
         ],
+      ),
+    );
+  }
+
+  Widget replyShowButton({
+    required CursorPagination<DiaryReplyModel> replyState,
+  }) {
+    int currentState = (replyState.meta.hasMore &&
+                widget.replyCount != replyState.data.length) ||
+            !showReply
+        ? showReply || replyState.data.isEmpty
+            ? 1
+            : 2
+        : 0;
+
+    return Padding(
+      padding: const EdgeInsets.only(
+        left: 56.0,
+      ),
+      child: GestureDetector(
+        onTap: () {
+          if (currentState == 0) {
+            setState(() {
+              showReply = !showReply;
+            });
+          }
+          if (currentState == 1) {
+            if (!showReply) {
+              setState(() {
+                showReply = !showReply;
+              });
+            }
+            ref.read(diaryReplyProvider(widget.commentId).notifier).paginate(
+                  bounceMilSec: 100,
+                  fetchMore: replyState.meta.count == 0
+                      ? false
+                      : replyState.meta.hasMore,
+                );
+          }
+          if (currentState == 2) {
+            setState(() {
+              showReply = !showReply;
+            });
+          }
+          return;
+        },
+        child: Padding(
+          padding: const EdgeInsets.only(
+            top: 16.0,
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 36,
+                height: 0.5,
+                decoration: const BoxDecoration(
+                  color: GRAY_TEXT_COLOR,
+                ),
+              ),
+              const SizedBox(
+                width: 8.0,
+              ),
+              Text(
+                currentState == 0
+                    ? "답글 숨기기"
+                    : currentState == 1
+                        ? "답글 ${DataUtils.number2Unit.format((widget.replyCount - replyState.data.length).abs())}개 보기"
+                        : "답글 ${DataUtils.number2Unit.format(replyState.data.length)}개 보기",
+                style: const TextStyle(
+                  fontSize: 13.0,
+                  fontWeight: FontWeight.w400,
+                  color: GRAY_TEXT_COLOR,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

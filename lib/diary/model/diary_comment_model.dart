@@ -47,6 +47,7 @@ class DiaryCommentModel implements IModelWithId {
     DateTime? createdAt,
     int? likeCount,
     bool? isLike,
+    int? replyCount,
   }) {
     return DiaryCommentModel(
       id: id ?? this.id,
@@ -55,7 +56,7 @@ class DiaryCommentModel implements IModelWithId {
       createdAt: createdAt ?? this.createdAt,
       likeCount: likeCount ?? this.likeCount,
       isLike: isLike ?? this.isLike,
-      replyCount: replyCount,
+      replyCount: replyCount ?? this.replyCount,
     );
   }
 

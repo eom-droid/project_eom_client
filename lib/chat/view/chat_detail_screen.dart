@@ -95,6 +95,7 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen>
           "주인장",
           style: TextStyle(
             fontWeight: FontWeight.bold,
+            fontSize: 20.0,
           ),
         ),
       ),
@@ -130,6 +131,8 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen>
               ),
               child: ListView.builder(
                 physics: const BouncingScrollPhysics(),
+                keyboardDismissBehavior:
+                    ScrollViewKeyboardDismissBehavior.onDrag,
                 reverse: true,
                 controller: controller,
                 itemCount: chat.messages.length,
@@ -338,7 +341,7 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen>
                                           readUserCount.toString(),
                                           style: const TextStyle(
                                             color: PRIMARY_COLOR,
-                                            fontSize: 12.0,
+                                            fontSize: 11.0,
                                           ),
                                         ),
                                       showChatTime
@@ -369,7 +372,7 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen>
                                   chatMessage.content,
                                   style: const TextStyle(
                                     color: Colors.black,
-                                    fontSize: 15.0,
+                                    fontSize: 14.0,
                                     height: 1.2,
                                   ),
                                 ),
@@ -402,7 +405,7 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen>
                                       user.nickname,
                                       style: const TextStyle(
                                         color: Colors.white,
-                                        fontSize: 14.0,
+                                        fontSize: 13.0,
                                       ),
                                       overflow: TextOverflow.ellipsis,
                                     ),
@@ -428,7 +431,7 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen>
                                             chatMessage.content,
                                             style: const TextStyle(
                                               color: Colors.white,
-                                              fontSize: 15.0,
+                                              fontSize: 14.0,
                                               height: 1.2,
                                             ),
                                           ),
@@ -446,7 +449,7 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen>
                                               readUserCount.toString(),
                                               style: const TextStyle(
                                                 color: PRIMARY_COLOR,
-                                                fontSize: 12.0,
+                                                fontSize: 11.0,
                                               ),
                                             ),
                                           showChatTime
@@ -489,7 +492,7 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen>
       ),
       style: const TextStyle(
         color: Colors.white,
-        fontSize: 12.0,
+        fontSize: 11.0,
       ),
     );
   }
@@ -520,7 +523,7 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen>
             '${createdAt.year}년 ${createdAt.month}월 ${createdAt.day}일',
             style: const TextStyle(
               color: Colors.white,
-              fontSize: 13.0,
+              fontSize: 12.0,
             ),
           ),
         ),
@@ -584,12 +587,12 @@ class _BottomInputState extends State<BottomInput> {
                   },
                   style: const TextStyle(
                     color: Colors.white,
-                    fontSize: 15.0,
+                    fontSize: 14.0,
                     fontWeight: FontWeight.w400,
                     height: 1.4,
                   ),
                   cursorColor: Colors.white,
-                  cursorHeight: 16.0,
+                  // cursorHeight: 20.0,
                   maxLines: null,
                   keyboardType: TextInputType.multiline,
                   decoration: const InputDecoration(
