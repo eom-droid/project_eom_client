@@ -167,7 +167,6 @@ class PaginationNotifier<T extends IModelWithId,
         state = resp;
       }
     } catch (e) {
-      print(e);
       state = CursorPaginationError(message: '데이터 가져오기 실패');
     }
   }

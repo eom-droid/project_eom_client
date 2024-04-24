@@ -52,6 +52,12 @@ abstract class UserRepository {
   })
   Future<void> deleteKakaoUser();
 
+  @DELETE("/me/google")
+  @Headers({
+    'accessToken': 'true',
+  })
+  Future<void> deleteGoogleUser();
+
   @POST("/logout")
   @Headers({
     'accessToken': 'true',

@@ -1,3 +1,4 @@
+import 'package:client/common/const/colors.dart';
 import 'package:client/common/layout/default_scroll_base_pagination_layout.dart';
 import 'package:client/music/provider/music_provider.dart';
 import 'package:flutter/material.dart';
@@ -67,7 +68,6 @@ class MusicScreen extends ConsumerWidget {
     required WidgetRef ref,
   }) {
     final musicList = cp.data as List<MusicModel>;
-    print(cp);
     return MediaQuery.removePadding(
       context: context,
       removeTop: true,
@@ -83,7 +83,9 @@ class MusicScreen extends ConsumerWidget {
               ),
               child: Center(
                 child: cp is CursorPaginationFetchingMore
-                    ? const CircularProgressIndicator()
+                    ? const CircularProgressIndicator(
+                        color: PRIMARY_COLOR,
+                      )
                     : const Text(
                         '마지막 입니다.',
                         style: TextStyle(

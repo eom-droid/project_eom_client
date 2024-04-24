@@ -1,3 +1,4 @@
+import 'package:client/common/const/colors.dart';
 import 'package:client/common/layout/default_scroll_base_pagination_layout.dart';
 import 'package:client/diary/provider/diary_provider.dart';
 import 'package:flutter/material.dart';
@@ -111,7 +112,9 @@ class DiaryScreen extends ConsumerWidget {
               ),
               child: Center(
                 child: cp is CursorPaginationFetchingMore
-                    ? const CircularProgressIndicator()
+                    ? const CircularProgressIndicator(
+                        color: PRIMARY_COLOR,
+                      )
                     : const Text(
                         '마지막 입니다.',
                         style: TextStyle(

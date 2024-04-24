@@ -3,7 +3,7 @@ import 'package:client/chat/view/chat_detail_screen.dart';
 import 'package:client/chat/view/chat_screen.dart';
 import 'package:client/common/view/splash_screen.dart';
 import 'package:client/settings/view/apple_account_revoke_screen.dart';
-import 'package:client/settings/view/google_account_revoke_screen.dart';
+
 import 'package:client/settings/view/privacy_policy_screen.dart';
 import 'package:client/settings/view/profile_modify_screen.dart';
 import 'package:client/settings/view/settings_screen.dart';
@@ -143,12 +143,7 @@ class RouterProvider extends ChangeNotifier {
                 GoRoute(
                   path: "appleAccountRevoke",
                   name: AppleAccountRevokeScreen.routeName,
-                  builder: (context, state) => AppleAccountRevokeScreen(),
-                ),
-                GoRoute(
-                  path: "googleAccountRevoke",
-                  name: GoogleAccountRevokeScreen.routeName,
-                  builder: (context, state) => GoogleAccountRevokeScreen(),
+                  builder: (context, state) => const AppleAccountRevokeScreen(),
                 )
               ],
             )
@@ -166,9 +161,7 @@ class RouterProvider extends ChangeNotifier {
 
     final loginRoute = state.matchedLocation == '/login';
     final splashRoute = state.matchedLocation == '/splash';
-    if (user is UserModelError) {
-      print(user.message);
-    }
+    if (user is UserModelError) {}
 
     // 유저 정보가 없는데
     // 로그인 중이면 그대로 로그인 페이지에 두고

@@ -31,7 +31,6 @@ class SocketIO {
     required String accessToken,
     required Function(dynamic) onError,
   }) async {
-    print("url: $url, path: $path, accessToken: $accessToken");
     if (reInit) {
       socket.dispose();
     }
@@ -49,7 +48,7 @@ class SocketIO {
       'extraHeaders': {'authorization': 'Bearer $accessToken'},
     };
 
-    socket.onError((a) => {print(a)});
+    socket.onError(onError);
     socket.connect();
 
     socket.on(SocketEvent.connected.value, (data) {
@@ -71,12 +70,10 @@ class SocketIO {
   }
 
   on(SocketEvent eventName, Function(dynamic) callback) {
-    print('[SocketIO] Event Listen: $eventName');
     socket.on(eventName.value, callback);
   }
 
   off(SocketEvent eventName, Function(dynamic) callback) {
-    print('[SocketIO] Event Off: $eventName');
     socket.off(eventName.value, callback);
   }
 
@@ -86,7 +83,6 @@ class SocketIO {
       if (!result) throw Exception('SocketIO 연결 실패');
     }
     // await Future.delayed(const Duration(milliseconds: 1000));
-    print('[SocketIO] Event Emitted: $eventName, Data: $data');
     socket.emit(eventName.value, data);
     return;
   }
@@ -101,7 +97,6 @@ class SocketIO {
       if (!result) throw Exception('SocketIO 연결 실패');
     }
     // await Future.delayed(const Duration(milliseconds: 1000));
-    print('[SocketIO] Event Emitted: $eventName, Data: $data');
     socket.emitWithAck(eventName.value, data, ack: ack);
     return;
   }

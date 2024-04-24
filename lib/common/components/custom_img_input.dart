@@ -139,7 +139,6 @@ class _CustomImgInputState extends State<CustomImgInput> {
         maxWidth: widget.maxheightWidth,
       );
       if (image != null) {
-        // print("${((await image.length()) / 1024 / 1024).toStringAsFixed(2)}MB");
         // 하단 loadingTrigger 실행 시 setState가 실행됨에 따라
         // 따로 setState를 진행하지 않음
         setState(() {

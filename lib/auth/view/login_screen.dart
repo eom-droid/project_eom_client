@@ -32,7 +32,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       ..addJavaScriptChannel(
         "toApp",
         onMessageReceived: (JavaScriptMessage msg) {
-          print(msg.message);
           try {
             Map valueMap = jsonDecode(msg.message);
             final String accessToken = valueMap['accessToken'];
@@ -41,9 +40,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   accessToken: accessToken,
                   refreshToken: refreshToken,
                 );
-          } catch (e) {
-            print(e);
-          }
+          } catch (e) {}
         },
       )
       ..loadRequest(Uri.parse(dotenv.env["WEB_URL"]!));

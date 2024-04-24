@@ -63,7 +63,9 @@ class _DiaryDetailScreenState extends ConsumerState<DiaryDetailScreen> {
       return const DefaultLayout(
         backgroundColor: BACKGROUND_BLACK,
         child: Center(
-          child: CircularProgressIndicator(),
+          child: CircularProgressIndicator(
+            color: PRIMARY_COLOR,
+          ),
         ),
       );
     }
@@ -397,7 +399,7 @@ class _DiaryDetailScreenState extends ConsumerState<DiaryDetailScreen> {
                         ? Icons.favorite
                         : Icons.favorite_border_outlined,
                     color: PRIMARY_COLOR,
-                    size: 32.0,
+                    size: 30.0,
                   ),
                 ),
               ),
@@ -405,7 +407,7 @@ class _DiaryDetailScreenState extends ConsumerState<DiaryDetailScreen> {
                 DataUtils.number2Unit.format(model.likeCount),
                 style: const TextStyle(
                   color: BODY_TEXT_COLOR,
-                  fontSize: 16.0,
+                  fontSize: 15.0,
                 ),
               ),
             ],
@@ -435,7 +437,7 @@ class _DiaryDetailScreenState extends ConsumerState<DiaryDetailScreen> {
                 "댓글 ${DataUtils.number2Unit.format(commentCount)}개",
                 style: const TextStyle(
                   color: BODY_TEXT_COLOR,
-                  fontSize: 16.0,
+                  fontSize: 14.5,
                 ),
               ),
               const SizedBox(
@@ -451,14 +453,14 @@ class _DiaryDetailScreenState extends ConsumerState<DiaryDetailScreen> {
             children: [
               CustomCircleAvatar(
                 url: me.profileImg,
-                size: 47,
+                size: 43,
               ),
               const SizedBox(
                 width: 18.0,
               ),
               Expanded(
                 child: SizedBox(
-                  height: 34.0,
+                  height: 32.0,
                   child: CustomTextField(
                     controller: controller,
                     hintText: "댓글 추가",
@@ -487,7 +489,7 @@ class _DiaryDetailScreenState extends ConsumerState<DiaryDetailScreen> {
                           '댓글',
                           style: TextStyle(
                             color: PRIMARY_COLOR,
-                            fontSize: 16.0,
+                            fontSize: 14.5,
                             fontWeight: FontWeight.w500,
                           ),
                         ),

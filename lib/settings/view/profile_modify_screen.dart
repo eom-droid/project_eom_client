@@ -132,7 +132,6 @@ class ProfileModify extends ConsumerWidget {
         context.pop();
       });
     } catch (error) {
-      print(error);
       FullLoadingScreen(context).stopLoading();
     }
   }

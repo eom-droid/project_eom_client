@@ -98,7 +98,6 @@ class ChatRepository {
           final temp = _ as Map<String, dynamic>;
           return ChatMessageModel.fromJson(temp);
         });
-        print("end paginateMessage from chat_repository.dart");
 
         completer.complete(result);
       } else {
@@ -129,7 +128,6 @@ class ChatRepository {
   }
 
   _newMessage(dynamic data) {
-    print("[SocketIO] newMessage");
     chatResponseStream.sink.add(
       ChatResponseModel(
         event: SocketEvent.newMessage,
@@ -139,7 +137,6 @@ class ChatRepository {
   }
 
   _enterRoomOtherUser(dynamic data) {
-    print("[SocketIO] enterRoomOtherUser");
     chatResponseStream.sink.add(
       ChatResponseModel(
         event: SocketEvent.enterRoomOtherUser,

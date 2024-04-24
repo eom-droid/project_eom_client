@@ -39,9 +39,7 @@ class CustomCircleAvatar extends StatelessWidget {
                 errorWidget: (context, url, error) => questionMark(
                   size,
                 ),
-                errorListener: (value) {
-                  print('errorListener: $value');
-                },
+                errorListener: (value) {},
               )
             : questionMark(
                 size,

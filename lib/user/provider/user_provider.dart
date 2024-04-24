@@ -64,9 +64,7 @@ class UserStateNotifier extends StateNotifier<UserModelBase?> {
       }
 
       state = user;
-    } catch (e, stack) {
-      print(e);
-      print(stack);
+    } catch (e) {
       state = null;
     }
   }
@@ -151,6 +149,8 @@ class UserStateNotifier extends StateNotifier<UserModelBase?> {
     final pState = state as UserModel;
     if (pState.provider == "kakao") {
       await userRepository.deleteKakaoUser();
+    } else if (pState.provider == "google") {
+      await userRepository.deleteGoogleUser();
     } else {
       await userRepository.deleteEmailUser();
     }

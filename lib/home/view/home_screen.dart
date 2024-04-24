@@ -1,6 +1,7 @@
 import 'package:client/auth/view/login_screen.dart';
 import 'package:client/chat/view/chat_screen.dart';
 import 'package:client/common/components/default_moving_background.dart';
+import 'package:client/common/const/colors.dart';
 import 'package:client/settings/view/settings_screen.dart';
 import 'package:client/user/model/user_model.dart';
 import 'package:client/user/provider/user_provider.dart';
@@ -211,6 +212,7 @@ class _FrontImagesRender extends ConsumerWidget {
 
           Positioned(
             bottom: 0,
+
             // 현재 로그인 상태에 따라서 다른 버튼을 보여준다.
             child: user is UserModel
                 ? _menuBar(
@@ -228,11 +230,47 @@ class _FrontImagesRender extends ConsumerWidget {
                       context.goNamed(SettingsScreen.routeName);
                     },
                   )
-                : ElevatedButton(
-                    onPressed: () {
-                      context.pushNamed(LoginScreen.routerName);
-                    },
-                    child: const Text('로그인/회원가입'),
+                : Container(
+                    padding: const EdgeInsets.only(
+                      bottom: 70,
+                    ),
+                    width: MediaQuery.of(context).size.width,
+                    child: Center(
+                      child: GestureDetector(
+                        onTap: () {
+                          context.pushNamed(LoginScreen.routerName);
+                        },
+                        child: Container(
+                          width: MediaQuery.of(context).size.width - 50,
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 15,
+                          ),
+                          decoration: BoxDecoration(
+                            color: PRIMARY_COLOR,
+                            borderRadius: const BorderRadius.all(
+                              Radius.circular(10),
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.white.withOpacity(0.7),
+                                blurRadius: 10.0,
+                                spreadRadius: 3,
+                              ),
+                            ],
+                          ),
+                          child: const Center(
+                            child: Text(
+                              'Login/Join',
+                              style: TextStyle(
+                                color: INPUT_BG_COLOR,
+                                fontSize: 18,
+                                fontFamily: 'sabreshark',
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
           ),
         ],

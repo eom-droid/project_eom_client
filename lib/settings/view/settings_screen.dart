@@ -3,7 +3,6 @@ import 'package:client/common/const/colors.dart';
 import 'package:client/common/const/data.dart';
 import 'package:client/common/layout/default_layout.dart';
 import 'package:client/settings/view/apple_account_revoke_screen.dart';
-import 'package:client/settings/view/google_account_revoke_screen.dart';
 import 'package:client/settings/view/privacy_policy_screen.dart';
 import 'package:client/settings/view/profile_modify_screen.dart';
 import 'package:client/settings/view/terms_of_use_screen.dart';
@@ -20,9 +19,7 @@ class SettingsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final me = ref.watch(userProvider);
-    if (me != null) {
-      print((me as UserModel).profileImg);
-    }
+    if (me != null) {}
 
     return DefaultLayout(
       backgroundColor: BACKGROUND_BLACK,
@@ -40,7 +37,9 @@ class SettingsScreen extends ConsumerWidget {
       ),
       child: me == null
           ? const Center(
-              child: CircularProgressIndicator(),
+              child: CircularProgressIndicator(
+                color: PRIMARY_COLOR,
+              ),
             )
           : SingleChildScrollView(
               child: Padding(
@@ -160,10 +159,11 @@ class SettingsScreen extends ConsumerWidget {
                                         height: 12,
                                       ),
                                       if (me.provider != null &&
-                                          me.provider != kakao)
-                                        Text(
-                                          "* ${me.provider == 'google' ? '구글' : '애플'} 계정으로 가입하신경우에는 탈퇴를 위한 인증 1회가 필요합니다.",
-                                          style: const TextStyle(
+                                          me.provider != kakao &&
+                                          me.provider != google)
+                                        const Text(
+                                          "* '애플' 계정으로 가입하신경우에는 탈퇴를 위한 인증 1회가 필요합니다.",
+                                          style: TextStyle(
                                             color: GRAY_TEXT_COLOR,
                                           ),
                                         ),
@@ -173,21 +173,15 @@ class SettingsScreen extends ConsumerWidget {
                                     TextButton(
                                       onPressed: () {
                                         Navigator.pop(context);
-                                        // 자체 로그인과 카카오 로그인은 바로 탈퇴
-                                        if (me.provider == null ||
-                                            me.provider == kakao) {
-                                          ref
-                                              .read(userProvider.notifier)
-                                              .revokeAccount();
-                                          // 구글과 애플은 추가 인증이 필요
-                                        } else if (me.provider == google) {
-                                          context.pushNamed(
-                                            GoogleAccountRevokeScreen.routeName,
-                                          );
-                                        } else if (me.provider == apple) {
+
+                                        if (me.provider == apple) {
                                           context.pushNamed(
                                             AppleAccountRevokeScreen.routeName,
                                           );
+                                        } else {
+                                          ref
+                                              .read(userProvider.notifier)
+                                              .revokeAccount();
                                         }
                                       },
                                       child: const Text(

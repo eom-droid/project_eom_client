@@ -144,7 +144,7 @@ class _DiaryCommentCardState extends ConsumerState<DiaryCommentCard> {
                                           ? widget.writer!.nickname
                                           : "삭제된 사용자",
                                       style: TextStyle(
-                                        fontSize: 14.0,
+                                        fontSize: 13.0,
                                         fontWeight: FontWeight.w500,
                                         color: widget.writer != null
                                             ? Colors.white
@@ -158,7 +158,7 @@ class _DiaryCommentCardState extends ConsumerState<DiaryCommentCard> {
                                       DataUtils.timeAgoSinceDate(
                                           widget.createdAt),
                                       style: const TextStyle(
-                                        fontSize: 13.0,
+                                        fontSize: 11.0,
                                         fontWeight: FontWeight.w400,
                                         color: GRAY_TEXT_COLOR,
                                       ),
@@ -173,7 +173,7 @@ class _DiaryCommentCardState extends ConsumerState<DiaryCommentCard> {
                                     children: [
                                       CustomTextField(
                                         controller: commentUpdateController,
-                                        fontSize: 14.0,
+                                        fontSize: 13.0,
                                       ),
                                       const SizedBox(
                                         height: 12.0,
@@ -191,7 +191,7 @@ class _DiaryCommentCardState extends ConsumerState<DiaryCommentCard> {
                                             child: const Text(
                                               "취소",
                                               style: TextStyle(
-                                                fontSize: 13.0,
+                                                fontSize: 12.0,
                                                 fontWeight: FontWeight.w400,
                                                 color: GRAY_TEXT_COLOR,
                                               ),
@@ -208,7 +208,7 @@ class _DiaryCommentCardState extends ConsumerState<DiaryCommentCard> {
                                             child: const Text(
                                               "수정",
                                               style: TextStyle(
-                                                fontSize: 13.0,
+                                                fontSize: 12.0,
                                                 fontWeight: FontWeight.w400,
                                                 color: PRIMARY_COLOR,
                                               ),
@@ -222,7 +222,7 @@ class _DiaryCommentCardState extends ConsumerState<DiaryCommentCard> {
                                   Text(
                                     widget.content,
                                     style: const TextStyle(
-                                      fontSize: 15.0,
+                                      fontSize: 14.0,
                                       fontWeight: FontWeight.w400,
                                       color: Colors.white,
                                     ),
@@ -239,7 +239,7 @@ class _DiaryCommentCardState extends ConsumerState<DiaryCommentCard> {
                                   child: const Text(
                                     "답글달기",
                                     style: TextStyle(
-                                      fontSize: 13.0,
+                                      fontSize: 12.0,
                                       fontWeight: FontWeight.w400,
                                       color: GRAY_TEXT_COLOR,
                                     ),
@@ -261,7 +261,7 @@ class _DiaryCommentCardState extends ConsumerState<DiaryCommentCard> {
                                     widget.isLike
                                         ? Icons.favorite
                                         : Icons.favorite_border,
-                                    size: 20.0,
+                                    size: 18.0,
                                     color: Colors.white,
                                   ),
                                   Text(
@@ -270,7 +270,7 @@ class _DiaryCommentCardState extends ConsumerState<DiaryCommentCard> {
                                             .format(widget.likeCount)
                                         : "",
                                     style: const TextStyle(
-                                      fontSize: 13.0,
+                                      fontSize: 12.0,
                                       fontWeight: FontWeight.w400,
                                       color: GRAY_TEXT_COLOR,
                                     ),
@@ -378,7 +378,7 @@ class _DiaryCommentCardState extends ConsumerState<DiaryCommentCard> {
                                           ? reply.writer!.nickname
                                           : "삭제된 사용자",
                                       style: TextStyle(
-                                        fontSize: 14.0,
+                                        fontSize: 13.0,
                                         fontWeight: FontWeight.w500,
                                         color: reply.writer != null
                                             ? Colors.white
@@ -393,7 +393,7 @@ class _DiaryCommentCardState extends ConsumerState<DiaryCommentCard> {
                                         reply.createdAt,
                                       ),
                                       style: const TextStyle(
-                                        fontSize: 13.0,
+                                        fontSize: 12.0,
                                         fontWeight: FontWeight.w400,
                                         color: GRAY_TEXT_COLOR,
                                       ),
@@ -465,7 +465,7 @@ class _DiaryCommentCardState extends ConsumerState<DiaryCommentCard> {
                                   Text(
                                     reply.content,
                                     style: const TextStyle(
-                                      fontSize: 15.0,
+                                      fontSize: 13.0,
                                       fontWeight: FontWeight.w400,
                                       color: Colors.white,
                                     ),
@@ -494,7 +494,7 @@ class _DiaryCommentCardState extends ConsumerState<DiaryCommentCard> {
                                     reply.isLike
                                         ? Icons.favorite
                                         : Icons.favorite_border,
-                                    size: 20.0,
+                                    size: 18.0,
                                     color: Colors.white,
                                   ),
                                   Text(
@@ -503,7 +503,7 @@ class _DiaryCommentCardState extends ConsumerState<DiaryCommentCard> {
                                             .format(reply.likeCount)
                                         : "",
                                     style: const TextStyle(
-                                      fontSize: 13.0,
+                                      fontSize: 12.0,
                                       fontWeight: FontWeight.w400,
                                       color: GRAY_TEXT_COLOR,
                                     ),
@@ -599,7 +599,7 @@ class _DiaryCommentCardState extends ConsumerState<DiaryCommentCard> {
                         ? "답글 ${DataUtils.number2Unit.format((widget.replyCount - replyState.data.length).abs())}개 보기"
                         : "답글 ${DataUtils.number2Unit.format(replyState.data.length)}개 보기",
                 style: const TextStyle(
-                  fontSize: 13.0,
+                  fontSize: 12.0,
                   fontWeight: FontWeight.w400,
                   color: GRAY_TEXT_COLOR,
                 ),

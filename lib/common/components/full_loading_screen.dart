@@ -1,3 +1,4 @@
+import 'package:client/common/const/colors.dart';
 import 'package:flutter/material.dart';
 
 class FullLoadingScreen {
@@ -17,7 +18,9 @@ class FullLoadingScreen {
               Colors.transparent, // can change this to your prefered color
           children: <Widget>[
             Center(
-              child: CircularProgressIndicator(),
+              child: CircularProgressIndicator(
+                color: PRIMARY_COLOR,
+              ),
             )
           ],
         );

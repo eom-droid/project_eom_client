@@ -21,14 +21,12 @@ class CustomVideoPlayerState extends State<CustomVideoPlayer> {
 
   @override
   void initState() {
-    print("custom_video_player : initState called");
     super.initState();
     initializeController();
   }
 
   @override
   void dispose() {
-    print("custom_video_player : dispose called");
     widget.videoController.removeListener(updateSlider);
     super.dispose();
   }
@@ -43,7 +41,6 @@ class CustomVideoPlayerState extends State<CustomVideoPlayer> {
   }
 
   updateSlider() {
-    print("custom_video_player : updateSlider called");
     final currentPosition = widget.videoController.value.position;
     setState(() {
       this.currentPosition = currentPosition;

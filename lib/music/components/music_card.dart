@@ -223,12 +223,9 @@ class MusicCard extends StatelessWidget {
 
   Future<void> launchSpotify(String spotifyId) async {
     if (await canLaunchUrlString('spotify:track:$spotifyId')) {
-      print("?????????????");
       await launchUrlString('spotify:track:$spotifyId',
           mode: LaunchMode.externalApplication);
     } else {
-      print("!!!!!!!!!!!!!");
-
       final String spotifyContent = "https://open.spotify.com/track/$spotifyId";
       if (await canLaunchUrlString(spotifyContent)) {
         await launchUrlString(spotifyContent);

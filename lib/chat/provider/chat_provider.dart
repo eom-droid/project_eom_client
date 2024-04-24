@@ -335,7 +335,6 @@ class ChatStateNotifier extends StateNotifier<CursorPaginationBase> {
     );
 
     if (resp == null) {
-      print('resp is null');
       state = CursorPaginationError(
         message: '채팅을 불러오는데 실패하였습니다.',
       );
@@ -343,7 +342,6 @@ class ChatStateNotifier extends StateNotifier<CursorPaginationBase> {
     }
 
     if (pState.data[selectedRoomIndex] is! ChatDetailModel || forceRefetch) {
-      print('forceRefetch');
       state = pState.copyWith(
         data: pState.data.map(
           (e) {
@@ -358,7 +356,6 @@ class ChatStateNotifier extends StateNotifier<CursorPaginationBase> {
         ).toList(),
       );
     } else {
-      print('not forceRefetch');
       state = pState.copyWith(
         data: pState.data.map(
           (e) {
@@ -425,7 +422,6 @@ class ChatStateNotifier extends StateNotifier<CursorPaginationBase> {
       // 2. uuidv4를 이용하여 임시 아이디를 생성한다.
       final tempMessageId = const Uuid().v4();
       final now = DateTime.now();
-      print(accessToken);
 
       // 2. 서버에 요청을 보낸다.
       repository

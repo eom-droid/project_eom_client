@@ -39,7 +39,7 @@ class DiaryCommentManageStateNotifier
     // 1. state에 id가 존재하는지 확인
     // 2. 존재한다면 해당 state를 리턴
     // 3. 존재하지 않는다면 새로운 state를 생성하여 리턴 -> 이때 paginating 같이 진행됨
-    print(state.containsKey(diaryId));
+
     if (state.containsKey(diaryId)) {
       return state[diaryId]!;
     }
@@ -214,7 +214,6 @@ class DiaryCommentStateNotifier
   addCommentReplyCount({
     required String commentId,
   }) {
-    print(state);
     // 대댓글이 추가될 때
     if (state is CursorPagination) {
       var pState = state as CursorPagination<DiaryCommentModel>;
