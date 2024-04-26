@@ -46,7 +46,7 @@ class DiaryScreen extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            '옆에 한자리 남았어',
+            '차라리 그 때가 나았지',
             style: TextStyle(
               color: Colors.white,
               fontSize: 24.0,

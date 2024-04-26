@@ -104,7 +104,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
 
     if (cp.data.isEmpty) {
       return const Center(
-        child: Text('채팅방이 없습니다.'),
+        child: Text(
+          '채팅방이 없습니다.',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 20.0,
+          ),
+        ),
       );
     }
     return _body(

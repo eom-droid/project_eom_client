@@ -86,9 +86,7 @@ class CustomInterceptor extends Interceptor {
         final resp = await dio.get(
           '$baseUrl/api/v1/auth/access-token',
           options: Options(
-            headers: {
-              'authorization': 'Bearer $refreshToken',
-            },
+            headers: {'Cookie': 'refreshToken=$refreshToken'},
           ),
         );
 

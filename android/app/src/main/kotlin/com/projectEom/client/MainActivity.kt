@@ -1,4 +1,4 @@
-package com.projectEom.client
+package eom.project.client
 
 import io.flutter.embedding.android.FlutterActivity
 
