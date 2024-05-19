@@ -12,7 +12,7 @@
 	</dict>-->
 	<!-- http request end -->
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Access to pick a photo</string>
+	<string>Please allow photo permission to change your profile image</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>

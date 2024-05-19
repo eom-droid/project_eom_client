@@ -45,18 +45,13 @@ class MusicCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        Container(
+        SizedBox(
           width: MediaQuery.of(context).size.width,
           height: MediaQuery.of(context).size.width - 32,
-          decoration: const BoxDecoration(
-            borderRadius: BorderRadius.all(
-              Radius.circular(10),
-            ),
-            color: Colors.black,
-          ),
           child: ClipRRect(
-            borderRadius: const BorderRadius.all(
-              Radius.circular(10),
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(10),
+              topRight: Radius.circular(10),
             ),
             child: ImageFiltered(
               imageFilter: ImageFilter.blur(
@@ -66,8 +61,6 @@ class MusicCard extends StatelessWidget {
               child: Image.network(
                 albumCover,
                 fit: BoxFit.cover,
-                // color: Colors.white.withOpacity(0.7),
-                // colorBlendMode: BlendMode.modulate,
               ),
             ),
           ),
@@ -76,7 +69,6 @@ class MusicCard extends StatelessWidget {
           width: double.infinity,
           height: MediaQuery.of(context).size.width - 32.0,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(10.0),
             color: Colors.black.withOpacity(0.5),
           ),
         ),
@@ -86,20 +78,17 @@ class MusicCard extends StatelessWidget {
           child: ClipRect(
             child: Container(
               decoration: BoxDecoration(
-                borderRadius: const BorderRadius.only(
-                  bottomLeft: Radius.circular(10),
-                  bottomRight: Radius.circular(10),
-                ),
                 color: const Color.fromARGB(255, 25, 25, 25).withOpacity(0.6),
               ),
               width: MediaQuery.of(context).size.width - 32,
               child: Dismissible(
                 confirmDismiss: (DismissDirection direction) async {
                   if (direction == DismissDirection.startToEnd) {
-                    await launchSpotify(spotifyId);
+                    launchSpotify(spotifyId);
                   } else if (direction == DismissDirection.endToStart) {
-                    await launchYoutubeMusic(youtubeMusicId);
+                    launchYoutubeMusic(youtubeMusicId);
                   }
+
                   return false;
                 },
                 background: Container(
