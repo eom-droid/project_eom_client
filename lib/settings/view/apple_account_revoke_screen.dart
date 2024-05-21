@@ -25,7 +25,7 @@ class _AppleAccountRevokeScreenState
     _webViewController = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setBackgroundColor(const Color(0xFF101010))
-      ..addJavaScriptChannel("complete",
+      ..addJavaScriptChannel("toApp",
           onMessageReceived: (JavaScriptMessage msg) {
         try {
           ref.read(userProvider.notifier).logoutWithoutRequest();

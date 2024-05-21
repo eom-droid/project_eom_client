@@ -158,11 +158,9 @@ class SettingsScreen extends ConsumerWidget {
                                       const SizedBox(
                                         height: 12,
                                       ),
-                                      if (me.provider != null &&
-                                          me.provider != kakao &&
-                                          me.provider != google)
+                                      if (me.provider == apple)
                                         const Text(
-                                          "* '애플' 계정으로 가입하신경우에는 탈퇴를 위한 인증 1회가 필요합니다.",
+                                          "* 애플 계정으로 가입하신경우에는 탈퇴를 위한 인증 1회가 필요합니다.",
                                           style: TextStyle(
                                             color: GRAY_TEXT_COLOR,
                                           ),

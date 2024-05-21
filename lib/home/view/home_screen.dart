@@ -212,66 +212,22 @@ class _FrontImagesRender extends ConsumerWidget {
 
           Positioned(
             bottom: 0,
-
-            // 현재 로그인 상태에 따라서 다른 버튼을 보여준다.
-            child: user is UserModel
-                ? _menuBar(
-                    context: context,
-                    onDiaryTap: () {
-                      context.goNamed(DiaryScreen.routeName);
-                    },
-                    onPlayListTap: () {
-                      context.goNamed(MusicScreen.routeName);
-                    },
-                    onChatTap: () {
-                      context.goNamed(ChatScreen.routeName);
-                    },
-                    onSettingsTap: () {
-                      context.goNamed(SettingsScreen.routeName);
-                    },
-                  )
-                : Container(
-                    padding: const EdgeInsets.only(
-                      bottom: 70,
-                    ),
-                    width: MediaQuery.of(context).size.width,
-                    child: Center(
-                      child: GestureDetector(
-                        onTap: () {
-                          context.pushNamed(LoginScreen.routerName);
-                        },
-                        child: Container(
-                          width: MediaQuery.of(context).size.width - 50,
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 15,
-                          ),
-                          decoration: BoxDecoration(
-                            color: PRIMARY_COLOR,
-                            borderRadius: const BorderRadius.all(
-                              Radius.circular(10),
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.white.withOpacity(0.7),
-                                blurRadius: 10.0,
-                                spreadRadius: 3,
-                              ),
-                            ],
-                          ),
-                          child: const Center(
-                            child: Text(
-                              'Login/Join',
-                              style: TextStyle(
-                                color: INPUT_BG_COLOR,
-                                fontSize: 18,
-                                fontFamily: 'sabreshark',
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
+            child: _menuBar(
+              isLogined: user is UserModel,
+              context: context,
+              onDiaryTap: () {
+                context.goNamed(DiaryScreen.routeName);
+              },
+              onPlayListTap: () {
+                context.goNamed(MusicScreen.routeName);
+              },
+              onChatTap: () {
+                context.goNamed(ChatScreen.routeName);
+              },
+              onSettingsTap: () {
+                context.goNamed(SettingsScreen.routeName);
+              },
+            ),
           ),
         ],
       ),
@@ -280,6 +236,7 @@ class _FrontImagesRender extends ConsumerWidget {
 
   Widget _menuBar({
     required BuildContext context,
+    required bool isLogined,
     required VoidCallback onDiaryTap,
     required VoidCallback onPlayListTap,
     required VoidCallback onChatTap,
@@ -305,45 +262,102 @@ class _FrontImagesRender extends ConsumerWidget {
           padding: EdgeInsets.only(
             bottom: MediaQuery.of(context).padding.bottom + 20,
           ),
-          child: SizedBox(
-            width: deviceWidth,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                RoutingButton(
-                  onDiaryTap: onDiaryTap,
-                  icon: SvgPicture.asset(
-                    "asset/imgs/icons/diary.svg",
-                    width: 32.0,
+          child: Column(
+            children: [
+              if (!isLogined)
+                Container(
+                  padding: const EdgeInsets.only(
+                    bottom: 20,
                   ),
-                  routeName: 'diary',
-                ),
-                RoutingButton(
-                  onDiaryTap: onPlayListTap,
-                  icon: SvgPicture.asset(
-                    "asset/imgs/icons/playlist.svg",
-                    width: 40.0,
+                  width: MediaQuery.of(context).size.width,
+                  child: Center(
+                    child: GestureDetector(
+                      onTap: () {
+                        context.pushNamed(LoginScreen.routerName);
+                      },
+                      child: Container(
+                        width: MediaQuery.of(context).size.width - 32,
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 15,
+                        ),
+                        decoration: BoxDecoration(
+                          color: PRIMARY_COLOR,
+                          borderRadius: const BorderRadius.all(
+                            Radius.circular(10),
+                          ),
+                          border: Border.all(
+                            color: Colors.white,
+                            width: 3.0,
+                          ),
+                          // boxShadow: [
+                          //   BoxShadow(
+                          //     color: Colors.white.withOpacity(0.7),
+                          //     blurRadius: 10.0,
+                          //     spreadRadius: 3,
+                          //   ),
+                          // ],
+                        ),
+                        child: const Center(
+                          child: Text(
+                            'Login/Join',
+                            style: TextStyle(
+                              color: INPUT_BG_COLOR,
+                              fontSize: 18,
+                              fontFamily: 'sabreshark',
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
-                  routeName: 'Play\nList',
                 ),
-                RoutingButton(
-                  onDiaryTap: onChatTap,
-                  icon: SvgPicture.asset(
-                    "asset/imgs/icons/chat.svg",
-                    width: 40.0,
-                  ),
-                  routeName: 'DM',
+              const SizedBox(
+                height: 0,
+              ),
+              SizedBox(
+                width: deviceWidth,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    RoutingButton(
+                      onDiaryTap: onDiaryTap,
+                      disabled: !isLogined,
+                      icon: SvgPicture.asset(
+                        "asset/imgs/icons/diary.svg",
+                        width: 32.0,
+                      ),
+                      routeName: 'diary',
+                    ),
+                    RoutingButton(
+                      onDiaryTap: onPlayListTap,
+                      icon: SvgPicture.asset(
+                        "asset/imgs/icons/playlist.svg",
+                        width: 40.0,
+                      ),
+                      routeName: 'Play\nList',
+                    ),
+                    RoutingButton(
+                      onDiaryTap: onChatTap,
+                      disabled: !isLogined,
+                      icon: SvgPicture.asset(
+                        "asset/imgs/icons/chat.svg",
+                        width: 40.0,
+                      ),
+                      routeName: 'DM',
+                    ),
+                    RoutingButton(
+                      onDiaryTap: onSettingsTap,
+                      disabled: !isLogined,
+                      icon: SvgPicture.asset(
+                        "asset/imgs/icons/settings.svg",
+                        width: 40.0,
+                      ),
+                      routeName: 'SET',
+                    ),
+                  ],
                 ),
-                RoutingButton(
-                  onDiaryTap: onSettingsTap,
-                  icon: SvgPicture.asset(
-                    "asset/imgs/icons/settings.svg",
-                    width: 40.0,
-                  ),
-                  routeName: 'SET',
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ],

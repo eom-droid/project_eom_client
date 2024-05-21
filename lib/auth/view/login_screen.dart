@@ -40,7 +40,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   accessToken: accessToken,
                   refreshToken: refreshToken,
                 );
-          } catch (e) {}
+            if (context.canPop()) {
+              context.pop();
+            }
+          } catch (e) {
+            // router pop
+            context.pop();
+          }
         },
       )
       ..loadRequest(Uri.parse(dotenv.env["WEB_URL"]!));

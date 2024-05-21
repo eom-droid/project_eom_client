@@ -122,7 +122,6 @@ class UserStateNotifier extends StateNotifier<UserModelBase?> {
         secureStorage.write(key: ACCESS_TOKEN_KEY, value: accessToken),
         secureStorage.write(key: REFRESH_TOKEN_KEY, value: refreshToken)
       ]);
-
       state = user;
     } catch (e) {
       state = UserModelError(message: "로그인 실패");
