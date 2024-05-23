@@ -21,7 +21,7 @@ final diaryReplyProvider = StateNotifierProvider.family<DiaryReplyStateNotifier,
 
   return DiaryReplyManageStateNotifier(
     repository: diaryRepository,
-    user: user!,
+    user: user,
     ref: ref,
   ).getReplyNotifier(commentId: commentId);
 });

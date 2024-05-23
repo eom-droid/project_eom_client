@@ -6,6 +6,7 @@ import 'package:client/common/utils/data_utils.dart';
 
 class DiaryCard extends StatelessWidget {
   final String id;
+  final bool activate;
   final DateTime createdAt;
   final String thumbnail;
   final List<String> hashtags;
@@ -24,14 +25,17 @@ class DiaryCard extends StatelessWidget {
     required this.likeCount,
     required this.isLike,
     required this.onTapLike,
+    required this.activate,
   }) : super(key: key);
 
   factory DiaryCard.fromModel({
     required DiaryModel model,
     required VoidCallback onTapLike,
+    required bool activate,
   }) {
     return DiaryCard(
       id: model.id,
+      activate: activate,
       createdAt: model.createdAt,
       thumbnail: model.thumbnail,
       hashtags: model.hashtags,
@@ -166,7 +170,11 @@ class DiaryCard extends StatelessWidget {
               child: Column(
                 children: [
                   Icon(
-                    isLike ? Icons.favorite : Icons.favorite_border_outlined,
+                    activate
+                        ? isLike
+                            ? Icons.favorite
+                            : Icons.favorite_border_outlined
+                        : Icons.heart_broken_outlined,
                     color: PRIMARY_COLOR,
                   ),
                   const SizedBox(height: 4.0),

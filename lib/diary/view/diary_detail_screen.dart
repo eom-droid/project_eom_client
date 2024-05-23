@@ -58,6 +58,7 @@ class _DiaryDetailScreenState extends ConsumerState<DiaryDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(diaryDetailProvider(widget.id));
+    final user = ref.watch(userProvider);
 
     if (state == null) {
       return const DefaultLayout(
@@ -88,16 +89,19 @@ class _DiaryDetailScreenState extends ConsumerState<DiaryDetailScreen> {
             if (state is DiaryDetailModel)
               _renderLikeRowAfterContent(
                 onTapLike: () {
-                  ref.read(diaryProvider.notifier).toggleLike(
-                        diaryId: state.id,
-                      );
+                  if (user is UserModel) {
+                    ref.read(diaryProvider.notifier).toggleLike(
+                          diaryId: state.id,
+                        );
+                  }
                 },
+                user: user,
                 model: state,
               ),
 
             if (state is DiaryDetailModel)
               _renderCommentCountAndInput(
-                me: ref.read(userProvider) as UserModel,
+                me: user,
                 commentCount: state.commentCount,
                 onTapAddComment: () async {
                   if (commentLoading) return;
@@ -134,6 +138,7 @@ class _DiaryDetailScreenState extends ConsumerState<DiaryDetailScreen> {
               _RenderComment(
                 id: state.id,
                 scrollController: scrollController,
+                user: user,
               ),
           ],
         ),
@@ -373,6 +378,7 @@ class _DiaryDetailScreenState extends ConsumerState<DiaryDetailScreen> {
   SliverToBoxAdapter _renderLikeRowAfterContent({
     required VoidCallback onTapLike,
     required DiaryDetailModel model,
+    required UserModelBase? user,
   }) {
     return SliverToBoxAdapter(
       child: Column(
@@ -386,7 +392,7 @@ class _DiaryDetailScreenState extends ConsumerState<DiaryDetailScreen> {
             children: [
               InkWell(
                 customBorder: const CircleBorder(),
-                onTap: onTapLike,
+                onTap: user is! UserModel ? null : onTapLike,
                 child: Padding(
                   padding: const EdgeInsets.only(
                     bottom: 8.0,
@@ -395,9 +401,11 @@ class _DiaryDetailScreenState extends ConsumerState<DiaryDetailScreen> {
                     left: 16.0,
                   ),
                   child: Icon(
-                    model.isLike
-                        ? Icons.favorite
-                        : Icons.favorite_border_outlined,
+                    user is! UserModel
+                        ? Icons.heart_broken
+                        : model.isLike
+                            ? Icons.favorite
+                            : Icons.favorite_border_outlined,
                     color: PRIMARY_COLOR,
                     size: 30.0,
                   ),
@@ -424,9 +432,10 @@ class _DiaryDetailScreenState extends ConsumerState<DiaryDetailScreen> {
     required TextEditingController controller,
     required VoidCallback onTapAddComment,
     required bool commentLoading,
-    required UserModel me,
+    required UserModelBase? me,
     required int commentCount,
   }) {
+    print(me);
     return SliverToBoxAdapter(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -448,55 +457,64 @@ class _DiaryDetailScreenState extends ConsumerState<DiaryDetailScreen> {
           const SizedBox(
             height: 16.0,
           ),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              CustomCircleAvatar(
-                url: me.profileImg,
-                size: 43,
+          if (me is! UserModel)
+            const Text(
+              "로그인 이후 작성이 가능합니다",
+              style: TextStyle(
+                color: BODY_TEXT_COLOR,
+                fontSize: 14.5,
               ),
-              const SizedBox(
-                width: 18.0,
-              ),
-              Expanded(
-                child: SizedBox(
-                  height: 32.0,
-                  child: CustomTextField(
-                    controller: controller,
-                    hintText: "댓글 추가",
+            )
+          else
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CustomCircleAvatar(
+                  url: me.profileImg,
+                  size: 43,
+                ),
+                const SizedBox(
+                  width: 18.0,
+                ),
+                Expanded(
+                  child: SizedBox(
+                    height: 32.0,
+                    child: CustomTextField(
+                      controller: controller,
+                      hintText: "댓글 추가",
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(
-                width: 8.0,
-              ),
-              InkWell(
-                onTap: onTapAddComment,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 10.0,
-                    horizontal: 12.0,
-                  ),
-                  child: commentLoading
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            color: PRIMARY_COLOR,
-                          ),
-                        )
-                      : const Text(
-                          '댓글',
-                          style: TextStyle(
-                            color: PRIMARY_COLOR,
-                            fontSize: 14.5,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
+                const SizedBox(
+                  width: 8.0,
                 ),
-              ),
-            ],
-          )
+                InkWell(
+                  onTap: onTapAddComment,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 10.0,
+                      horizontal: 12.0,
+                    ),
+                    child: commentLoading
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              color: PRIMARY_COLOR,
+                            ),
+                          )
+                        : const Text(
+                            '댓글',
+                            style: TextStyle(
+                              color: PRIMARY_COLOR,
+                              fontSize: 14.5,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                  ),
+                ),
+              ],
+            )
         ]),
       ),
     );
@@ -506,14 +524,15 @@ class _DiaryDetailScreenState extends ConsumerState<DiaryDetailScreen> {
 class _RenderComment extends ConsumerWidget {
   final String id;
   final ScrollController scrollController;
+  final UserModelBase? user;
   const _RenderComment({
     required this.id,
     required this.scrollController,
+    required this.user,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final user = ref.watch(userProvider) as UserModel;
     return SliverToBoxAdapter(
       child: DefaultScrollBasePaginationLayout<DiaryCommentModel>(
         provider: diaryCommentProvider(id),
@@ -550,7 +569,7 @@ class _RenderComment extends ConsumerWidget {
                 ),
               );
             },
-            currentUserId: user.id,
+            user: user,
           );
         },
         onRefresh: () async {
@@ -569,7 +588,7 @@ class _RenderComment extends ConsumerWidget {
     required Function(String commentId) onTapLike,
     required Function(String commentId) onDeleteComment,
     required Function(String commentId, String content) onPatchComment,
-    required String currentUserId,
+    required UserModelBase? user,
   }) {
     return Padding(
       padding: const EdgeInsets.only(
@@ -589,6 +608,7 @@ class _RenderComment extends ConsumerWidget {
         itemBuilder: (context, index) {
           final writer = cp.data[index].writer;
           return DiaryCommentCard.fromModel(
+            userState: user,
             model: cp.data[index],
             diaryId: id,
             onLike: () {
@@ -600,7 +620,9 @@ class _RenderComment extends ConsumerWidget {
             onUpdate: (String content) {
               onPatchComment(cp.data[index].id, content);
             },
-            isCommentMine: writer == null ? false : writer.id == currentUserId,
+            isCommentMine: writer == null || user is! UserModel
+                ? false
+                : writer.id == user.id,
           );
         },
       ),

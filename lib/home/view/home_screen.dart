@@ -321,7 +321,6 @@ class _FrontImagesRender extends ConsumerWidget {
                   children: [
                     RoutingButton(
                       onDiaryTap: onDiaryTap,
-                      disabled: !isLogined,
                       icon: SvgPicture.asset(
                         "asset/imgs/icons/diary.svg",
                         width: 32.0,

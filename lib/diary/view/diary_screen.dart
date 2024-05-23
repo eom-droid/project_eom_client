@@ -1,6 +1,8 @@
 import 'package:client/common/const/colors.dart';
 import 'package:client/common/layout/default_scroll_base_pagination_layout.dart';
 import 'package:client/diary/provider/diary_provider.dart';
+import 'package:client/user/model/user_model.dart';
+import 'package:client/user/provider/user_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -22,6 +24,7 @@ class DiaryScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return DefaultScrollBasePaginationLayout(
+      key: const ValueKey('diary'),
       provider: diaryProvider,
       body: (CursorPagination cp, ScrollController controller) {
         return _renderDiaryList(
@@ -55,7 +58,7 @@ class DiaryScreen extends ConsumerWidget {
             ),
           ),
           Text(
-            '뛰뛰빵빵',
+            '생생Log',
             style: TextStyle(
               color: Colors.white,
               fontSize: 32.0,
@@ -73,6 +76,7 @@ class DiaryScreen extends ConsumerWidget {
     required WidgetRef ref,
     required BuildContext context,
   }) {
+    final user = ref.watch(userProvider);
     final diaryList = cp.data;
     if (vidControllers == null) {
       vidControllers = {};
@@ -87,6 +91,7 @@ class DiaryScreen extends ConsumerWidget {
 
     // 상단에 공간을 제거하기 위해서 MediaQuery.removePadding 사용
     final ScrollController scrollController = ScrollController();
+
     return MediaQuery.removePadding(
       removeTop: true,
       context: context,
@@ -148,13 +153,16 @@ class DiaryScreen extends ConsumerWidget {
                   );
                 },
                 child: DiaryCard.fromModel(
+                  activate: user is UserModel,
                   model: diaryList[index],
                   onTapLike: () {
                     // NOTE : 추후 변경 필요
                     // 좋아요 상태가 원래 상태와 같은지를 구분하여 backend에 요청을 보내지 않는 로직이 필요함
-                    ref.read(diaryProvider.notifier).toggleLike(
-                          diaryId: diaryList[index].id,
-                        );
+                    if (user is UserModel) {
+                      ref.read(diaryProvider.notifier).toggleLike(
+                            diaryId: diaryList[index].id,
+                          );
+                    }
                   },
                 ),
               ),

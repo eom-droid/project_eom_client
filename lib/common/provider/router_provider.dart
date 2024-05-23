@@ -162,6 +162,7 @@ class RouterProvider extends ChangeNotifier {
     final loginRoute = state.matchedLocation == '/login';
     final splashRoute = state.matchedLocation == '/splash';
     final musicRoute = state.matchedLocation == '/music';
+    final diaryRoute = state.matchedLocation.contains('/diary');
     final rootRoute = state.matchedLocation == '/';
 
     // 유저 정보가 없는데
@@ -172,7 +173,7 @@ class RouterProvider extends ChangeNotifier {
     // 무조건 login페이지로 이동
 
     if (user == null || user is UserModelError) {
-      if (rootRoute || musicRoute || loginRoute) {
+      if (rootRoute || musicRoute || diaryRoute || loginRoute) {
         return null;
       } else {
         return '/';

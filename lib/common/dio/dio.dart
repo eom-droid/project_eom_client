@@ -21,6 +21,7 @@ class CustomInterceptor extends Interceptor {
   final FlutterSecureStorage storage;
   final Ref ref;
   final String baseUrl = dotenv.env['REST_API_BASE_URL']!;
+  final String clientSecret = dotenv.env['CLIENT_SCERET']!;
 
   CustomInterceptor({
     required this.ref,
@@ -35,23 +36,32 @@ class CustomInterceptor extends Interceptor {
   @override
   void onRequest(
       RequestOptions options, RequestInterceptorHandler handler) async {
+    // 추후 user Null일때 GET 이외의 요청을 불가능하게 만들어야겠다
     if (options.headers['accessToken'] == 'true') {
       // 헤더 삭제
       options.headers.remove('accessToken');
       final token = await storage.read(key: ACCESS_TOKEN_KEY);
 
       //  실제 토큰으로 대체
-      options.headers.addAll({'authorization': 'Bearer $token'});
+      // 20240523 수정
+      // token값이 null이 아닐때만 헤더에 추가
+      Map<String, dynamic> header = {
+        'cs': clientSecret,
+      };
+      if (token != null) {
+        header['authorization'] = 'Bearer $token';
+      }
+      options.headers.addAll(header);
     }
 
-    if (options.headers['refreshToken'] == 'true') {
-      // 헤더 삭제
-      options.headers.remove('refreshToken');
-      final token = await storage.read(key: REFRESH_TOKEN_KEY);
+    // if (options.headers['refreshToken'] == 'true') {
+    //   // 헤더 삭제
+    //   options.headers.remove('refreshToken');
+    //   final token = await storage.read(key: REFRESH_TOKEN_KEY);
 
-      //  실제 토큰으로 대체
-      options.headers.addAll({'authorization': 'Bearer $token'});
-    }
+    //   //  실제 토큰으로 대체
+    //   options.headers.addAll({'authorization': 'Bearer $token'});
+    // }
 
     // 요청은 이줄에서
     return super.onRequest(options, handler);

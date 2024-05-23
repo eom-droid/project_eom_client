@@ -7,7 +7,6 @@ import 'package:client/diary/model/diary_comment_model.dart';
 import 'package:client/diary/model/diary_reply_model.dart';
 import 'package:client/diary/provider/diary_reply_provider.dart';
 import 'package:client/user/model/user_model.dart';
-import 'package:client/user/provider/user_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -24,6 +23,7 @@ class DiaryCommentCard extends ConsumerStatefulWidget {
   final int replyCount;
   final VoidCallback onDelete;
   final Function(String) onUpdate;
+  final UserModelBase? userState;
 
   const DiaryCommentCard({
     super.key,
@@ -39,6 +39,7 @@ class DiaryCommentCard extends ConsumerStatefulWidget {
     required this.onDelete,
     required this.replyCount,
     required this.onUpdate,
+    required this.userState,
   });
 
   factory DiaryCommentCard.fromModel({
@@ -48,6 +49,7 @@ class DiaryCommentCard extends ConsumerStatefulWidget {
     required VoidCallback onDelete,
     required Function(String) onUpdate,
     required bool isCommentMine,
+    required UserModelBase? userState,
   }) {
     return DiaryCommentCard(
       diaryId: diaryId,
@@ -62,6 +64,7 @@ class DiaryCommentCard extends ConsumerStatefulWidget {
       onDelete: onDelete,
       onUpdate: onUpdate,
       replyCount: model.replyCount,
+      userState: userState,
     );
   }
 
@@ -89,7 +92,6 @@ class _DiaryCommentCardState extends ConsumerState<DiaryCommentCard> {
   Widget build(BuildContext context) {
     final replyState = ref.watch(diaryReplyProvider(widget.commentId));
 
-    final userState = ref.watch(userProvider) as UserModel;
     return Padding(
       padding: const EdgeInsets.symmetric(
         horizontal: 16.0,
@@ -230,27 +232,30 @@ class _DiaryCommentCardState extends ConsumerState<DiaryCommentCard> {
                                 const SizedBox(
                                   height: 5.0,
                                 ),
-                                GestureDetector(
-                                  onTap: () {
-                                    setState(() {
-                                      showReplyInput = !showReplyInput;
-                                    });
-                                  },
-                                  child: const Text(
-                                    "답글달기",
-                                    style: TextStyle(
-                                      fontSize: 12.0,
-                                      fontWeight: FontWeight.w400,
-                                      color: GRAY_TEXT_COLOR,
+                                if (widget.userState is UserModel)
+                                  GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        showReplyInput = !showReplyInput;
+                                      });
+                                    },
+                                    child: const Text(
+                                      "답글달기",
+                                      style: TextStyle(
+                                        fontSize: 12.0,
+                                        fontWeight: FontWeight.w400,
+                                        color: GRAY_TEXT_COLOR,
+                                      ),
                                     ),
                                   ),
-                                ),
                               ],
                             ),
                           ),
                           GestureDetector(
                             behavior: HitTestBehavior.opaque,
-                            onTap: widget.onLike,
+                            onTap: widget.userState is UserModel
+                                ? widget.onLike
+                                : null,
                             child: Padding(
                               padding: const EdgeInsets.all(
                                 12.0,
@@ -258,9 +263,11 @@ class _DiaryCommentCardState extends ConsumerState<DiaryCommentCard> {
                               child: Column(
                                 children: [
                                   Icon(
-                                    widget.isLike
-                                        ? Icons.favorite
-                                        : Icons.favorite_border,
+                                    widget.userState is UserModel
+                                        ? widget.isLike
+                                            ? Icons.favorite
+                                            : Icons.favorite_border
+                                        : Icons.heart_broken,
                                     size: 18.0,
                                     color: Colors.white,
                                   ),
@@ -287,9 +294,9 @@ class _DiaryCommentCardState extends ConsumerState<DiaryCommentCard> {
               ],
             ),
           ),
-          if (showReplyInput)
+          if (showReplyInput && widget.userState is UserModel)
             replyInput(
-              userState: userState,
+              userState: widget.userState as UserModel,
               controller: replyController,
               onReply: () {
                 ref
@@ -309,7 +316,7 @@ class _DiaryCommentCardState extends ConsumerState<DiaryCommentCard> {
           if (showReply && replyState is CursorPagination)
             Padding(
               padding: const EdgeInsets.only(
-                top: 8.0,
+                top: 4.0,
                 left: 56.0,
               ),
               child: ListView.separated(
@@ -323,7 +330,9 @@ class _DiaryCommentCardState extends ConsumerState<DiaryCommentCard> {
                   return GestureDetector(
                     behavior: HitTestBehavior.opaque,
                     onLongPress: reply.writer != null &&
-                            reply.writer!.id == userState.id
+                            widget.userState is UserModel &&
+                            reply.writer!.id ==
+                                (widget.userState as UserModel).id
                         ? () {
                             showDeleteDialog(
                               context: context,
@@ -476,12 +485,14 @@ class _DiaryCommentCardState extends ConsumerState<DiaryCommentCard> {
                           GestureDetector(
                             behavior: HitTestBehavior.opaque,
                             onTap: () {
-                              ref
-                                  .read(diaryReplyProvider(widget.commentId)
-                                      .notifier)
-                                  .toggleLike(
-                                    replyId: reply.id,
-                                  );
+                              if (widget.userState is UserModel) {
+                                ref
+                                    .read(diaryReplyProvider(widget.commentId)
+                                        .notifier)
+                                    .toggleLike(
+                                      replyId: reply.id,
+                                    );
+                              }
                             },
                             child: Padding(
                               padding: const EdgeInsets.symmetric(
@@ -491,9 +502,11 @@ class _DiaryCommentCardState extends ConsumerState<DiaryCommentCard> {
                               child: Column(
                                 children: [
                                   Icon(
-                                    reply.isLike
-                                        ? Icons.favorite
-                                        : Icons.favorite_border,
+                                    widget.userState is UserModel
+                                        ? reply.isLike
+                                            ? Icons.favorite
+                                            : Icons.favorite_border
+                                        : Icons.heart_broken,
                                     size: 18.0,
                                     color: Colors.white,
                                   ),
